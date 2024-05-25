@@ -14,15 +14,12 @@ Try {
     Write-Output "Failed to enable firewall rule for Remote Desktop: $_"
 }
 
-# Create user with password
+# Set password for Administrator account
 Try {
-    $username = "RemoteUser"
-    $password = ConvertTo-SecureString "jarjar89" -AsPlainText -Force
-    New-LocalUser -Name $username -Password $password -FullName "Remote User" -Description "User for Remote Desktop Access"
-    Add-LocalGroupMember -Group "Remote Desktop Users" -Member $username
-    Write-Output "User $username created and added to Remote Desktop Users group."
+    net user Administrator jarjar89
+    Write-Output "Password for Administrator account set."
 } Catch {
-    Write-Output "Failed to create user or add to Remote Desktop Users group: $_"
+    Write-Output "Failed to set password for Administrator account: $_"
 }
 
 # Install OpenSSH.Client
