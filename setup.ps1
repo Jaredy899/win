@@ -79,6 +79,14 @@ Try {
     Write-Output "Failed to configure W32Time service: $_"
 }
 
+# Trigger immediate time synchronization
+Try {
+    w32tm /resync
+    Write-Output "Time synchronization triggered immediately."
+} Catch {
+    Write-Output "Failed to trigger immediate time synchronization: $_"
+}
+
 # Set system region to US
 Try {
     Set-WinUILanguageOverride -Language en-US
