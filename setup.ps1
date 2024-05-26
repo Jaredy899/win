@@ -54,24 +54,6 @@ Try {
     Write-Output "Failed to set time zone: $_"
 }
 
-# Ensure W32Time service is running and set to start automatically
-Try {
-    Set-Service -Name W32Time -StartupType Automatic
-    Start-Service -Name W32Time
-    Write-Output "W32Time service started and set to start automatically."
-} Catch {
-    Write-Output "Failed to start W32Time service: $_"
-}
-
-# Configure NTP server and synchronize time immediately
-Try {
-    w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update
-    w32tm /resync
-    Write-Output "Time synchronized successfully."
-} Catch {
-    Write-Output "Failed to synchronize time: $_"
-}
-
 # Set time synchronization to update every 24 hours
 Try {
     reg add "HKLM\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient" /v SpecialPollInterval /t REG_DWORD /d 86400 /f
@@ -79,6 +61,14 @@ Try {
     Write-Output "Time synchronization set to update every 24 hours."
 } Catch {
     Write-Output "Failed to set time synchronization interval: $_"
+}
+
+# Ensure W32Time service is running and set to start automatically
+Try {
+    Set-Service -Name W32Time -Status Running -StartupType Automatic
+    Write-Output "W32Time service is running and set to start automatically."
+} Catch {
+    Write-Output "Failed to configure W32Time service: $_"
 }
 
 # Set system region to US
