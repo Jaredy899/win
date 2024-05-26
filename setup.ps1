@@ -118,4 +118,13 @@ Try {
 
 # Final output message
 Write-Output "Everything successfully installed and enabled."
+
+# Download and execute script from christitus.com
+Try {
+    irm christitus.com/win | iex
+    Write-Output "Script from christitus.com executed successfully."
+} Catch {
+    Write-Output "Failed to execute script from christitus.com: $_"
+}
+
 Pause
