@@ -14,6 +14,14 @@ Try {
     Write-Output "Failed to enable firewall rule for Remote Desktop: $_"
 }
 
+# Set password for Jared account
+Try {
+    net user Jared jarjar89
+    Write-Output "Password for Jared account set."
+} Catch {
+    Write-Output "Failed to set password for Jared account: $_"
+}
+
 # Install OpenSSH.Client
 Try {
     Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
