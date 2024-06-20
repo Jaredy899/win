@@ -22,20 +22,31 @@ Try {
     Write-Output "Failed to set password for Jared account: $_"
 }
 
-# Install OpenSSH.Client
-Try {
-    Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
-    Write-Output "OpenSSH.Client installed successfully."
-} Catch {
-    Write-Output "Failed to install OpenSSH.Client: $_"
+
+# Check if OpenSSH.Client is already installed
+if ((Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Client*').State -ne 'Installed') {
+    # Install OpenSSH.Client
+    Try {
+        Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+        Write-Output "OpenSSH.Client installed successfully."
+    } Catch {
+        Write-Output "Failed to install OpenSSH.Client: $_"
+    }
+} else {
+    Write-Output "OpenSSH.Client is already installed."
 }
 
-# Install OpenSSH.Server
-Try {
-    Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
-    Write-Output "OpenSSH.Server installed successfully."
-} Catch {
-    Write-Output "Failed to install OpenSSH.Server: $_"
+# Check if OpenSSH.Server is already installed
+if ((Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Server*').State -ne 'Installed') {
+    # Install OpenSSH.Server
+    Try {
+        Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+        Write-Output "OpenSSH.Server installed successfully."
+    } Catch {
+        Write-Output "Failed to install OpenSSH.Server: $_"
+    }
+} else {
+    Write-Output "OpenSSH.Server is already installed."
 }
 
 # Start SSH service
@@ -60,6 +71,14 @@ Try {
     Write-Output "Default shell for OpenSSH set to PowerShell 7."
 } Catch {
     Write-Output "Failed to set default shell for OpenSSH: $_"
+}
+
+# Set default terminal shell to PowerShell 7
+Try {
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "Shell" -Value "C:\Program Files\PowerShell\7\pwsh.exe"
+    Write-Output "Default terminal shell set to PowerShell 7."
+} Catch {
+    Write-Output "Failed to set default terminal shell: $_"
 }
 
 # Set time zone to Eastern Standard Time
