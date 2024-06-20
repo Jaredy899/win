@@ -80,14 +80,6 @@ Try {
     Write-Output "Failed to set default terminal shell: $_"
 }
 
-# Install and configure winget using the script from Chris Titus Tech
-Try {
-    irm https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/winget.ps1 | iex
-    Write-Output "winget script executed successfully."
-} Catch {
-    Write-Output "Failed to execute winget script: $_"
-}
-
 # Set time zone to Eastern Standard Time
 Try {
     tzutil /s "Eastern Standard Time"
@@ -157,6 +149,14 @@ Try {
     Write-Output "Widgets hidden in the taskbar."
 } Catch {
     Write-Output "Failed to hide Widgets in the taskbar: $_"
+}
+
+# Install and configure winget using the script from Chris Titus Tech
+Try {
+    irm https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/winget.ps1 | iex
+    Write-Output "winget script executed successfully."
+} Catch {
+    Write-Output "Failed to execute winget script: $_"
 }
 
 # Final output message
