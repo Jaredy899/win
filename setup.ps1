@@ -54,6 +54,14 @@ Try {
     Write-Output "Failed to set SSH service to start automatically: $_"
 }
 
+# Set default shell for OpenSSH
+Try {
+    New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force
+    Write-Output "Default shell for OpenSSH set to PowerShell 7."
+} Catch {
+    Write-Output "Failed to set default shell for OpenSSH: $_"
+}
+
 # Set time zone to Eastern Standard Time
 Try {
     tzutil /s "Eastern Standard Time"
