@@ -1,6 +1,6 @@
 # Enable Remote Desktop
 Try {
-    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force
+    New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force
     Write-Output "Remote Desktop enabled."
 } Catch {
     Write-Output "Failed to enable Remote Desktop: $_"
@@ -21,7 +21,6 @@ Try {
 } Catch {
     Write-Output "Failed to set password for Jared account: $_"
 }
-
 
 # Check if OpenSSH.Client is already installed
 if ((Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH.Client*').State -ne 'Installed') {
@@ -67,7 +66,7 @@ Try {
 
 # Set default shell for OpenSSH
 Try {
-    New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force
+    New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force
     Write-Output "Default shell for OpenSSH set to PowerShell 7."
 } Catch {
     Write-Output "Failed to set default shell for OpenSSH: $_"
@@ -75,10 +74,22 @@ Try {
 
 # Set default terminal shell to PowerShell 7
 Try {
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "Shell" -Value "C:\Program Files\PowerShell\7\pwsh.exe"
+    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon" -Name "Shell" -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
     Write-Output "Default terminal shell set to PowerShell 7."
 } Catch {
     Write-Output "Failed to set default terminal shell: $_"
+}
+
+# Create profile script to set PowerShell 7 as the default profile
+$profilePath = "$HOME\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1"
+Try {
+    if (-Not (Test-Path -Path $profilePath)) {
+        New-Item -ItemType File -Path $profilePath -Force
+    }
+    Add-Content -Path $profilePath -Value 'Set-Item -Path "HKCU:\\Software\\Microsoft\\PowerShell\\Core\\ConsoleHost" -Name "LastWindowTitle" -Value "PowerShell 7"'
+    Write-Output "Default profile set to PowerShell 7."
+} Catch {
+    Write-Output "Failed to set default profile: $_"
 }
 
 # Set time zone to Eastern Standard Time
@@ -89,11 +100,12 @@ Try {
     Write-Output "Failed to set time zone: $_"
 }
 
-# Set time synchronization to update every 24 hours
+# Set time synchronization interval to 1 hour
 Try {
-    reg add "HKLM\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpClient" /v SpecialPollInterval /t REG_DWORD /d 86400 /f
-    Restart-Service w32time
-    Write-Output "Time synchronization set to update every 24 hours."
+    w32tm /config /manualpeerlist:time.windows.com /syncfromflags:manual /reliable:YES /update
+    w32tm /config /update
+    w32tm /resync /rediscover
+    Write-Output "Time synchronization interval set to 1 hour."
 } Catch {
     Write-Output "Failed to set time synchronization interval: $_"
 }
@@ -121,7 +133,7 @@ Try {
     Set-WinUserLanguageList en-US -Force
     Set-Culture en-US
     Set-WinHomeLocation -GeoId 244
-    Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "GeoID" -Value 244
+    Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name "GeoID" -Value 244
     Write-Output "System region set to US."
 } Catch {
     Write-Output "Failed to set system region: $_"
@@ -129,7 +141,7 @@ Try {
 
 # Set taskbar alignment to left
 Try {
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
+    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarAl" -Value 0
     Write-Output "Taskbar alignment set to left."
 } Catch {
     Write-Output "Failed to set taskbar alignment: $_"
@@ -137,7 +149,7 @@ Try {
 
 # Hide Task View button in the taskbar
 Try {
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0
+    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "ShowTaskViewButton" -Value 0
     Write-Output "Task View button hidden in the taskbar."
 } Catch {
     Write-Output "Failed to hide Task View button in the taskbar: $_"
@@ -145,7 +157,7 @@ Try {
 
 # Hide Widgets in the taskbar
 Try {
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarDa" -Value 0
+    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarDa" -Value 0
     Write-Output "Widgets hidden in the taskbar."
 } Catch {
     Write-Output "Failed to hide Widgets in the taskbar: $_"
