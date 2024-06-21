@@ -72,18 +72,6 @@ Try {
     Write-Output "Failed to set default shell for OpenSSH: $_"
 }
 
-# Create profile script to set PowerShell 7 as the default profile
-$profilePath = "$HOME\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1"
-Try {
-    if (-Not (Test-Path -Path $profilePath)) {
-        New-Item -ItemType File -Path $profilePath -Force
-    }
-    Add-Content -Path $profilePath -Value 'Set-Item -Path "HKCU:\\Software\\Microsoft\\PowerShell\\Core\\ConsoleHost" -Name "LastWindowTitle" -Value "PowerShell 7"'
-    Write-Output "Default profile set to PowerShell 7."
-} Catch {
-    Write-Output "Failed to set default profile: $_"
-}
-
 # Set time zone to Eastern Standard Time
 Try {
     tzutil /s "Eastern Standard Time"
