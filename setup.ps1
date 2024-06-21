@@ -72,22 +72,6 @@ Try {
     Write-Output "Failed to set default shell for OpenSSH: $_"
 }
 
-# Set default terminal shell to PowerShell 7
-Try {
-    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon" -Name "Shell" -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
-    Write-Output "Default terminal shell set to PowerShell 7."
-} Catch {
-    Write-Output "Failed to set default terminal shell: $_"
-}
-
-# Set Windows Terminal as the default terminal application
-Try {
-    Set-ItemProperty -Path "HKCU:\\Console" -Name "Terminal" -Value "C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.0.1401.0_x64__8wekyb3d8bbwe\\WindowsTerminal.exe"
-    Write-Output "Windows Terminal set as the default terminal application."
-} Catch {
-    Write-Output "Failed to set Windows Terminal as the default terminal application: $_"
-}
-
 # Create profile script to set PowerShell 7 as the default profile
 $profilePath = "$HOME\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1"
 Try {
