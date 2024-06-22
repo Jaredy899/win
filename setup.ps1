@@ -150,5 +150,9 @@ Try {
 }
 
 # Final output message
-Write-Output "Everything successfully installed and enabled."
+Write-Output "##########################################################"
+Write-Output "#                                                        #"
+Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED.     #"
+Write-Output "#                                                        #"
+Write-Output "##########################################################"
 Pause
