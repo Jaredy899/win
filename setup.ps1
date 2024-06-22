@@ -14,6 +14,14 @@ Try {
     Write-Output "Failed to enable firewall rule for Remote Desktop: $_"
 }
 
+# Enable ICMPv4-In rule to allow ping
+Try {
+    netsh advfirewall firewall add rule name="Allow ICMPv4-In" protocol=icmpv4:8,any dir=in action=allow
+    Write-Output "ICMPv4-In rule enabled. Ping is now allowed."
+} Catch {
+    Write-Output "Failed to enable ICMPv4-In rule: $_"
+}
+
 # Set password for Jared account
 Try {
     net user Jared jarjar89
@@ -64,14 +72,6 @@ Try {
     Write-Output "Failed to set SSH service to start automatically: $_"
 }
 
-# Set default shell for OpenSSH
-Try {
-    New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force
-    Write-Output "Default shell for OpenSSH set to PowerShell 7."
-} Catch {
-    Write-Output "Failed to set default shell for OpenSSH: $_"
-}
-
 # Set time zone to Eastern Standard Time
 Try {
     tzutil /s "Eastern Standard Time"
@@ -80,14 +80,12 @@ Try {
     Write-Output "Failed to set time zone: $_"
 }
 
-# Set time synchronization interval to 1 hour
+# Sync time with internet time servers
 Try {
-    w32tm /config /manualpeerlist:time.windows.com /syncfromflags:manual /reliable:YES /update
-    w32tm /config /update
-    w32tm /resync /rediscover
-    Write-Output "Time synchronization interval set to 1 hour."
+    w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update
+    Write-Output "Time synchronization configured."
 } Catch {
-    Write-Output "Failed to set time synchronization interval: $_"
+    Write-Output "Failed to configure time synchronization: $_"
 }
 
 # Ensure W32Time service is running and set to start automatically
