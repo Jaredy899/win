@@ -1,1 +1,0 @@
-brew upgrade --cask alex313031-thorium raycast balenaetcher rectangle brave-browser rustdesk spotify cloudflare-warp steam commander-one sublime-text eloston-chromium tailscale firefox termius floorp the-unarchiver google-drive utm grandperspective vivaldi handbrake vlc microsoft-edge vpn-by-google-one microsoft-remote-desktop parsec raspberry-pi-imager zoom
