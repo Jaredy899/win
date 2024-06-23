@@ -4,7 +4,7 @@ set -o errexit
 set -o nounset
 IFS=$(printf '\n\t')
 
-# Docker
+# Docker, Nala, timezone
 apt install sudo -y
 sudo apt install nala -y
 sudo timedatectl set-timezone America/New_York
