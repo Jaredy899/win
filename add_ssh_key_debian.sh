@@ -22,9 +22,10 @@ else
   echo "$AUTHORIZED_KEYS already exists."
 fi
 
-# Add the public key to the authorized_keys file if not already added
+# Prompt for the public key
 read -p "Enter the public key to add: " PUBLIC_KEY
 
+# Add the public key to the authorized_keys file if not already added
 if grep -q "$PUBLIC_KEY" "$AUTHORIZED_KEYS"; then
   echo "Public key already exists in $AUTHORIZED_KEYS."
 else
