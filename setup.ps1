@@ -73,15 +73,19 @@ Try {
 }
 
 # Check if firewall rule for SSH already exists
-$firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction SilentlyContinue
-if ($firewallRule) {
+Try {
+    $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop
     Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
-} else {
-    Try {
-        New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
-        Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
-    } Catch {
-        Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $_"
+} Catch {
+    if ($_.Exception -match "Cannot find object with name 'sshd'") {
+        Try {
+            New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+            Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
+        } Catch {
+            Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $_"
+        }
+    } else {
+        Write-Output "Failed to check for existing firewall rule: $_"
     }
 }
 
