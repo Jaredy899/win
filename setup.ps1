@@ -72,6 +72,14 @@ Try {
     Write-Output "Failed to set SSH service to start automatically: $_"
 }
 
+# Configure firewall to allow SSH connections
+Try {
+    New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+    Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
+} Catch {
+    Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $_"
+}
+
 # Set default shell for OpenSSH
 Try {
     New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force
