@@ -97,36 +97,23 @@ Try {
     Write-Output "Failed to set default shell for OpenSSH: $_"
 }
 
-# Set time zone to Eastern Standard Time
+# Configure time settings and synchronization
 Try {
+    # Set time zone to Eastern Standard Time
     tzutil /s "Eastern Standard Time"
     Write-Output "Time zone set to Eastern Standard Time."
-} Catch {
-    Write-Output "Failed to set time zone: $_"
-}
 
-# Sync time with internet time servers
-Try {
+    # Sync time with internet time servers
     w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update
     Write-Output "Time synchronization configured."
-} Catch {
-    Write-Output "Failed to configure time synchronization: $_"
-}
 
-# Ensure W32Time service is running and set to start automatically
-Try {
-    Set-Service -Name W32Time -Status Running -StartupType Automatic
-    Write-Output "W32Time service is running and set to start automatically."
-} Catch {
-    Write-Output "Failed to configure W32Time service: $_"
-}
-
-# Trigger immediate time synchronization
-Try {
+    # Enable and trigger time synchronization
+    Set-Service -Name w32time -StartupType Automatic
+    Start-Service -Name w32time
     w32tm /resync
-    Write-Output "Time synchronization triggered immediately."
+    Write-Output "Time synchronization service enabled, started, and time synchronized."
 } Catch {
-    Write-Output "Failed to trigger immediate time synchronization: $_"
+    Write-Output "Failed to configure time settings or synchronization: $_"
 }
 
 # Set system region to US
