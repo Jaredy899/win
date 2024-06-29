@@ -138,43 +138,12 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
 
 # Check if Winget was installed successfully
 if (Get-Command winget -ErrorAction SilentlyContinue) {
-    # Install Thorium
+    # Install Thorium, Firefox, Powershell, VLC, gsudo, fastfetch
     Try {
-        winget install Alex313031.Thorium.AVX2 --accept-package-agreements --accept-source-agreements --silent
-        Write-Output "Thorium installed successfully."
+        winget install Alex313031.Thorium.AVX2 Mozilla.Firefox Microsoft.Powershell VideoLAN.VLC gerardog.gsudo Fastfetch-cli.Fastfetch --accept-package-agreements --accept-source-agreements --silent
+        Write-Output "Thorium, Firefox, Powershell, VLC, gsudo, and fastfetch installed successfully."
     } Catch {
-        Write-Output "Failed to install Thorium: $_"
-    }
-
-    # Install Firefox
-    Try {
-        winget install Mozilla.Firefox
-        Write-Output "Firefox installed successfully."
-    } Catch {
-        Write-Output "Failed to install Firefox: $_"
-    }
-    # Install Powershell 7
-    Try {
-        winget install Microsoft.PowerShell
-        Write-Output "Powershell installed successfully."
-    } Catch {
-        Write-Output "Failed to install Powershell: $_"
-    }
-
-    # Install VLC
-    Try {
-        winget install VideoLAN.VLC
-        Write-Output "VLC installed successfully."
-    } Catch {
-        Write-Output "Failed to install VLC: $_"
-    }
-
-    # Install gsudo
-    Try {
-        winget install gerardog.gsudo
-        Write-Output "gsudo installed successfully."
-    } Catch {
-        Write-Output "Failed to install gsudo: $_"
+        Write-Output "Failed to install Thorium, Firefox, Powershell, VLC, gsudo, fastfetch: $_"
     }
 } else {
     Write-Output "Winget installation failed. Cannot proceed with software installation."
