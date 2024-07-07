@@ -11,7 +11,7 @@ sudo apt-get install -y cron-apt
 sudo bash -c 'cat <<EOL > /etc/cron-apt/config
 APTCOMMAND=/usr/bin/apt-get
 OPTIONS="-o quiet=1"
-MAILON="never"
+MAILON="always"
 EOL'
 
 # Configure cron-apt action script for upgrades
@@ -24,12 +24,6 @@ EOL'
 sudo bash -c 'cat <<EOL > /etc/cron.d/cron-apt
 0 1 * * * root test -x /usr/sbin/cron-apt && /usr/sbin/cron-apt
 EOL'
-
-# Disable postfix if installed
-if systemctl is-active --quiet postfix; then
-    sudo systemctl stop postfix
-    sudo systemctl disable postfix
-fi
 
 # Test the cron-apt setup
 sudo cron-apt
