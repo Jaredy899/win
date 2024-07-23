@@ -38,7 +38,7 @@ if ($updates) {
 Write-Output "Listing installed updates..."
 Get-WUHistory | Format-Table -AutoSize
 
-# Define the path for the update script
+# Define the path for the update script (change this to your desired path)
 $updateScriptPath = "C:\Scripts\UpdateScript.ps1"
 
 # Ensure the directory exists
