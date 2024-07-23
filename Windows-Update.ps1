@@ -38,8 +38,16 @@ if ($updates) {
 Write-Output "Listing installed updates..."
 Get-WUHistory | Format-Table -AutoSize
 
+# Define the path for the update script
+$updateScriptPath = "C:\Scripts\UpdateScript.ps1"
+
+# Ensure the directory exists
+$updateScriptDirectory = [System.IO.Path]::GetDirectoryName($updateScriptPath)
+if (-not (Test-Path -Path $updateScriptDirectory)) {
+    New-Item -Path $updateScriptDirectory -ItemType Directory | Out-Null
+}
+
 # Create a script for daily updates
-$updateScriptPath = "C:\Path\To\UpdateScript.ps1"
 $updateScriptContent = @"
 Import-Module PSWindowsUpdate
 Install-WindowsUpdate -AcceptAll -AutoReboot
