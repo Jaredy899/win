@@ -1,7 +1,14 @@
-# Check if NuGet provider is installed, if not, install it
-if (-not (Get-PackageProvider -ListAvailable -Name NuGet)) {
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+# Function to install NuGet provider if not installed
+function Install-NuGetProvider {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    if (-not (Get-PackageProvider -ListAvailable -Name NuGet -ErrorAction SilentlyContinue)) {
+        Write-Output "NuGet provider not found. Installing NuGet provider..."
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+    }
 }
+
+# Install NuGet provider
+Install-NuGetProvider
 
 # Check if PSWindowsUpdate module is installed, if not, install it
 if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
