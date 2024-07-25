@@ -46,15 +46,14 @@ done
 printf '\nPortainer started successfully\n\n'
 
 # Homebrew
-sudo -u $USER curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/install_homebrew.sh"
-sudo -u $USER bash -c "yes '' | bash /tmp/install_homebrew.sh
+yes '' | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Configure Homebrew
-sudo -u $USER bash -c '(echo; echo "eval \$($(/home/linuxbrew/.linuxbrew/bin/brew shellenv))") >> /home/$USER/.bashrc'
-sudo -u $USER bash -c 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+(echo; echo "eval \$($(/home/linuxbrew/.linuxbrew/bin/brew shellenv))") >> /home/$USER/.bashrc'
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
 
 # Install build-essential
 sudo apt-get install build-essential -y
 
 # Install gcc using Homebrew
-sudo -u $USER bash -c "brew install gcc"
+brew install gcc
