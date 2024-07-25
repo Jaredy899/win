@@ -24,7 +24,7 @@ LATEST=$(curl -sL https://api.github.com/repos/docker/compose/releases/latest | 
 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
 sudo mkdir -p $DOCKER_CONFIG/cli-plugins
 sudo curl -sSL https://github.com/docker/compose/releases/download/$LATEST/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+sudo chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 sudo docker compose version
 
 # Portainer
