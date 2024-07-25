@@ -37,29 +37,3 @@ if ($updates) {
 # List installed updates
 Write-Output "Listing installed updates..."
 Get-WUHistory | Format-Table -AutoSize
-
-# Define the path for the update script (change this to your desired path)
-$updateScriptPath = "C:\Scripts\UpdateScript.ps1"
-
-# Ensure the directory exists
-$updateScriptDirectory = [System.IO.Path]::GetDirectoryName($updateScriptPath)
-if (-not (Test-Path -Path $updateScriptDirectory)) {
-    New-Item -Path $updateScriptDirectory -ItemType Directory | Out-Null
-}
-
-# Create a script for daily updates
-$updateScriptContent = @"
-Import-Module PSWindowsUpdate
-Install-WindowsUpdate -AcceptAll -AutoReboot
-"@
-Set-Content -Path $updateScriptPath -Value $updateScriptContent
-
-# Schedule a task to run the update script daily at 1 AM
-$Action = New-ScheduledTaskAction -Execute 'Powershell.exe' -Argument "-File `"$updateScriptPath`""
-$Trigger = New-ScheduledTaskTrigger -Daily -At 1am
-$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-
-Register-ScheduledTask -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -TaskName "Daily Windows Update" -Description "Run Windows Update daily at 1 AM"
-
-Write-Output "Scheduled task 'Daily Windows Update' has been created to run daily at 1 AM."
