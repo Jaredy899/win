@@ -46,7 +46,7 @@ done
 printf '\nPortainer started successfully\n\n'
 
 # Homebrew
-sudo curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/install_homebrew.sh"
+sudo -u $USER curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh -o /tmp/install_homebrew.sh"
 sudo -u $USER bash -c "yes '' | bash /tmp/install_homebrew.sh
 
 # Configure Homebrew
