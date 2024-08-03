@@ -116,42 +116,42 @@ Try {
     Write-Output "Failed to configure time settings or synchronization: $_"
 }
 
-# Set system region to US
-Try {
-    Set-WinUILanguageOverride -Language en-US
-    Set-WinSystemLocale -SystemLocale en-US
-    Set-WinUserLanguageList en-US -Force
-    Set-Culture en-US
-    Set-WinHomeLocation -GeoId 244
-    Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name "GeoID" -Value 244
-    Write-Output "System region set to US."
-} Catch {
-    Write-Output "Failed to set system region: $_"
-}
+# # Set system region to US
+# Try {
+#     Set-WinUILanguageOverride -Language en-US
+#     Set-WinSystemLocale -SystemLocale en-US
+#     Set-WinUserLanguageList en-US -Force
+#     Set-Culture en-US
+#     Set-WinHomeLocation -GeoId 244
+#     Set-ItemProperty -Path "HKCU:\\Control Panel\\International" -Name "GeoID" -Value 244
+#     Write-Output "System region set to US."
+# } Catch {
+#     Write-Output "Failed to set system region: $_"
+# }
 
-# Set taskbar alignment to left
-Try {
-    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarAl" -Value 0
-    Write-Output "Taskbar alignment set to left."
-} Catch {
-    Write-Output "Failed to set taskbar alignment: $_"
-}
+# # Set taskbar alignment to left
+# Try {
+#     Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarAl" -Value 0
+#     Write-Output "Taskbar alignment set to left."
+# } Catch {
+#     Write-Output "Failed to set taskbar alignment: $_"
+# }
 
-# Hide Task View button in the taskbar
-Try {
-    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "ShowTaskViewButton" -Value 0
-    Write-Output "Task View button hidden in the taskbar."
-} Catch {
-    Write-Output "Failed to hide Task View button in the taskbar: $_"
-}
+# # Hide Task View button in the taskbar
+# Try {
+#     Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "ShowTaskViewButton" -Value 0
+#     Write-Output "Task View button hidden in the taskbar."
+# } Catch {
+#     Write-Output "Failed to hide Task View button in the taskbar: $_"
+# }
 
-# Hide Widgets in the taskbar
-Try {
-    Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarDa" -Value 0
-    Write-Output "Widgets hidden in the taskbar."
-} Catch {
-    Write-Output "Failed to hide Widgets in the taskbar: $_"
-}
+# # Hide Widgets in the taskbar
+# Try {
+#     Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarDa" -Value 0
+#     Write-Output "Widgets hidden in the taskbar."
+# } Catch {
+#     Write-Output "Failed to hide Widgets in the taskbar: $_"
+# }
 
 # Final output message
 Write-Output "##########################################################"
