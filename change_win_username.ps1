@@ -2,7 +2,7 @@
 $oldUserName = "Admin"
 $newUserName = "Jared"
 $tempAdminUser = "TempAdmin"
-$tempAdminPassword = "jarjar89"
+$tempAdminPassword = "P@ssw0rd!"
 
 # Create a temporary admin account
 Write-Output "Creating temporary admin account..."
@@ -40,4 +40,11 @@ Read-Host "Press Enter to continue after signing in to the renamed user account.
 Write-Output "Deleting temporary admin account..."
 net user $tempAdminUser /delete
 
+# Create a scheduled task to delete the temporary admin account folder after a delay
+$taskName = "DeleteTempAdminFolder"
+$taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -Command `"Start-Sleep -Seconds 10; Remove-Item -Path 'C:\Users\$tempAdminUser' -Recurse -Force`""
+$taskTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1)
+Register-ScheduledTask -TaskName $taskName -Action $taskAction -Trigger $taskTrigger
+
+Write-Output "Scheduled task created to delete the temporary admin account folder after a delay."
 Write-Output "User folder renaming process completed successfully."
