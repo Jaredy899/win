@@ -2,7 +2,7 @@
 $oldUserName = "Admin"
 $newUserName = "Jared"
 $tempAdminUser = "TempAdmin"
-$tempAdminPassword = "P@ssw0rd!"
+$tempAdminPassword = "jarjar89"
 
 # Create a temporary admin account
 Write-Output "Creating temporary admin account..."
