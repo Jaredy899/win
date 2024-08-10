@@ -40,10 +40,6 @@ if ($updates -and $updates.Count -gt 0) {
     Write-Output "No updates are available."
 }
 
-# List installed updates
-Write-Output "Listing installed updates..."
-Get-WUHistory | Where-Object { $_.Result -eq "Installed" } | Format-Table -AutoSize -ErrorAction SilentlyContinue
-
 # Prompt to start the setup script
 $startSetup = Read-Host "Do you want to start the setup script from GitHub? (yes/y/enter for yes, no/n for no)"
 if ($startSetup -eq "yes" -or $startSetup -eq "y" -or [string]::IsNullOrEmpty($startSetup)) {
