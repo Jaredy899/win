@@ -18,9 +18,22 @@ function Install-Applications {
 
         foreach ($app in $applications) {
             Try {
-                Write-Output "Installing or updating $($app.name)..."
-                winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
-                Write-Output "$($app.name) installed or updated successfully."
+                $installedApp = winget list --id $app.id --source winget | Select-String -Pattern $app.id
+                if ($installedApp) {
+                    Write-Output "$($app.name) is already installed. Checking for updates..."
+                    $updateAvailable = winget upgrade --id $app.id --source winget | Select-String -Pattern $app.id
+                    if ($updateAvailable) {
+                        Write-Output "Updating $($app.name)..."
+                        winget upgrade --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
+                        Write-Output "$($app.name) updated successfully."
+                    } else {
+                        Write-Output "$($app.name) is already up to date."
+                    }
+                } else {
+                    Write-Output "Installing $($app.name)..."
+                    winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
+                    Write-Output "$($app.name) installed successfully."
+                }
             } Catch {
                 Write-Output "Failed to install or update $($app.name): $($_)"
             }
@@ -56,5 +69,10 @@ $profilePath = [System.IO.Path]::Combine($env:USERPROFILE, 'Documents\PowerShell
 if (-not (Test-Path -Path $profilePath)) {
     New-Item -ItemType File -Path $profilePath -Force
 }
-Add-Content -Path $profilePath -Value $profileContent
-Write-Output "Aliases and functions added to PowerShell profile."
+$existingProfileContent = Get-Content -Path $profilePath -Raw
+if ($existingProfileContent -notcontains $profileContent) {
+    Add-Content -Path $profilePath -Value $profileContent
+    Write-Output "Aliases and functions added to PowerShell profile."
+} else {
+    Write-Output "Aliases and functions already exist in PowerShell profile."
+}
