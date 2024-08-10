@@ -3,7 +3,7 @@ function Enable-RemoteDesktop {
         New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force
         Write-Output "Remote Desktop enabled."
     } Catch {
-        Write-Output "Failed to enable Remote Desktop: $_"
+        Write-Output "Failed to enable Remote Desktop: $($_)"
     }
 }
 
@@ -20,9 +20,9 @@ function Enable-FirewallRule {
         } else {
             netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes
         }
-        Write-Output "$ruleName rule enabled."
+        Write-Output "${ruleName} rule enabled."
     } Catch {
-        Write-Output "Failed to enable $ruleName rule: $_"
+        Write-Output "Failed to enable ${ruleName} rule: $($_)"
     }
 }
 
@@ -33,9 +33,9 @@ function Set-UserPassword {
     )
     Try {
         net user "$username" "$password"
-        Write-Output "Password for $username account set."
+        Write-Output "Password for ${username} account set."
     } Catch {
-        Write-Output "Failed to set password for $username account: $_"
+        Write-Output "Failed to set password for ${username} account: $($_)"
     }
 }
 
@@ -46,12 +46,12 @@ function Install-WindowsCapability {
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
             Add-WindowsCapability -Online -Name "$capabilityName"
-            Write-Output "$capabilityName installed successfully."
+            Write-Output "${capabilityName} installed successfully."
         } Catch {
-            Write-Output "Failed to install $capabilityName: $_"
+            Write-Output "Failed to install ${capabilityName}: $($_)"
         }
     } else {
-        Write-Output "$capabilityName is already installed."
+        Write-Output "${capabilityName} is already installed."
     }
 }
 
@@ -61,7 +61,7 @@ function Configure-SSH {
         Set-Service -Name sshd -StartupType 'Automatic'
         Write-Output "SSH service started and set to start automatically."
     } Catch {
-        Write-Output "Failed to configure SSH service: $_"
+        Write-Output "Failed to configure SSH service: $($_)"
     }
 
     Try {
@@ -73,10 +73,10 @@ function Configure-SSH {
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
                 Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
             } Catch {
-                Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $_"
+                Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
             }
         } else {
-            Write-Output "Failed to check for existing firewall rule: $_"
+            Write-Output "Failed to check for existing firewall rule: $($_)"
         }
     }
 
@@ -84,7 +84,7 @@ function Configure-SSH {
         New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force
         Write-Output "Default shell for OpenSSH set to PowerShell 7."
     } Catch {
-        Write-Output "Failed to set default shell for OpenSSH: $_"
+        Write-Output "Failed to set default shell for OpenSSH: $($_)"
     }
 }
 
@@ -97,7 +97,7 @@ function Configure-TimeSettings {
         w32tm /resync
         Write-Output "Time settings configured and synchronized."
     } Catch {
-        Write-Output "Failed to configure time settings or synchronization: $_"
+        Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
 }
 
