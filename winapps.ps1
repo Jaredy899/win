@@ -11,7 +11,7 @@ function Install-Applications {
             @{ id = "Parsec.Parsec"; name = "Parsec" },
             @{ id = "Tailscale.Tailscale"; name = "Tailscale" },
             @{ id = "Termius.Termius"; name = "Termius" },
-            @{ id = "Tabby.Tabby"; name = "Tabby" },
+            @{ id = "Eugeny.Tabby"; name = "Tabby" },
             @{ id = "Anysphere.Cursor"; name = "Cursor" }
         )
 
