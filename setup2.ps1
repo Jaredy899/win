@@ -118,6 +118,43 @@ function Install-Winget {
     }
 }
 
+function Install-PowerShell {
+    Try {
+        if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+            Write-Output "PowerShell not found. Installing PowerShell..."
+            winget install --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
+            Write-Output "PowerShell installed successfully."
+        } else {
+            Write-Output "PowerShell is already installed. Updating PowerShell..."
+            winget upgrade --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
+            Write-Output "PowerShell updated successfully."
+        }
+    } Catch {
+        Write-Output "Failed to install or update PowerShell: $($_)"
+    }
+}
+
+function Set-DefaultShell {
+    Try {
+        $profilePath = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
+        if (Test-Path $profilePath) {
+            $settings = Get-Content $profilePath -Raw | ConvertFrom-Json
+            $powershellProfile = $settings.profiles.list | Where-Object { $_.name -eq "PowerShell" }
+            if ($powershellProfile) {
+                $settings.defaultProfile = $powershellProfile.guid
+                $settings | ConvertTo-Json -Depth 32 | Set-Content $profilePath
+                Write-Output "PowerShell set as the default shell for Windows Terminal."
+            } else {
+                Write-Output "PowerShell profile not found in Windows Terminal settings."
+            }
+        } else {
+            Write-Output "Windows Terminal settings file not found."
+        }
+    } Catch {
+        Write-Output "Failed to set PowerShell as the default shell: $($_)"
+    }
+}
+
 # Main script execution
 Enable-RemoteDesktop
 Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
@@ -128,6 +165,8 @@ Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
 Configure-SSH
 Configure-TimeSettings
 Install-Winget
+Install-PowerShell
+Set-DefaultShell
 
 Write-Output "##########################################################"
 Write-Output "#                                                        #"
