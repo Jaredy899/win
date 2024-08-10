@@ -1,6 +1,6 @@
 function Enable-RemoteDesktop {
     Try {
-        New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force
+        New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
         Write-Output "Remote Desktop enabled."
     } Catch {
         Write-Output "Failed to enable Remote Desktop: $($_)"
@@ -16,9 +16,9 @@ function Enable-FirewallRule {
     )
     Try {
         if ($protocol -and $localPort) {
-            netsh advfirewall firewall add rule name="$ruleName" protocol="$protocol" dir=in action=allow
+            netsh advfirewall firewall add rule name="$ruleName" protocol="$protocol" dir=in action=allow *>$null
         } else {
-            netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes
+            netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes *>$null
         }
         Write-Output "${ruleName} rule enabled."
     } Catch {
@@ -32,7 +32,7 @@ function Set-UserPassword {
         [string]$password
     )
     Try {
-        net user "$username" "$password"
+        net user "$username" "$password" *>$null
         Write-Output "Password for ${username} account set."
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
@@ -45,7 +45,7 @@ function Install-WindowsCapability {
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
-            Add-WindowsCapability -Online -Name "$capabilityName"
+            Add-WindowsCapability -Online -Name "$capabilityName" *>$null
             Write-Output "${capabilityName} installed successfully."
         } Catch {
             Write-Output "Failed to install ${capabilityName}: $($_)"
@@ -57,20 +57,20 @@ function Install-WindowsCapability {
 
 function Configure-SSH {
     Try {
-        Start-Service sshd
-        Set-Service -Name sshd -StartupType 'Automatic'
+        Start-Service sshd *>$null
+        Set-Service -Name sshd -StartupType 'Automatic' *>$null
         Write-Output "SSH service started and set to start automatically."
     } Catch {
         Write-Output "Failed to configure SSH service: $($_)"
     }
 
     Try {
-        $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop
+        $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
         Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
     } Catch {
         if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
-                New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+                New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 *>$null
                 Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
             } Catch {
                 Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
@@ -81,7 +81,7 @@ function Configure-SSH {
     }
 
     Try {
-        New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force
+        New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force *>$null
         Write-Output "Default shell for OpenSSH set to PowerShell 7."
     } Catch {
         Write-Output "Failed to set default shell for OpenSSH: $($_)"
@@ -90,11 +90,11 @@ function Configure-SSH {
 
 function Configure-TimeSettings {
     Try {
-        tzutil /s "Eastern Standard Time"
-        w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update
-        Set-Service -Name w32time -StartupType Automatic
-        Start-Service -Name w32time
-        w32tm /resync
+        tzutil /s "Eastern Standard Time" *>$null
+        w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
+        Set-Service -Name w32time -StartupType Automatic *>$null
+        Start-Service -Name w32time *>$null
+        w32tm /resync *>$null
         Write-Output "Time settings configured and synchronized."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
