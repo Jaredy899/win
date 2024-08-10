@@ -16,9 +16,9 @@ function Enable-FirewallRule {
     )
     Try {
         if ($protocol -and $localPort) {
-            netsh advfirewall firewall add rule name=$ruleName protocol=$protocol dir=in action=allow
+            netsh advfirewall firewall add rule name="$ruleName" protocol="$protocol" dir=in action=allow
         } else {
-            netsh advfirewall firewall set rule group=$ruleGroup new enable=Yes
+            netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes
         }
         Write-Output "$ruleName rule enabled."
     } Catch {
@@ -32,7 +32,7 @@ function Set-UserPassword {
         [string]$password
     )
     Try {
-        net user $username $password
+        net user "$username" "$password"
         Write-Output "Password for $username account set."
     } Catch {
         Write-Output "Failed to set password for $username account: $_"
@@ -45,7 +45,7 @@ function Install-WindowsCapability {
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
-            Add-WindowsCapability -Online -Name $capabilityName
+            Add-WindowsCapability -Online -Name "$capabilityName"
             Write-Output "$capabilityName installed successfully."
         } Catch {
             Write-Output "Failed to install $capabilityName: $_"
