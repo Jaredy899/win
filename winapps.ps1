@@ -39,7 +39,6 @@ Write-Output "#                                                        #"
 Write-Output "#     APPLICATIONS SUCCESSFULLY INSTALLED OR UPDATED     #"
 Write-Output "#                                                        #"
 Write-Output "##########################################################"
-Pause
 
 # Add to PowerShell profile
 $profileContent = @"
