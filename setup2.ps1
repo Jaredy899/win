@@ -55,6 +55,29 @@ function Install-WindowsCapability {
     }
 }
 
+function Install-Winget {
+    Try {
+        if (-Not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
+            Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
+            Write-Output "winget installed successfully."
+        } else {
+            Write-Output "winget is already installed."
+        }
+    } Catch {
+        Write-Output "Failed to install winget: $($_)"
+    }
+}
+
+function Upgrade-PowerShell {
+    Try {
+        winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
+        Write-Output "PowerShell upgraded successfully."
+    } Catch {
+        Write-Output "Failed to upgrade PowerShell: $($_)"
+    }
+}
+
 function Configure-SSH {
     Try {
         Start-Service sshd *>$null
@@ -108,6 +131,8 @@ Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8
 Set-UserPassword -username "Jared" -password "jarjar89"
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
+Install-Winget
+Upgrade-PowerShell
 Configure-SSH
 Configure-TimeSettings
 
