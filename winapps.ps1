@@ -7,20 +7,16 @@ function Install-Applications {
             Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
             Write-Output "winget installed successfully."
         } else {
-            Write-Output "winget is already installed. Updating winget..."
-            winget upgrade --id Microsoft.DesktopAppInstaller -e --accept-source-agreements --accept-package-agreements *>$null
-            Write-Output "winget updated successfully."
+            Write-Output "winget is already installed."
         }
 
-        # Install or update PowerShell
+        # Ensure PowerShell is installed
         if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
             Write-Output "PowerShell not found. Installing PowerShell..."
             winget install --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
             Write-Output "PowerShell installed successfully."
         } else {
-            Write-Output "PowerShell is already installed. Updating PowerShell..."
-            winget upgrade --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
-            Write-Output "PowerShell updated successfully."
+            Write-Output "PowerShell is already installed."
         }
 
         # Install or update other applications
