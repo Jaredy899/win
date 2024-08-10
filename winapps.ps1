@@ -42,8 +42,13 @@ function Install-Applications {
                             $item = $folder.Items() | Where-Object { $_.Name -eq $app.name }
                             if ($item) {
                                 try {
-                                    $item.InvokeVerb("taskbarpin")
-                                    Write-Output "$($app.name) pinned to taskbar."
+                                    $verb = $item.Verbs() | Where-Object { $_.Name -eq "Pin to taskbar" }
+                                    if ($verb) {
+                                        $verb.DoIt()
+                                        Write-Output "$($app.name) pinned to taskbar."
+                                    } else {
+                                        Write-Output "Pin to taskbar option not found for $($app.name)."
+                                    }
                                 } catch {
                                     Write-Output "Failed to pin $($app.name) to taskbar: $($_)"
                                 }
@@ -62,12 +67,17 @@ function Install-Applications {
                         $msStore = $shell.NameSpace($msStorePath)
                         $msStore.Items() | ForEach-Object {
                             try {
-                                $_.InvokeVerb("unpin from taskbar")
+                                $verb = $_.Verbs() | Where-Object { $_.Name -eq "Unpin from taskbar" }
+                                if ($verb) {
+                                    $verb.DoIt()
+                                    Write-Output "Microsoft Store unpinned from taskbar."
+                                } else {
+                                    Write-Output "Unpin from taskbar option not found for Microsoft Store."
+                                }
                             } catch {
                                 Write-Output "Failed to unpin Microsoft Store: $($_)"
                             }
                         }
-                        Write-Output "Microsoft Store unpinned from taskbar."
                     } else {
                         Write-Output "Microsoft Store not found."
                     }
