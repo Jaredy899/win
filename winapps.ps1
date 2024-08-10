@@ -41,24 +41,40 @@ function Install-Applications {
                             $folder = $shell.Namespace((Get-Item $appPath).DirectoryName)
                             $item = $folder.Items() | Where-Object { $_.Name -eq $app.name }
                             if ($item) {
-                                $item.InvokeVerb("taskbarpin")
-                                Write-Output "$($app.name) pinned to taskbar."
+                                try {
+                                    $item.InvokeVerb("taskbarpin")
+                                    Write-Output "$($app.name) pinned to taskbar."
+                                } catch {
+                                    Write-Output "Failed to pin $($app.name) to taskbar: $($_)"
+                                }
+                            } else {
+                                Write-Output "$($app.name) not found in the directory."
+                            }
+                        } else {
+                            Write-Output "Application path for $($app.name) not found."
+                        }
+                    }
+
+                    # Unpin Microsoft Store from the taskbar
+                    $msStorePath = "C:\Program Files\WindowsApps\Microsoft.Store_*\Microsoft.Store.appx"
+                    if (Test-Path $msStorePath) {
+                        $shell = New-Object -ComObject Shell.Application
+                        $msStore = $shell.NameSpace($msStorePath)
+                        $msStore.Items() | ForEach-Object {
+                            try {
+                                $_.InvokeVerb("unpin from taskbar")
+                            } catch {
+                                Write-Output "Failed to unpin Microsoft Store: $($_)"
                             }
                         }
+                        Write-Output "Microsoft Store unpinned from taskbar."
+                    } else {
+                        Write-Output "Microsoft Store not found."
                     }
                 }
             } Catch {
                 Write-Output "Failed to install or update $($app.name): $($_)"
             }
-        }
-
-        # Unpin Microsoft Store from the taskbar
-        $msStorePath = "C:\Program Files\WindowsApps\Microsoft.Store_*\Microsoft.Store.appx"
-        if (Test-Path $msStorePath) {
-            $shell = New-Object -ComObject Shell.Application
-            $msStore = $shell.NameSpace($msStorePath)
-            $msStore.Items() | ForEach-Object { $_.InvokeVerb("unpin from taskbar") }
-            Write-Output "Microsoft Store unpinned from taskbar."
         }
 
     } Catch {
