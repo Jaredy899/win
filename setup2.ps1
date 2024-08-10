@@ -101,6 +101,23 @@ function Configure-TimeSettings {
     }
 }
 
+function Install-Winget {
+    Try {
+        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Write-Output "winget not found. Installing winget..."
+            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
+            Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
+            Write-Output "winget installed successfully."
+        } else {
+            Write-Output "winget is already installed. Updating winget..."
+            winget upgrade --id Microsoft.DesktopAppInstaller -e --accept-source-agreements --accept-package-agreements *>$null
+            Write-Output "winget updated successfully."
+        }
+    } Catch {
+        Write-Output "Failed to install or update winget: $($_)"
+    }
+}
+
 # Main script execution
 Enable-RemoteDesktop
 Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
@@ -110,6 +127,7 @@ Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
 Configure-SSH
 Configure-TimeSettings
+Install-Winget
 
 Write-Output "##########################################################"
 Write-Output "#                                                        #"
