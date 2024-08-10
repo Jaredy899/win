@@ -8,7 +8,6 @@ function Install-Applications {
             @{ id = "Nushell.Nushell"; name = "Nushell" },
             @{ id = "VideoLAN.VLC"; name = "VLC" },
             @{ id = "gerardog.gsudo"; name = "gsudo" },
-            @{ id = "AnyBurn.AnyBurn"; name = "AnyBurn" },
             @{ id = "Parsec.Parsec"; name = "Parsec" },
             @{ id = "Tailscale.Tailscale"; name = "Tailscale" },
             @{ id = "Termius.Termius"; name = "Termius" },
