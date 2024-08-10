@@ -88,6 +88,26 @@ function Install-PowerShell {
     }
 }
 
+function Install-Fastfetch {
+    Try {
+        Write-Output "Installing Fastfetch..."
+        winget install --id fastfetch --source winget --accept-source-agreements --accept-package-agreements *>$null
+        Write-Output "Fastfetch installed successfully."
+    } Catch {
+        Write-Output "Failed to install Fastfetch: $($_)"
+    }
+}
+
+function Install-Firefox {
+    Try {
+        Write-Output "Installing Firefox..."
+        winget install --id Mozilla.Firefox --source winget --accept-source-agreements --accept-package-agreements *>$null
+        Write-Output "Firefox installed successfully."
+    } Catch {
+        Write-Output "Failed to install Firefox: $($_)"
+    }
+}
+
 function Configure-SSH {
     Try {
         Start-Service sshd *>$null
@@ -143,6 +163,8 @@ Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
 Install-Winget
 Install-PowerShell
+Install-Fastfetch
+Install-Firefox
 Configure-SSH
 Configure-TimeSettings
 
