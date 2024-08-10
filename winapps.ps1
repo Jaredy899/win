@@ -1,24 +1,5 @@
 function Install-Applications {
     Try {
-        # Ensure winget is installed
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            Write-Output "winget not found. Installing winget..."
-            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Write-Output "winget installed successfully."
-        } else {
-            Write-Output "winget is already installed."
-        }
-
-        # Ensure PowerShell is installed
-        if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
-            Write-Output "PowerShell not found. Installing PowerShell..."
-            winget install --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
-            Write-Output "PowerShell installed successfully."
-        } else {
-            Write-Output "PowerShell is already installed."
-        }
-
         # Install or update other applications
         $applications = @(
             @{ id = "fastfetch"; name = "Fastfetch" },
@@ -59,3 +40,22 @@ Write-Output "#     APPLICATIONS SUCCESSFULLY INSTALLED OR UPDATED     #"
 Write-Output "#                                                        #"
 Write-Output "##########################################################"
 Pause
+
+# Add to PowerShell profile
+$profileContent = @"
+Set-Alias ff fastfetch
+function Invoke-apps {
+    winget update --all --include-unknown
+}
+Set-Alias apps Invoke-apps
+function codes {
+    Set-Location -Path "G:\My Drive\Codes"
+}
+"@
+
+$profilePath = [System.IO.Path]::Combine($env:USERPROFILE, 'Documents\PowerShell\Microsoft.PowerShell_profile.ps1')
+if (-not (Test-Path -Path $profilePath)) {
+    New-Item -ItemType File -Path $profilePath -Force
+}
+Add-Content -Path $profilePath -Value $profileContent
+Write-Output "Aliases and functions added to PowerShell profile."
