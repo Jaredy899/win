@@ -98,3 +98,6 @@ if ($existingProfileContent -notcontains $profileContent) {
 } else {
     Write-Output "Aliases and functions already exist in PowerShell profile."
 }
+
+# Reload the PowerShell profile to apply changes
+. $profilePath
