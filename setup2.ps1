@@ -80,7 +80,7 @@ function Install-Applications {
             Write-Output "PowerShell updated successfully."
         }
 
-        # Install other applications
+        # Install or update other applications
         $applications = @(
             @{ id = "fastfetch"; name = "Fastfetch" },
             @{ id = "Mozilla.Firefox"; name = "Firefox" },
@@ -98,11 +98,11 @@ function Install-Applications {
 
         foreach ($app in $applications) {
             Try {
-                Write-Output "Installing $($app.name)..."
-                winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements *>$null
-                Write-Output "$($app.name) installed successfully."
+                Write-Output "Installing or updating $($app.name)..."
+                winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
+                Write-Output "$($app.name) installed or updated successfully."
             } Catch {
-                Write-Output "Failed to install $($app.name): $($_)"
+                Write-Output "Failed to install or update $($app.name): $($_)"
             }
         }
 
