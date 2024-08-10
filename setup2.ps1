@@ -55,8 +55,9 @@ function Install-WindowsCapability {
     }
 }
 
-function Install-Winget {
+function Install-Applications {
     Try {
+        # Ensure winget is installed
         if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
             Write-Output "winget not found. Installing winget..."
             Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
@@ -67,13 +68,8 @@ function Install-Winget {
             winget upgrade --id Microsoft.DesktopAppInstaller -e --accept-source-agreements --accept-package-agreements *>$null
             Write-Output "winget updated successfully."
         }
-    } Catch {
-        Write-Output "Failed to install or update winget: $($_)"
-    }
-}
 
-function Install-PowerShell {
-    Try {
+        # Install or update PowerShell
         if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
             Write-Output "PowerShell not found. Installing PowerShell..."
             winget install --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
@@ -83,28 +79,35 @@ function Install-PowerShell {
             winget upgrade --id Microsoft.Powershell --source winget --accept-source-agreements --accept-package-agreements *>$null
             Write-Output "PowerShell updated successfully."
         }
-    } Catch {
-        Write-Output "Failed to install or update PowerShell: $($_)"
-    }
-}
 
-function Install-Fastfetch {
-    Try {
-        Write-Output "Installing Fastfetch..."
-        winget install --id fastfetch --source winget --accept-source-agreements --accept-package-agreements *>$null
-        Write-Output "Fastfetch installed successfully."
-    } Catch {
-        Write-Output "Failed to install Fastfetch: $($_)"
-    }
-}
+        # Install other applications
+        $applications = @(
+            @{ id = "fastfetch"; name = "Fastfetch" },
+            @{ id = "Mozilla.Firefox"; name = "Firefox" },
+            @{ id = "7zip.7zip"; name = "7zip" },
+            @{ id = "Nushell.Nushell"; name = "Nushell" },
+            @{ id = "VideoLAN.VLC"; name = "VLC" },
+            @{ id = "gerardog.gsudo"; name = "gsudo" },
+            @{ id = "AnyBurn.AnyBurn"; name = "AnyBurn" },
+            @{ id = "Parsec.Parsec"; name = "Parsec" },
+            @{ id = "Tailscale.Tailscale"; name = "Tailscale" },
+            @{ id = "Termius.Termius"; name = "Termius" },
+            @{ id = "Tabby.Tabby"; name = "Tabby" },
+            @{ id = "Anysphere.Cursor"; name = "Cursor" }
+        )
 
-function Install-Firefox {
-    Try {
-        Write-Output "Installing Firefox..."
-        winget install --id Mozilla.Firefox --source winget --accept-source-agreements --accept-package-agreements *>$null
-        Write-Output "Firefox installed successfully."
+        foreach ($app in $applications) {
+            Try {
+                Write-Output "Installing $($app.name)..."
+                winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements *>$null
+                Write-Output "$($app.name) installed successfully."
+            } Catch {
+                Write-Output "Failed to install $($app.name): $($_)"
+            }
+        }
+
     } Catch {
-        Write-Output "Failed to install Firefox: $($_)"
+        Write-Output "Failed to install applications: $($_)"
     }
 }
 
@@ -161,10 +164,7 @@ Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8
 Set-UserPassword -username "Jared" -password "jarjar89"
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
-Install-Winget
-Install-PowerShell
-Install-Fastfetch
-Install-Firefox
+Install-Applications
 Configure-SSH
 Configure-TimeSettings
 
