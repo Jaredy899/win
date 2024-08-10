@@ -141,4 +141,3 @@ Write-Output "#                                                        #"
 Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      #"
 Write-Output "#                                                        #"
 Write-Output "##########################################################"
-Pause
