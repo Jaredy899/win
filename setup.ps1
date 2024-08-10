@@ -39,6 +39,9 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
         # Install available updates
         Write-Output "Installing updates..."
         Install-WindowsUpdate -AcceptAll -AutoReboot -ErrorAction SilentlyContinue
+
+        # Wait for the update installation to complete
+        Start-Sleep -Seconds 60  # Adjust the duration as needed
     } else {
         Write-Output "No updates are available."
     }
