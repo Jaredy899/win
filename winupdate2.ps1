@@ -42,7 +42,7 @@ if ($updates -and $updates.Count -gt 0) {
 
 # List installed updates
 Write-Output "Listing installed updates..."
-Get-WUHistory | Format-Table -AutoSize -ErrorAction SilentlyContinue
+Get-WUHistory | Where-Object { $_.Result -eq "Installed" } | Format-Table -AutoSize -ErrorAction SilentlyContinue
 
 # Prompt to start the setup script
 $startSetup = Read-Host "Do you want to start the setup script from GitHub? (yes/y/enter for yes, no/n for no)"
