@@ -2,7 +2,7 @@ function Install-Applications {
     Try {
         # Install or update other applications
         $applications = @(
-            @{ id = "fastfetch"; name = "Fastfetch" },
+            @{ id = "Fastfetch-cli.Fastfetch"; name = "Fastfetch" },
             @{ id = "Mozilla.Firefox"; name = "Firefox" },
             @{ id = "7zip.7zip"; name = "7zip" },
             @{ id = "Nushell.Nushell"; name = "Nushell" },
