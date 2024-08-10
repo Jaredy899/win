@@ -47,7 +47,7 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
 }
 
 # Prompt to start the setup script
-$startSetup = Read-Host "Do you want to start the setup script from GitHub? (yes/y/enter for yes, no/n for no)"
+$startSetup = Read-Host "Do you want to start the Setup script? (yes/y/enter for yes, no/n for no)"
 if ($startSetup -eq "yes" -or $startSetup -eq "y" -or [string]::IsNullOrEmpty($startSetup)) {
     # Download and run the setup script
     Write-Output "Downloading and running the setup script..."
@@ -58,7 +58,7 @@ if ($startSetup -eq "yes" -or $startSetup -eq "y" -or [string]::IsNullOrEmpty($s
 }
 
 # Prompt to start the winapps script
-$startWinApps = Read-Host "Do you want to start the winapps script from GitHub? (yes/y/enter for yes, no/n for no)"
+$startWinApps = Read-Host "Do you want to install and update apps? (yes/y/enter for yes, no/n for no)"
 if ($startWinApps -eq "yes" -or $startWinApps -eq "y" -or [string]::IsNullOrEmpty($startWinApps)) {
     # Download and run the winapps script
     Write-Output "Downloading and running the winapps script..."
