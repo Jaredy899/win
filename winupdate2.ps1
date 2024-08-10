@@ -26,7 +26,7 @@ if (-not (Get-Module -Name PSWindowsUpdate)) {
 
 # Check for available updates
 Write-Output "Checking for available updates..."
-$updates = Get-WindowsUpdate -ErrorAction SilentlyContinue
+$updates = Get-WindowsUpdate -ErrorAction SilentlyContinue | Where-Object { $_.IsInstalled -eq $false }
 
 # Display available updates
 if ($updates -and $updates.Count -gt 0) {
@@ -45,8 +45,8 @@ Write-Output "Listing installed updates..."
 Get-WUHistory | Format-Table -AutoSize -ErrorAction SilentlyContinue
 
 # Prompt to start the setup script
-$startSetup = Read-Host "Do you want to start the setup script from GitHub? (yes/no)"
-if ($startSetup -eq "yes") {
+$startSetup = Read-Host "Do you want to start the setup script from GitHub? (yes/y/enter for yes, no/n for no)"
+if ($startSetup -eq "yes" -or $startSetup -eq "y" -or [string]::IsNullOrEmpty($startSetup)) {
     # Download and run the setup script
     Write-Output "Downloading and running the setup script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/setup2.ps1" -OutFile "$env:TEMP\setup2.ps1"
@@ -56,8 +56,8 @@ if ($startSetup -eq "yes") {
 }
 
 # Prompt to start the winapps script
-$startWinApps = Read-Host "Do you want to start the winapps script from GitHub? (yes/no)"
-if ($startWinApps -eq "yes") {
+$startWinApps = Read-Host "Do you want to start the winapps script from GitHub? (yes/y/enter for yes, no/n for no)"
+if ($startWinApps -eq "yes" -or $startWinApps -eq "y" -or [string]::IsNullOrEmpty($startWinApps)) {
     # Download and run the winapps script
     Write-Output "Downloading and running the winapps script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/winapps.ps1" -OutFile "$env:TEMP\winapps.ps1"
