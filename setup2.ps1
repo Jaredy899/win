@@ -68,7 +68,7 @@ function Configure-SSH {
         $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop
         Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
     } Catch {
-        if ($_.Exception -match "Cannot find object with name 'sshd'") {
+        if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
                 Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
