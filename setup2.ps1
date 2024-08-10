@@ -134,43 +134,6 @@ function Install-PowerShell {
     }
 }
 
-function Set-DefaultShell {
-    Try {
-        $profilePath = "$env:LOCALAPPDATA\Microsoft\Windows Terminal\settings.json"
-        if (-not (Test-Path $profilePath)) {
-            Write-Output "Windows Terminal settings file not found. Creating default settings file..."
-            $defaultSettings = @{
-                "$schema" = "https://aka.ms/terminal-profiles-schema"
-                profiles = @{
-                    list = @(
-                        @{
-                            guid = "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}"
-                            name = "PowerShell"
-                            commandline = "pwsh.exe"
-                            hidden = $false
-                        }
-                    )
-                }
-                defaultProfile = "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}"
-            }
-            $defaultSettings | ConvertTo-Json -Depth 32 | Set-Content $profilePath
-            Write-Output "Default settings file created."
-        }
-
-        $settings = Get-Content $profilePath -Raw | ConvertFrom-Json
-        $powershellProfile = $settings.profiles.list | Where-Object { $_.name -eq "PowerShell" }
-        if ($powershellProfile) {
-            $settings.defaultProfile = $powershellProfile.guid
-            $settings | ConvertTo-Json -Depth 32 | Set-Content $profilePath
-            Write-Output "PowerShell set as the default shell for Windows Terminal."
-        } else {
-            Write-Output "PowerShell profile not found in Windows Terminal settings."
-        }
-    } Catch {
-        Write-Output "Failed to set PowerShell as the default shell: $($_)"
-    }
-}
-
 # Main script execution
 Enable-RemoteDesktop
 Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
@@ -182,7 +145,6 @@ Configure-SSH
 Configure-TimeSettings
 Install-Winget
 Install-PowerShell
-Set-DefaultShell
 
 Write-Output "##########################################################"
 Write-Output "#                                                        #"
