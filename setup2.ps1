@@ -27,10 +27,13 @@ function Enable-FirewallRule {
 function Set-UserPassword {
     param (
         [string]$username,
-        [string]$password
+        [System.Security.SecureString]$password  # Changed to SecureString
     )
     Try {
-        net user "$username" "$password" *>$null
+        # Convert SecureString to plain text for the command
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        net user "$username" "$plainPassword" *>$null
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
     }
@@ -60,7 +63,7 @@ function Install-Winget {
     }
 }
 
-function Upgrade-PowerShell {
+function Update-PowerShell {  # Changed function name to use an approved verb
     Try {
         winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
     } Catch {
@@ -68,7 +71,7 @@ function Upgrade-PowerShell {
     }
 }
 
-function Configure-SSH {
+function Start-SSHService {  # Changed function name to use an approved verb
     Try {
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
@@ -77,7 +80,7 @@ function Configure-SSH {
     }
 
     Try {
-        $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
+        Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
     } Catch {
         if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
@@ -97,7 +100,7 @@ function Configure-SSH {
     }
 }
 
-function Configure-TimeSettings {
+function Set-TimeSettings {  # Changed function name to use an approved verb
     Try {
         tzutil /s "Eastern Standard Time" *>$null
         w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
@@ -113,10 +116,19 @@ function Configure-TimeSettings {
 Enable-RemoteDesktop *>$null
 Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop" *>$null
 Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any" *>$null
-Set-UserPassword -username "Jared" -password "jarjar89" *>$null
+
+$usernameChoice = Read-Host "Do you want to change the username to 'Jared'? (Y/N)"
+if ($usernameChoice -eq 'Y') {
+    Rename-LocalUser -Name "Admin" -NewName "Jared"  # Change 'Admin' to 'Jared'
+    $username = "Jared"
+} else {
+    $username = "Admin"  # Default username
+}
+Set-UserPassword -username $username -password "jarjar89" *>$null
+
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0" *>$null
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0" *>$null
 Install-Winget *>$null
-Upgrade-PowerShell *>$null
-Configure-SSH *>$null
-Configure-TimeSettings *>$null
+Update-PowerShell *>$null
+Start-SSHService *>$null
+Set-TimeSettings *>$null
