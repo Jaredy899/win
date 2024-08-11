@@ -27,13 +27,10 @@ function Enable-FirewallRule {
 function Set-UserPassword {
     param (
         [string]$username,
-        [System.Security.SecureString]$password  # Changed to SecureString
+        [string]$password
     )
     Try {
-        # Convert SecureString to plain text for the command
-        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
-        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        net user "$username" "$plainPassword" *>$null
+        net user "$username" "$password" *>$null
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
     }
@@ -63,7 +60,7 @@ function Install-Winget {
     }
 }
 
-function Update-PowerShell {  # Changed function name to use an approved verb
+function Upgrade-PowerShell {
     Try {
         winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
     } Catch {
@@ -71,7 +68,7 @@ function Update-PowerShell {  # Changed function name to use an approved verb
     }
 }
 
-function Start-SSHService {  # Changed function name to use an approved verb
+function Configure-SSH {
     Try {
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
@@ -80,7 +77,7 @@ function Start-SSHService {  # Changed function name to use an approved verb
     }
 
     Try {
-        Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
+        $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
     } Catch {
         if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
@@ -100,7 +97,7 @@ function Start-SSHService {  # Changed function name to use an approved verb
     }
 }
 
-function Set-TimeSettings {  # Changed function name to use an approved verb
+function Configure-TimeSettings {
     Try {
         tzutil /s "Eastern Standard Time" *>$null
         w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
@@ -116,33 +113,10 @@ function Set-TimeSettings {  # Changed function name to use an approved verb
 Enable-RemoteDesktop *>$null
 Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop" *>$null
 Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any" *>$null
-
-$usernameChoice = Read-Host "Do you want to change the username to 'Jared'? (Y/N)"
-if ($usernameChoice -eq 'Y') {
-    if (Get-LocalUser -Name "Admin" -ErrorAction SilentlyContinue) {
-        Rename-LocalUser -Name "Admin" -NewName "Jared"  # Change 'Admin' to 'Jared'
-        $username = "Jared"
-    } else {
-        Write-Output "User 'Admin' not found. Keeping default username."
-        $username = "Admin"  # Default username
-    }
-} else {
-    $username = "Admin"  # Default username
-}
-
-# Convert plain password to SecureString
-$passwordSecure = ConvertTo-SecureString "jarjar89" -AsPlainText -Force
-
-# Ensure the username exists before setting the password
-if (Get-LocalUser -Name $username -ErrorAction SilentlyContinue) {
-    Set-UserPassword -username $username -password $passwordSecure *>$null
-} else {
-    Write-Output "User '$username' not found. Password not set."
-}
-
+Set-UserPassword -username "Jared" -password "jarjar89" *>$null
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0" *>$null
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0" *>$null
 Install-Winget *>$null
-Update-PowerShell *>$null
-Start-SSHService *>$null
-Set-TimeSettings *>$null
+Upgrade-PowerShell *>$null
+Configure-SSH *>$null
+Configure-TimeSettings *>$null
