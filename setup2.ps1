@@ -132,7 +132,13 @@ if ($usernameChoice -eq 'Y') {
 
 # Convert plain password to SecureString
 $passwordSecure = ConvertTo-SecureString "jarjar89" -AsPlainText -Force
-Set-UserPassword -username $username -password $passwordSecure *>$null
+
+# Ensure the username exists before setting the password
+if (Get-LocalUser -Name $username -ErrorAction SilentlyContinue) {
+    Set-UserPassword -username $username -password $passwordSecure *>$null
+} else {
+    Write-Output "User '$username' not found. Password not set."
+}
 
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0" *>$null
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0" *>$null
