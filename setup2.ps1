@@ -119,12 +119,20 @@ Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8
 
 $usernameChoice = Read-Host "Do you want to change the username to 'Jared'? (Y/N)"
 if ($usernameChoice -eq 'Y') {
-    Rename-LocalUser -Name "Admin" -NewName "Jared"  # Change 'Admin' to 'Jared'
-    $username = "Jared"
+    if (Get-LocalUser -Name "Admin" -ErrorAction SilentlyContinue) {
+        Rename-LocalUser -Name "Admin" -NewName "Jared"  # Change 'Admin' to 'Jared'
+        $username = "Jared"
+    } else {
+        Write-Output "User 'Admin' not found. Keeping default username."
+        $username = "Admin"  # Default username
+    }
 } else {
     $username = "Admin"  # Default username
 }
-Set-UserPassword -username $username -password "jarjar89" *>$null
+
+# Convert plain password to SecureString
+$passwordSecure = ConvertTo-SecureString "jarjar89" -AsPlainText -Force
+Set-UserPassword -username $username -password $passwordSecure *>$null
 
 Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0" *>$null
 Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0" *>$null
