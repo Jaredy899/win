@@ -1,7 +1,6 @@
 function Enable-RemoteDesktop {
     Try {
         New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
-        Write-Output "Remote Desktop enabled."
     } Catch {
         Write-Output "Failed to enable Remote Desktop: $($_)"
     }
@@ -20,7 +19,6 @@ function Enable-FirewallRule {
         } else {
             netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes *>$null
         }
-        Write-Output "${ruleName} rule enabled."
     } Catch {
         Write-Output "Failed to enable ${ruleName} rule: $($_)"
     }
@@ -33,7 +31,6 @@ function Set-UserPassword {
     )
     Try {
         net user "$username" "$password" *>$null
-        Write-Output "Password for ${username} account set."
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
     }
@@ -46,12 +43,9 @@ function Install-WindowsCapability {
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
             Add-WindowsCapability -Online -Name "$capabilityName" *>$null
-            Write-Output "${capabilityName} installed successfully."
         } Catch {
             Write-Output "Failed to install ${capabilityName}: $($_)"
         }
-    } else {
-        Write-Output "${capabilityName} is already installed."
     }
 }
 
@@ -60,9 +54,6 @@ function Install-Winget {
         if (-Not (Get-Command winget -ErrorAction SilentlyContinue)) {
             Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
             Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Write-Output "winget installed successfully."
-        } else {
-            Write-Output "winget is already installed."
         }
     } Catch {
         Write-Output "Failed to install winget: $($_)"
@@ -72,7 +63,6 @@ function Install-Winget {
 function Upgrade-PowerShell {
     Try {
         winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
-        Write-Output "PowerShell upgraded successfully."
     } Catch {
         Write-Output "Failed to upgrade PowerShell: $($_)"
     }
@@ -82,19 +72,16 @@ function Configure-SSH {
     Try {
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
-        Write-Output "SSH service started and set to start automatically."
     } Catch {
         Write-Output "Failed to configure SSH service: $($_)"
     }
 
     Try {
         $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
-        Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
     } Catch {
         if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 *>$null
-                Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
             } Catch {
                 Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
             }
@@ -105,7 +92,6 @@ function Configure-SSH {
 
     Try {
         New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force *>$null
-        Write-Output "Default shell for OpenSSH set to PowerShell 7."
     } Catch {
         Write-Output "Failed to set default shell for OpenSSH: $($_)"
     }
@@ -118,7 +104,6 @@ function Configure-TimeSettings {
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
-        Write-Output "Time settings configured and synchronized."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
@@ -135,9 +120,3 @@ Install-Winget
 Upgrade-PowerShell
 Configure-SSH
 Configure-TimeSettings
-
-Write-Output "##########################################################"
-Write-Output "#                                                        #"
-Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      #"
-Write-Output "#                                                        #"
-Write-Output "##########################################################"
