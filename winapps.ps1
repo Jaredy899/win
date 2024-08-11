@@ -14,30 +14,23 @@ function Install-Applications {
             @{ id = "Eugeny.Tabby"; name = "Tabby" },
             @{ id = "Anysphere.Cursor"; name = "Cursor" }
         )
-
         foreach ($app in $applications) {
             Try {
                 $installedApp = winget list --id $app.id --source winget | Select-String -Pattern $app.id
                 if ($installedApp) {
-                    Write-Output "$($app.name) is already installed. Checking for updates..."
                     $updateAvailable = winget upgrade --id $app.id --source winget | Select-String -Pattern $app.id
                     if ($updateAvailable) {
-                        Write-Output "Updating $($app.name)..."
                         winget upgrade --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
-                        Write-Output "$($app.name) updated successfully."
-                    } else {
-                        Write-Output "$($app.name) is already up to date."
                     }
                 } else {
-                    Write-Output "Installing $($app.name)..."
                     winget install --id $app.id --source winget --accept-source-agreements --accept-package-agreements --silent --force *>$null
-                    Write-Output "$($app.name) installed successfully."
                 }
             } Catch {
                 Write-Output "Failed to install or update $($app.name): $($_)"
             }
         }
 
+        Write-Output "All applications processed."
     } Catch {
         Write-Output "Failed to install applications: $($_)"
     }
