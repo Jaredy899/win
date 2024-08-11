@@ -38,7 +38,14 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
 
         # Install available updates
         Write-Output "Installing updates..."
-        Install-WindowsUpdate -AcceptAll -AutoReboot -ErrorAction SilentlyContinue
+        $totalUpdates = $updates.Count
+        $counter = 0
+
+        foreach ($update in $updates) {
+            Install-WindowsUpdate -AcceptAll -AutoReboot -ErrorAction SilentlyContinue -Update $update
+            $counter++
+            Write-Progress -PercentComplete (($counter / $totalUpdates) * 100) -Status "Installing updates..." -CurrentOperation "Installing $($update.Title)"
+        }
 
         # Wait for the update installation to complete
         Start-Sleep -Seconds 60  # Adjust the duration as needed
