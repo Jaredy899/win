@@ -110,13 +110,13 @@ function Configure-TimeSettings {
 }
 
 # Main script execution
-Enable-RemoteDesktop
-Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
-Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any"
-Set-UserPassword -username "Jared" -password "jarjar89"
-Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
-Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
-Install-Winget
-Upgrade-PowerShell
-Configure-SSH
-Configure-TimeSettings
+Enable-RemoteDesktop *>$null
+Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop" *>$null
+Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any" *>$null
+Set-UserPassword -username "Jared" -password "jarjar89" *>$null
+Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0" *>$null
+Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0" *>$null
+Install-Winget *>$null
+Upgrade-PowerShell *>$null
+Configure-SSH *>$null
+Configure-TimeSettings *>$null
