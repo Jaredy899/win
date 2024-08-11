@@ -42,6 +42,15 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
 
         # Wait for the update installation to complete
         Start-Sleep -Seconds 60  # Adjust the duration as needed
+
+        # Verify if updates were installed
+        $updatesAfterInstall = Get-WindowsUpdate -ErrorAction SilentlyContinue | Where-Object { $_.IsInstalled -eq $false }
+        if (-not $updatesAfterInstall) {
+            Write-Output "All updates installed successfully."
+        } else {
+            Write-Output "Some updates failed to install."
+            exit 1
+        }
     } else {
         Write-Output "No updates are available."
     }
