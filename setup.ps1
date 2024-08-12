@@ -42,7 +42,8 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
         $counter = 0
 
         foreach ($update in $updates) {
-            Install-WindowsUpdate -AcceptAll -AutoReboot -ErrorAction SilentlyContinue -Update $update
+            # Use -UpdateId instead of -Update
+            Install-WindowsUpdate -AcceptAll -AutoReboot -ErrorAction SilentlyContinue -UpdateId $update.Id
             $counter++
             Write-Progress -PercentComplete (($counter / $totalUpdates) * 100) -Status "Installing updates..." -CurrentOperation "Installing $($update.Title)"
         }
