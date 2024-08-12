@@ -1,5 +1,6 @@
 function Enable-RemoteDesktop {
     Try {
+        Write-Output "Enabling Remote Desktop..."  # Progress message
         New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
     } Catch {
         Write-Output "Failed to enable Remote Desktop: $($_)"
@@ -15,8 +16,10 @@ function Enable-FirewallRule {
     )
     Try {
         if ($protocol -and $localPort) {
+            Write-Output "Enabling firewall rule: $ruleName for protocol: $protocol on port: $localPort"  # Progress message
             netsh advfirewall firewall add rule name="$ruleName" protocol="$protocol" dir=in action=allow *>$null
         } else {
+            Write-Output "Enabling firewall rule group: $ruleGroup"  # Progress message
             netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes *>$null
         }
     } Catch {
@@ -42,6 +45,7 @@ function Install-WindowsCapability {
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
+            Write-Output "Installing capability: $capabilityName"  # Progress message
             Add-WindowsCapability -Online -Name "$capabilityName" *>$null
         } Catch {
             Write-Output "Failed to install ${capabilityName}: $($_)"
@@ -52,6 +56,7 @@ function Install-WindowsCapability {
 function Install-Winget {
     Try {
         if (-Not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Write-Output "Installing winget..."  # Progress message
             Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
             Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
         }
@@ -62,6 +67,7 @@ function Install-Winget {
 
 function Upgrade-PowerShell {
     Try {
+        Write-Output "Upgrading PowerShell..."  # Progress message
         winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
     } Catch {
         Write-Output "Failed to upgrade PowerShell: $($_)"

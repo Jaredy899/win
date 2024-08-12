@@ -14,7 +14,13 @@ function Install-Applications {
             @{ id = "Eugeny.Tabby"; name = "Tabby" },
             @{ id = "Anysphere.Cursor"; name = "Cursor" }
         )
+        $totalApps = $applications.Count
+        $currentAppIndex = 0
+
         foreach ($app in $applications) {
+            $currentAppIndex++
+            Write-Progress -Activity "Installing Applications" -Status "Processing $($app.name)" -PercentComplete (($currentAppIndex / $totalApps) * 100)
+
             Try {
                 $installedApp = winget list --id $app.id --source winget | Select-String -Pattern $app.id
                 if ($installedApp) {
