@@ -1,9 +1,9 @@
 function Enable-RemoteDesktop {
     Try {
-        Write-Progress -Status "Enabling Remote Desktop" -PercentComplete 0
+        Write-Progress -Activity "Enabling Remote Desktop" -Status "In Progress" -PercentComplete 0
         Write-Output "Enabling Remote Desktop..."  # Progress message
         New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
-        Write-Progress -Status "Enabling Remote Desktop" -PercentComplete 100
+        Write-Progress -Activity "Enabling Remote Desktop" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to enable Remote Desktop: $($_)"
     }
@@ -17,7 +17,7 @@ function Enable-FirewallRule {
         [string]$localPort = ""
     )
     Try {
-        Write-Progress -Status "Enabling firewall rule: $ruleName" -PercentComplete 0
+        Write-Progress -Activity "Enabling firewall rule: $ruleName" -Status "In Progress" -PercentComplete 0
         if ($protocol -and $localPort) {
             Write-Output "Enabling firewall rule: $ruleName for protocol: $protocol on port: $localPort"  # Progress message
             netsh advfirewall firewall add rule name="$ruleName" protocol="$protocol" dir=in action=allow *>$null
@@ -25,7 +25,7 @@ function Enable-FirewallRule {
             Write-Output "Enabling firewall rule group: $ruleGroup"  # Progress message
             netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes *>$null
         }
-        Write-Progress -Status "Enabling firewall rule: $ruleName" -PercentComplete 100
+        Write-Progress -Activity "Enabling firewall rule: $ruleName" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to enable ${ruleName} rule: $($_)"
     }
@@ -37,9 +37,9 @@ function Set-UserPassword {
         [string]$password = $(throw "password is required")
     )
     Try {
-        Write-Progress -Status "Setting password for $username" -PercentComplete 0
+        Write-Progress -Activity "Setting password for $username" -Status "In Progress" -PercentComplete 0
         net user "$username" "$password" *>$null
-        Write-Progress -Status "Setting password for $username" -PercentComplete 100
+        Write-Progress -Activity "Setting password for $username" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
     }
@@ -51,10 +51,10 @@ function Install-WindowsCapability {
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
-            Write-Progress -Status "Installing capability: $capabilityName" -PercentComplete 0
+            Write-Progress -Activity "Installing capability: $capabilityName" -Status "In Progress" -PercentComplete 0
             Write-Output "Installing capability: $capabilityName"  # Progress message
             Add-WindowsCapability -Online -Name "$capabilityName" *>$null
-            Write-Progress -Status "Installing capability: $capabilityName" -PercentComplete 100
+            Write-Progress -Activity "Installing capability: $capabilityName" -Status "Completed" -PercentComplete 100
         } Catch {
             Write-Output "Failed to install ${capabilityName}: $($_)"
         }
@@ -63,12 +63,12 @@ function Install-WindowsCapability {
 
 function Install-Winget {
     Try {
-        Write-Progress -Status "Installing winget" -PercentComplete 0
+        Write-Progress -Activity "Installing winget" -Status "In Progress" -PercentComplete 0
         if (-Not (Get-Command winget -ErrorAction SilentlyContinue)) {
             Write-Output "Installing winget..."  # Progress message
             Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
             Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Write-Progress -Status "Installing winget" -PercentComplete 100
+            Write-Progress -Activity "Installing winget" -Status "Completed" -PercentComplete 100
         }
     } Catch {
         Write-Output "Failed to install winget: $($_)"
@@ -77,10 +77,10 @@ function Install-Winget {
 
 function Upgrade-PowerShell {
     Try {
-        Write-Progress -Status "Upgrading PowerShell" -PercentComplete 0
+        Write-Progress -Activity "Upgrading PowerShell" -Status "In Progress" -PercentComplete 0
         Write-Output "Upgrading PowerShell..."  # Progress message
         winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
-        Write-Progress -Status "Upgrading PowerShell" -PercentComplete 100
+        Write-Progress -Activity "Upgrading PowerShell" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to upgrade PowerShell: $($_)"
     }
@@ -88,10 +88,10 @@ function Upgrade-PowerShell {
 
 function Configure-SSH {
     Try {
-        Write-Progress -Status "Configuring SSH service" -PercentComplete 0
+        Write-Progress -Activity "Configuring SSH service" -Status "In Progress" -PercentComplete 0
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
-        Write-Progress -Status "Configuring SSH service" -PercentComplete 100
+        Write-Progress -Activity "Configuring SSH service" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to configure SSH service: $($_)"
     }
@@ -101,9 +101,9 @@ function Configure-SSH {
     } Catch {
         if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
             Try {
-                Write-Progress -Status "Creating firewall rule for OpenSSH Server" -PercentComplete 0
+                Write-Progress -Activity "Creating firewall rule for OpenSSH Server" -Status "In Progress" -PercentComplete 0
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 *>$null
-                Write-Progress -Status "Creating firewall rule for OpenSSH Server" -PercentComplete 100
+                Write-Progress -Activity "Creating firewall rule for OpenSSH Server" -Status "Completed" -PercentComplete 100
             } Catch {
                 Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
             }
@@ -113,9 +113,9 @@ function Configure-SSH {
     }
 
     Try {
-        Write-Progress -Status "Setting default shell for OpenSSH" -PercentComplete 0
+        Write-Progress -Activity "Setting default shell for OpenSSH" -Status "In Progress" -PercentComplete 0
         New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force *>$null
-        Write-Progress -Status "Setting default shell for OpenSSH" -PercentComplete 100
+        Write-Progress -Activity "Setting default shell for OpenSSH" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to set default shell for OpenSSH: $($_)"
     }
@@ -123,13 +123,13 @@ function Configure-SSH {
 
 function Configure-TimeSettings {
     Try {
-        Write-Progress -Status "Configuring time settings" -PercentComplete 0
+        Write-Progress -Activity "Configuring time settings" -Status "In Progress" -PercentComplete 0
         tzutil /s "Eastern Standard Time" *>$null
         w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
-        Write-Progress -Status "Configuring time settings" -PercentComplete 100
+        Write-Progress -Activity "Configuring time settings" -Status "Completed" -PercentComplete 100
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
