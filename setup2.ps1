@@ -11,8 +11,8 @@ function Enable-RemoteDesktop {
 
 function Enable-FirewallRule {
     param (
-        [string]$ruleGroup,
-        [string]$ruleName,
+        [string]$ruleGroup = $(throw "ruleGroup is required"),
+        [string]$ruleName = $(throw "ruleName is required"),
         [string]$protocol = "",
         [string]$localPort = ""
     )
@@ -33,8 +33,8 @@ function Enable-FirewallRule {
 
 function Set-UserPassword {
     param (
-        [string]$username,
-        [string]$password
+        [string]$username = $(throw "username is required"),
+        [string]$password = $(throw "password is required")
     )
     Try {
         Write-Progress -Status "Setting password for $username" -PercentComplete 0
@@ -47,7 +47,7 @@ function Set-UserPassword {
 
 function Install-WindowsCapability {
     param (
-        [string]$capabilityName
+        [string]$capabilityName = $(throw "capabilityName is required")
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
