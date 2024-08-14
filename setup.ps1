@@ -53,7 +53,10 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
 
         # Verify if updates were installed
         $updatesAfterInstall = Get-WindowsUpdate -ErrorAction SilentlyContinue | Where-Object { $_.IsInstalled -eq $false }
-        if (-not $updatesAfterInstall) {
+        if ($updatesAfterInstall) {
+            Write-Output "Some updates failed to install."
+            exit 1
+        } else {
             Write-Output "All updates installed successfully."
             # Show recently installed updates
             $recentUpdates = Get-WindowsUpdate -ErrorAction SilentlyContinue | Where-Object { $_.Date -gt (Get-Date).AddDays(-7) -and $_.IsInstalled -eq $true }
@@ -61,9 +64,6 @@ if ($updateWindows -eq "yes" -or $updateWindows -eq "y" -or [string]::IsNullOrEm
                 Write-Output "Recently installed updates:"
                 $recentUpdates | Format-Table -AutoSize
             }
-        } else {
-            Write-Output "Some updates failed to install."
-            exit 1
         }
     } else {
         Write-Output "No updates are available."
