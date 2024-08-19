@@ -10,7 +10,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# Determine the package manager
+# Determine the package manager and ensure it's available
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     case "$ID" in
@@ -30,6 +30,12 @@ if [ -f /etc/os-release ]; then
     esac
 else
     echo "Cannot determine the distribution."
+    exit 1
+fi
+
+# Debug: Check if the package manager command is available
+if ! command -v $(echo $PKG_MANAGER | awk '{print $1}') > /dev/null 2>&1; then
+    echo "Package manager command not found: $(echo $PKG_MANAGER | awk '{print $1}')"
     exit 1
 fi
 
