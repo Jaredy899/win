@@ -27,9 +27,13 @@ else
     exit 1
 fi
 
-# Install sudo (if not installed), Nala (for Debian/Ubuntu), and set timezone
-sudo $PKG_MANAGER sudo
+# Check if sudo is installed, and install it if it's not
+if ! command -v sudo > /dev/null 2>&1; then
+    echo "sudo not found, attempting to install..."
+    $PKG_MANAGER sudo
+fi
 
+# Install Nala (for Debian/Ubuntu), and set timezone
 if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ]; then
     sudo $PKG_MANAGER nala
 fi
