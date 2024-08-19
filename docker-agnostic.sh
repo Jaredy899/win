@@ -4,6 +4,12 @@ set -o errexit
 set -o nounset
 IFS=$(printf '\n\t')
 
+# Ensure the script is run as root
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root."
+    exit 1
+fi
+
 # Determine the package manager
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -27,10 +33,12 @@ else
     exit 1
 fi
 
-# Check if sudo is installed, and install it if it's not
-if ! command -v sudo > /dev/null 2>&1; then
-    echo "sudo not found, attempting to install..."
-    $PKG_MANAGER sudo
+# Install sudo only if not running on Arch
+if [ "$ID" != "arch" ]; then
+    if ! command -v sudo > /dev/null 2>&1; then
+        echo "sudo not found, attempting to install..."
+        $PKG_MANAGER sudo
+    fi
 fi
 
 # Install Nala (for Debian/Ubuntu), and set timezone
@@ -38,12 +46,12 @@ if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ]; then
     sudo $PKG_MANAGER nala
 fi
 
-sudo timedatectl set-timezone America/New_York
+timedatectl set-timezone America/New_York
 
 # Install Docker
 if [ "$ID" = "arch" ]; then
-    sudo $PKG_MANAGER docker
-    sudo systemctl enable --now docker
+    $PKG_MANAGER docker
+    systemctl enable --now docker
 else
     curl -sSL https://get.docker.com | sh
 fi
