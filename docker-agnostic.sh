@@ -4,20 +4,20 @@ set -o errexit
 set -o nounset
 IFS=$(printf '\n\t')
 
-# Function to install packages based on distribution
+# Function to detect the distribution and install the necessary packages
 install_packages() {
     if [ -f /etc/debian_version ]; then
         # Debian/Ubuntu-based system
+        echo "Detected Debian-based system"
         sudo apt update
-        sudo apt install -y sudo
-        sudo apt install -y curl
+        sudo apt install -y sudo curl
         sudo timedatectl set-timezone America/New_York
         curl -sSL https://get.docker.com | sh
     elif [ -f /etc/arch-release ]; then
         # Arch-based system
+        echo "Detected Arch-based system"
         sudo pacman -Syu --noconfirm
-        sudo pacman -S --noconfirm sudo
-        sudo pacman -S --noconfirm docker
+        sudo pacman -S --noconfirm sudo curl docker
         sudo timedatectl set-timezone America/New_York
         sudo systemctl start docker
         sudo systemctl enable docker
@@ -57,7 +57,7 @@ install_portainer() {
     printf '\nPortainer started successfully\n\n'
 }
 
-# Install packages and Docker
+# Install packages and Docker based on the detected OS
 install_packages
 
 # Wait for Docker to start
