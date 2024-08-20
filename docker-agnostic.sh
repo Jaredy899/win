@@ -9,16 +9,13 @@ install_packages() {
     if [ -f /etc/debian_version ]; then
         # Debian/Ubuntu-based system
         echo "Detected Debian-based system"
-        sudo apt update
-        sudo apt install -y sudo curl
-        sudo timedatectl set-timezone America/New_York
+        sudo apt update && sudo apt install -y curl
         curl -sSL https://get.docker.com | sh
     elif [ -f /etc/arch-release ]; then
         # Arch-based system
         echo "Detected Arch-based system"
         sudo pacman -Syu --noconfirm
-        sudo pacman -S --noconfirm sudo curl docker
-        sudo timedatectl set-timezone America/New_York
+        sudo pacman -S --noconfirm docker docker-compose
         sudo systemctl start docker
         sudo systemctl enable docker
     else
@@ -27,55 +24,37 @@ install_packages() {
     fi
 }
 
-# Function to install Docker Compose
-install_docker_compose() {
-    LATEST=$(curl -sL https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | cut -d'"' -f4)
-    DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-    mkdir -p $DOCKER_CONFIG/cli-plugins
-    curl -sSL https://github.com/docker/compose/releases/download/$LATEST/docker-compose-$(uname -s)-$(uname -m) -o $DOCKER_CONFIG/cli-plugins/docker-compose
-    chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-    docker compose version
+# Function to add the current user to the docker group
+add_user_to_docker_group() {
+    sudo usermod -aG docker $USER
+    newgrp docker
+    echo "$USER has been added to the docker group."
 }
 
 # Function to install and start Portainer
 install_portainer() {
-    docker volume create portainer_data
-    docker run -d \
-      -p 8000:8000 \
-      -p 9000:9000 \
-      --name=portainer \
-      --restart=always \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v portainer_data:/data \
-      portainer/portainer-ce:latest
+    if [ "$(docker ps -q -f name=portainer)" ]; then
+        echo "Portainer is already running"
+    else
+        docker volume create portainer_data
+        docker run -d \
+          -p 8000:8000 \
+          -p 9000:9000 \
+          --name=portainer \
+          --restart=always \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v portainer_data:/data \
+          portainer/portainer-ce:latest
 
-    printf 'Waiting for Portainer to start...\n\n'
-    until [ "$(docker inspect -f '{{.State.Status}}' portainer)" = "running" ]; do
-        sleep 1
-    done
+        printf 'Waiting for Portainer to start...\n\n'
+        until [ "$(docker inspect -f '{{.State.Status}}' portainer)" = "running" ]; do
+            sleep 1
+        done
 
-    printf '\nPortainer started successfully\n\n'
+        printf '\nPortainer started successfully\n\n'
+    fi
 }
 
-# Install packages and Docker based on the detected OS
 install_packages
-
-# Wait for Docker to start
-printf 'Waiting for Docker to start...\n\n'
-while ! systemctl is-active --quiet docker; do
-    sleep 1
-done
-
-printf '\nDocker installed successfully\n\n'
-
-# Install Docker Compose
-install_docker_compose
-
-# Install and start Portainer
+add_user_to_docker_group
 install_portainer
-
-# Adding user to the Docker group
-sudo usermod -aG docker $USER
-
-# Switch to the Docker group
-newgrp docker
