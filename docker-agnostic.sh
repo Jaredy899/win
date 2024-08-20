@@ -24,12 +24,6 @@ install_packages() {
     fi
 }
 
-# Function to add the current user to the docker group
-add_user_to_docker_group() {
-    sudo usermod -aG docker $USER
-    echo "$USER has been added to the docker group."
-}
-
 # Function to install and start Portainer
 install_portainer() {
     if [ "$(docker ps -q -f name=portainer)" ]; then
@@ -55,8 +49,12 @@ install_portainer() {
 }
 
 install_packages
-add_user_to_docker_group
-install_portainer
 
-# Switch to the new Docker group (this starts a new shell session)
-newgrp docker
+# Display instructions to manually add user to Docker group
+echo "To add your user to the Docker group and apply the changes, please run the following commands:"
+echo
+echo "  sudo usermod -aG docker $USER"
+echo "  newgrp docker"
+echo
+echo "After running these commands, you can use Docker without sudo."
+install_portainer
