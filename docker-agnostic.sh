@@ -6,14 +6,14 @@ IFS=$(printf '\n\t')
 
 # Function to detect the distribution and install the necessary packages
 install_packages() {
-    if [ -f /etc/debian_version]; then
+    if [ -f /etc/debian_version ]; then
         # Debian/Ubuntu-based system
         echo "Detected Debian-based system"
         sudo apt update
         sudo apt install -y sudo curl
         sudo timedatectl set-timezone America/New_York
         curl -sSL https://get.docker.com | sh
-    elif [ -f /etc/arch-release]; then
+    elif [ -f /etc/arch-release ]; then
         # Arch-based system
         echo "Detected Arch-based system"
         sudo pacman -Syu --noconfirm
