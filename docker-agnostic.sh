@@ -73,3 +73,6 @@ install_docker_compose
 
 # Install and start Portainer
 install_portainer
+
+# Adding user to the Docker group
+sudo usermod -aG docker $USER
