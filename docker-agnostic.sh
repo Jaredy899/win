@@ -26,11 +26,11 @@ install_packages() {
 
 # Function to install and start Portainer
 install_portainer() {
-    if [ "$(docker ps -q -f name=portainer)" ]; then
+    if [ "$(sudo docker ps -q -f name=portainer)" ]; then
         echo "Portainer is already running"
     else
-        docker volume create portainer_data
-        docker run -d \
+        sudo docker volume create portainer_data
+        sudo docker run -d \
           -p 8000:8000 \
           -p 9000:9000 \
           --name=portainer \
@@ -40,7 +40,7 @@ install_portainer() {
           portainer/portainer-ce:latest
 
         printf 'Waiting for Portainer to start...\n\n'
-        until [ "$(docker inspect -f '{{.State.Status}}' portainer)" = "running" ]; do
+        until [ "$(sudo docker inspect -f '{{.State.Status}}' portainer)" = "running" ]; do
             sleep 1
         done
 
@@ -57,4 +57,6 @@ echo "  sudo usermod -aG docker $USER"
 echo "  newgrp docker"
 echo
 echo "After running these commands, you can use Docker without sudo."
+
+# Install Portainer with sudo to avoid permission issues
 install_portainer
