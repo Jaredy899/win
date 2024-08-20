@@ -11,6 +11,7 @@ install_packages() {
         echo "Detected Debian-based system"
         sudo apt update && sudo apt install -y curl
         curl -sSL https://get.docker.com | sh
+
     elif [ -f /etc/arch-release ]; then
         # Arch-based system
         echo "Detected Arch-based system"
@@ -18,6 +19,14 @@ install_packages() {
         sudo pacman -S --noconfirm docker docker-compose
         sudo systemctl start docker
         sudo systemctl enable docker
+
+    elif [ -f /etc/redhat-release ]; then
+        # CentOS/Fedora-based system
+        echo "Detected Red Hat-based system"
+        curl -fsSL https://get.docker.com | sh
+        sudo systemctl start docker
+        sudo systemctl enable docker
+
     else
         echo "Unsupported distribution"
         exit 1
