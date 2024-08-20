@@ -50,13 +50,13 @@ install_portainer() {
 
 install_packages
 
-# Display instructions to manually add user to Docker group
+# Install Portainer with sudo to avoid permission issues
+install_portainer
+
+# Display instructions to manually add user to Docker group after Portainer is started
 echo "To add your user to the Docker group and apply the changes, please run the following commands:"
 echo
 echo "  sudo usermod -aG docker $USER"
 echo "  newgrp docker"
 echo
 echo "After running these commands, you can use Docker without sudo."
-
-# Install Portainer with sudo to avoid permission issues
-install_portainer
