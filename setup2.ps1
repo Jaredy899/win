@@ -1,3 +1,11 @@
+function Ensure-Elevation {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Output "Please run this script as an administrator."
+        exit
+    }
+}
+
 function Enable-RemoteDesktop {
     Try {
         New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
@@ -26,19 +34,6 @@ function Enable-FirewallRule {
     }
 }
 
-function Set-UserPassword {
-    param (
-        [string]$username,
-        [string]$password
-    )
-    Try {
-        net user "$username" "$password" *>$null
-        Write-Output "Password for ${username} account set."
-    } Catch {
-        Write-Output "Failed to set password for ${username} account: $($_)"
-    }
-}
-
 function Install-WindowsCapability {
     param (
         [string]$capabilityName
@@ -52,29 +47,6 @@ function Install-WindowsCapability {
         }
     } else {
         Write-Output "${capabilityName} is already installed."
-    }
-}
-
-function Install-Winget {
-    Try {
-        if (-Not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Add-AppxPackage -Path "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" *>$null
-            Write-Output "winget installed successfully."
-        } else {
-            Write-Output "winget is already installed."
-        }
-    } Catch {
-        Write-Output "Failed to install winget: $($_)"
-    }
-}
-
-function Upgrade-PowerShell {
-    Try {
-        winget install --id Microsoft.Powershell --source winget --silent --accept-package-agreements --accept-source-agreements *>$null
-        Write-Output "PowerShell upgraded successfully."
-    } Catch {
-        Write-Output "Failed to upgrade PowerShell: $($_)"
     }
 }
 
@@ -113,31 +85,56 @@ function Configure-SSH {
 
 function Configure-TimeSettings {
     Try {
-        tzutil /s "Eastern Standard Time" *>$null
+        $currentTimeZone = (Get-TimeZone).Id
+        tzutil /s "$currentTimeZone" *>$null
         w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
-        Write-Output "Time settings configured and synchronized."
+        Write-Output "Time settings configured and synchronized to $currentTimeZone."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
 }
 
-# Main script execution
-Enable-RemoteDesktop
-Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
-Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any"
-Set-UserPassword -username "Jared" -password "jarjar89"
-Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
-Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
-Install-Winget
-Upgrade-PowerShell
-Configure-SSH
-Configure-TimeSettings
+function Set-UserPassword {
+    param (
+        [string]$username,
+        [string]$password
+    )
+    Try {
+        net user "$username" "$password" *>$null
+        Write-Output "Password for ${username} account set."
+    } Catch {
+        Write-Output "Failed to set password for ${username} account: $($_)"
+    }
+}
 
-Write-Output "##########################################################"
-Write-Output "#                                                        #"
-Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      #"
-Write-Output "#                                                        #"
-Write-Output "##########################################################"
+function Main {
+    Ensure-Elevation
+
+    $changeUser = Read-Host "Do you want to change the username and password? (y/n)"
+    if ($changeUser -eq "y") {
+        $username = Read-Host "Enter the new username"
+        $password = Read-Host "Enter the new password"
+        Set-UserPassword -username $username -password $password
+    }
+
+    Configure-TimeSettings
+
+    Enable-RemoteDesktop
+    Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
+    Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any"
+    Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
+    Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
+    Configure-SSH
+
+    Write-Output "##########################################################"
+    Write-Output "#                                                        #"
+    Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      #"
+    Write-Output "#                                                        #"
+    Write-Output "##########################################################"
+}
+
+# Execute the main function
+Main
