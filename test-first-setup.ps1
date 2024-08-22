@@ -44,7 +44,7 @@ if ($startMyPowershell -eq "yes" -or $startMyPowershell -eq "y" -or [string]::Is
     # Download and run the My Powershell config script
     Write-Output "Downloading and running My Powershell config script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
-    gsudo powershell -File "$env:TEMP\pwsh.ps1"
+    . "$env:TEMP\pwsh.ps1"
 } else {
     Write-Output "My Powershell config script was not started."
 }
@@ -59,4 +59,3 @@ if ($startWinApps -eq "yes" -or $startWinApps -eq "y" -or [string]::IsNullOrEmpt
 } else {
     Write-Output "Winapps script was not started."
 }
-
