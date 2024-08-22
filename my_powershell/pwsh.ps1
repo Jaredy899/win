@@ -31,7 +31,7 @@ Ensure-Scoop
 
 # Install applications using Scoop
 function Install-Apps {
-    $apps = @("7zip", "bat", "starship", "oh-my-posh", "tabby", "alacritty", "fzf", "zoxide", "fastfetch")
+    $apps = @("7zip", "bat", "starship", "oh-my-posh", "tabby", "alacritty", "fzf", "zoxide", "fastfetch", "curl")
 
     foreach ($app in $apps) {
         Write-Host "Installing $app..."
@@ -46,7 +46,7 @@ function Install-Apps {
 # Run the installation of applications
 Install-Apps
 
-# Function to install MesloLGS Nerd Font Mono
+# Function to install MesloLGS Nerd Font Mono using curl
 function Install-Font {
     $fontName = "MesloLGS NF"
     $fontUrl = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
@@ -58,9 +58,9 @@ function Install-Font {
 
     # Check if the font is already installed
     if (-not (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" | Where-Object { $_.PSChildName -like "*$fontName*" })) {
-        Write-Host "Installing font '$fontName'..."
+        Write-Host "Installing font '$fontName' using curl..."
         $tempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("TempDir_" + [System.Guid]::NewGuid().ToString())) -Force
-        Invoke-WebRequest -Uri $fontUrl -OutFile "$tempDir\Meslo.zip"
+        Start-Process -FilePath "curl.exe" -ArgumentList "-L $fontUrl -o `"$tempDir\Meslo.zip`"" -Wait -NoNewWindow
         Expand-Archive -Path "$tempDir\Meslo.zip" -DestinationPath $fontDir -Force
         Remove-Item -Recurse -Force $tempDir
         Write-Host "Font '$fontName' installed successfully."
@@ -72,12 +72,17 @@ function Install-Font {
 # Run the font installation
 Install-Font
 
-# Attempt to determine the script's directory correctly
-$GITPATH = $PSScriptRoot
-
-if (-not (Test-Path "$GITPATH\config.jsonc") -or -not (Test-Path "$GITPATH\starship.toml")) {
-    $GITPATH = Split-Path -Parent (Get-Location).Path
+# Improved path detection
+$scriptPath = $MyInvocation.MyCommand.Path
+if (-not $scriptPath -or $scriptPath -eq "") {
+    $scriptPath = $PSScriptRoot
 }
+
+if (-not $scriptPath -or $scriptPath -eq "") {
+    $scriptPath = (Get-Location).Path
+}
+
+$GITPATH = Split-Path -Parent $scriptPath
 
 Write-Host "GITPATH is set to: $GITPATH"
 
@@ -127,9 +132,9 @@ function Update-Profile {
 
     # Define the exact lines to add
     $linesToAdd = @(
-        "$starshipPath init powershell | Out-String | Invoke-Expression",
-        "$zoxidePath init powershell | Out-String | Invoke-Expression",
-        "fastfetch"
+        'Invoke-Expression (& { (zoxide init powershell | Out-String) })',
+        'Invoke-Expression (&starship init powershell)',
+        'fastfetch'
     )
 
     foreach ($line in $linesToAdd) {
