@@ -99,7 +99,8 @@ function Install-Font {
     }
 }
 
-function Link-Config {
+# Function to link configuration files
+function Set-ConfigLink {
     $configDir = "$env:UserProfile\.config"
 
     # Ensure the config directory exists
@@ -181,7 +182,7 @@ function Update-Profile {
 # Run all functions
 Install-Depend
 Install-Font
-Link-Config
+Set-ConfigLink
 Update-Profile
 
 Write-Host "Setup completed successfully."
