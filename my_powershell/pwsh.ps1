@@ -46,6 +46,16 @@ function Install-Apps {
 # Run the installation of applications
 Install-Apps
 
+# Function to check if a font is installed
+function Is-FontInstalled {
+    param (
+        [string]$fontName
+    )
+    $fontKey = "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts"
+    $installedFonts = Get-ItemProperty -Path $fontKey
+    return $installedFonts.PSObject.Properties.Name -contains $fontName
+}
+
 # Function to install MesloLGS Nerd Font Mono using curl
 function Install-Font {
     $fontName = "MesloLGS NF"
@@ -56,8 +66,7 @@ function Install-Font {
         New-Item -ItemType Directory -Path $fontDir -Force
     }
 
-    # Check if the font is already installed
-    if (-not (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" | Where-Object { $_.PSChildName -like "*$fontName*" })) {
+    if (-not (Is-FontInstalled $fontName)) {
         Write-Host "Installing font '$fontName' using curl..."
         $tempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("TempDir_" + [System.Guid]::NewGuid().ToString())) -Force
         Start-Process -FilePath "curl.exe" -ArgumentList "-L $fontUrl -o `"$tempDir\Meslo.zip`"" -Wait -NoNewWindow
@@ -72,27 +81,12 @@ function Install-Font {
 # Run the font installation
 Install-Font
 
-# Improved path detection to handle GitHub execution
-$scriptPath = $MyInvocation.MyCommand.Definition
-if (-not $scriptPath -or $scriptPath -eq "") {
-    $scriptPath = $PSScriptRoot
-}
+# URLs for config.jsonc and starship.toml in your GitHub repo
+$githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell"
+$configUrl = "$githubBaseUrl/config.jsonc"
+$starshipUrl = "$githubBaseUrl/starship.toml"
 
-if (-not $scriptPath -or $scriptPath -eq "") {
-    $scriptPath = (Get-Location).Path
-}
-
-$GITPATH = Split-Path -Parent $scriptPath
-
-# If GITPATH is not detected correctly, default to the directory containing the script
-if ($GITPATH -eq $null -or $GITPATH -eq "") {
-    Write-Host "GITPATH could not be detected. Defaulting to the current directory."
-    $GITPATH = Get-Location
-}
-
-Write-Host "GITPATH is set to: $GITPATH"
-
-# Function to copy configurations (no symbolic links)
+# Function to copy configurations from GitHub
 function Link-Config {
     $configDir = "$env:UserProfile\.config"
 
@@ -106,20 +100,12 @@ function Link-Config {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
-    if (Test-Path "$GITPATH\config.jsonc") {
-        Write-Host "Copying config.jsonc to $fastfetchConfigDir from $GITPATH."
-        Copy-Item -Path "$GITPATH\config.jsonc" -Destination "$fastfetchConfigDir\config.jsonc" -Force
-    } else {
-        Write-Host "config.jsonc not found in $GITPATH." -ForegroundColor Red
-    }
+    Write-Host "Downloading and saving config.jsonc to $fastfetchConfigDir."
+    Invoke-WebRequest -Uri $configUrl -OutFile "$fastfetchConfigDir\config.jsonc"
 
     # Starship configuration
-    if (Test-Path "$GITPATH\starship.toml") {
-        Write-Host "Copying starship.toml to $configDir from $GITPATH."
-        Copy-Item -Path "$GITPATH\starship.toml" -Destination "$configDir\starship.toml" -Force
-    } else {
-        Write-Host "starship.toml not found in $GITPATH." -ForegroundColor Red
-    }
+    Write-Host "Downloading and saving starship.toml to $configDir."
+    Invoke-WebRequest -Uri $starshipUrl -OutFile "$configDir\starship.toml"
 }
 
 # Run the Link-Config function
