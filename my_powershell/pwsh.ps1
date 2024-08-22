@@ -12,6 +12,7 @@ if (-not $scriptPath) {
 
 $GITPATH = Split-Path -Parent $scriptPath
 
+# Debugging output to verify GITPATH
 Write-Host "GITPATH is set to: $GITPATH"
 
 # Function to install dependencies
@@ -70,7 +71,6 @@ function Install-Font {
     }
 }
 
-# Function to link configurations
 function Link-Config {
     $configDir = "$env:UserProfile\.config"
 
@@ -87,16 +87,15 @@ function Link-Config {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
-    if (-not (Test-Path -Path $fastfetchConfig)) {
-        if (Test-Path -Path "$GITPATH\config.jsonc") {
-            New-Item -ItemType SymbolicLink -Path $fastfetchConfig -Target "$GITPATH\config.jsonc" -Force
-            Write-Host "Linked config.jsonc to $fastfetchConfig."
-        } else {
-            Write-Host "config.jsonc not found in $GITPATH." -ForegroundColor Red
-            exit 1
-        }
+    # Debugging output to check the expected location of config.jsonc
+    Write-Host "Looking for config.jsonc in: $GITPATH"
+
+    if (-not (Test-Path -Path "$GITPATH\config.jsonc")) {
+        Write-Host "config.jsonc not found in $GITPATH." -ForegroundColor Red
+        exit 1
     } else {
-        Write-Host "config.jsonc already exists in $fastfetchConfigDir."
+        New-Item -ItemType SymbolicLink -Path $fastfetchConfig -Target "$GITPATH\config.jsonc" -Force
+        Write-Host "Linked config.jsonc to $fastfetchConfig."
     }
 
     # Starship configuration
@@ -113,7 +112,6 @@ function Link-Config {
         Write-Host "starship.toml already exists in $configDir."
     }
 }
-
 # Function to update PowerShell profile
 function Update-Profile {
     $profileFile = $PROFILE
