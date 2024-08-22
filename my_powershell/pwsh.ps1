@@ -1,18 +1,45 @@
+# Function to check if the script is running as Administrator
+function Test-IsAdmin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# Self-elevate if not running as Administrator
+if (-not (Test-IsAdmin)) {
+    Write-Host "Script is not running as Administrator. Attempting to self-elevate..."
+
+    $currentScript = $MyInvocation.MyCommand.Path
+
+    # Create a new PowerShell process with Administrator privileges
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$currentScript`""
+    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processInfo.FileName = "powershell"
+    $processInfo.Arguments = $arguments
+    $processInfo.Verb = "runas"  # This tells Windows to run the process as administrator
+
+    try {
+        # Start the new elevated process
+        $process = [System.Diagnostics.Process]::Start($processInfo)
+        $process.WaitForExit()
+        exit $process.ExitCode
+    } catch {
+        Write-Host "User declined to run the script as Administrator." -ForegroundColor Red
+        exit 1
+    }
+}
+
 # Set the GITPATH variable to the directory where the script is located
 $scriptPath = $MyInvocation.MyCommand.Path
 if (-not $scriptPath) {
-    # Alternative method if MyInvocation is not available or $scriptPath is empty
     $scriptPath = $PSScriptRoot
 }
 
 if (-not $scriptPath) {
-    # If $scriptPath is still empty, use the current directory as a last resort
     $scriptPath = Get-Location
 }
 
 $GITPATH = Split-Path -Parent $scriptPath
 
-# Debugging output to verify GITPATH
 Write-Host "GITPATH is set to: $GITPATH"
 
 # Function to install dependencies
@@ -27,6 +54,7 @@ function Install-Depend {
         @{Name="Alacritty.Alacritty"; Type="Package"},
         @{Name="junegunn.fzf"; Type="Package"},
         @{Name="ajeetdsouza.zoxide"; Type="Package"}
+        @{Name="Fastfetch-cli.Fastfetch"; Type="Package"}
     )
 
     foreach ($dependency in $dependencies) {
