@@ -1,10 +1,18 @@
 # Set the GITPATH variable to the directory where the script is located
 $scriptPath = $MyInvocation.MyCommand.Path
 if (-not $scriptPath) {
-    # Alternative method if MyInvocation is not available
+    # Alternative method if MyInvocation is not available or $scriptPath is empty
     $scriptPath = $PSScriptRoot
 }
+
+if (-not $scriptPath) {
+    # If $scriptPath is still empty, use the current directory as a last resort
+    $scriptPath = Get-Location
+}
+
 $GITPATH = Split-Path -Parent $scriptPath
+
+Write-Host "GITPATH is set to: $GITPATH"
 
 # Function to install dependencies
 function Install-Depend {
