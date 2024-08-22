@@ -46,13 +46,12 @@ function Install-Apps {
 # Run the installation of applications
 Install-Apps
 
-# Set the GITPATH variable to the directory where the script is located
-$scriptPath = $PSScriptRoot
-if (-not $scriptPath -or $scriptPath -eq "") {
-    $scriptPath = Get-Location
-}
+## Attempt to determine the script's directory correctly
+$GITPATH = $PSScriptRoot
 
-$GITPATH = Split-Path -Parent $scriptPath
+if (-not (Test-Path "$GITPATH\config.jsonc") -or -not (Test-Path "$GITPATH\starship.toml")) {
+    $GITPATH = Split-Path -Parent (Get-Location).Path
+}
 
 Write-Host "GITPATH is set to: $GITPATH"
 
@@ -78,7 +77,6 @@ function Link-Config {
     }
 
     # Starship configuration
-    $starshipConfig = "$configDir\starship.toml"
     if (Test-Path "$GITPATH\starship.toml") {
         Write-Host "Copying starship.toml to $configDir from $GITPATH."
         Copy-Item -Path "$GITPATH\starship.toml" -Destination "$configDir\starship.toml" -Force
@@ -86,6 +84,7 @@ function Link-Config {
         Write-Host "starship.toml not found in $GITPATH." -ForegroundColor Red
     }
 }
+
 
 # Run the Link-Config function
 Link-Config
