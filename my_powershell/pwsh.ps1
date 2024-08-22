@@ -47,12 +47,8 @@ function Install-Apps {
 Install-Apps
 
 # Set the GITPATH variable to the directory where the script is located
-$scriptPath = $MyInvocation.MyCommand.Path
-if (-not $scriptPath) {
-    $scriptPath = $PSScriptRoot
-}
-
-if (-not $scriptPath) {
+$scriptPath = $PSScriptRoot
+if (-not $scriptPath -or $scriptPath -eq "") {
     $scriptPath = Get-Location
 }
 
@@ -75,13 +71,21 @@ function Link-Config {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
-    Write-Host "Copying config.jsonc to $fastfetchConfig from $GITPATH."
-    Copy-Item -Path "$GITPATH\config.jsonc" -Destination $fastfetchConfig -Force
+    if (Test-Path "$GITPATH\config.jsonc") {
+        Write-Host "Copying config.jsonc to $fastfetchConfig from $GITPATH."
+        Copy-Item -Path "$GITPATH\config.jsonc" -Destination $fastfetchConfig -Force
+    } else {
+        Write-Host "config.jsonc not found in $GITPATH." -ForegroundColor Red
+    }
 
     $starshipConfig = "$configDir\starship.toml"
     if (-not (Test-Path -Path $starshipConfig)) {
-        Write-Host "Copying starship.toml to $starshipConfig from $GITPATH."
-        Copy-Item -Path "$GITPATH\starship.toml" -Destination $starshipConfig -Force
+        if (Test-Path "$GITPATH\starship.toml") {
+            Write-Host "Copying starship.toml to $starshipConfig from $GITPATH."
+            Copy-Item -Path "$GITPATH\starship.toml" -Destination $starshipConfig -Force
+        } else {
+            Write-Host "starship.toml not found in $GITPATH." -ForegroundColor Red
+        }
     } else {
         Write-Host "starship.toml already exists in $configDir."
     }
