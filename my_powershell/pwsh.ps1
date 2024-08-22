@@ -64,30 +64,26 @@ function Link-Config {
         New-Item -ItemType Directory -Path $configDir -Force
     }
 
+    # Fastfetch configuration
     $fastfetchConfigDir = "$configDir\fastfetch"
-    $fastfetchConfig = "$fastfetchConfigDir\config.jsonc"
-
     if (-not (Test-Path -Path $fastfetchConfigDir)) {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
     if (Test-Path "$GITPATH\config.jsonc") {
-        Write-Host "Copying config.jsonc to $fastfetchConfig from $GITPATH."
-        Copy-Item -Path "$GITPATH\config.jsonc" -Destination $fastfetchConfig -Force
+        Write-Host "Copying config.jsonc to $fastfetchConfigDir from $GITPATH."
+        Copy-Item -Path "$GITPATH\config.jsonc" -Destination "$fastfetchConfigDir\config.jsonc" -Force
     } else {
         Write-Host "config.jsonc not found in $GITPATH." -ForegroundColor Red
     }
 
+    # Starship configuration
     $starshipConfig = "$configDir\starship.toml"
-    if (-not (Test-Path -Path $starshipConfig)) {
-        if (Test-Path "$GITPATH\starship.toml") {
-            Write-Host "Copying starship.toml to $starshipConfig from $GITPATH."
-            Copy-Item -Path "$GITPATH\starship.toml" -Destination $starshipConfig -Force
-        } else {
-            Write-Host "starship.toml not found in $GITPATH." -ForegroundColor Red
-        }
+    if (Test-Path "$GITPATH\starship.toml") {
+        Write-Host "Copying starship.toml to $configDir from $GITPATH."
+        Copy-Item -Path "$GITPATH\starship.toml" -Destination "$configDir\starship.toml" -Force
     } else {
-        Write-Host "starship.toml already exists in $configDir."
+        Write-Host "starship.toml not found in $GITPATH." -ForegroundColor Red
     }
 }
 
@@ -102,9 +98,6 @@ function Update-Profile {
         New-Item -ItemType File -Path $profileFile -Force
     }
 
-    # Add paths to environment if not already present
-    $fastfetchPath = "$(scoop prefix fastfetch)\bin\fastfetch.exe"
-
     # Read the profile content line-by-line
     $profileContent = Get-Content $profileFile
 
@@ -112,7 +105,7 @@ function Update-Profile {
     $linesToAdd = @(
         'starship init powershell | Out-String | Invoke-Expression',
         'zoxide init powershell | Out-String | Invoke-Expression',
-        "$fastfetchPath"
+        'fastfetch'
     )
 
     foreach ($line in $linesToAdd) {
