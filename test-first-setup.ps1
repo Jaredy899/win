@@ -38,6 +38,17 @@ if ($startSetup -eq "yes" -or $startSetup -eq "y" -or [string]::IsNullOrEmpty($s
     Write-Output "Setup script was not started."
 }
 
+# Prompt to start My Powershell config
+$startMyPowershell = Read-Host "Do you want to start My Powershell config? (yes/y/enter for yes, no/n for no)"
+if ($startMyPowershell -eq "yes" -or $startMyPowershell -eq "y" -or [string]::IsNullOrEmpty($startMyPowershell)) {
+    # Download and run the My Powershell config script
+    Write-Output "Downloading and running My Powershell config script..."
+    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
+    gsudo powershell -File "$env:TEMP\pwsh.ps1"
+} else {
+    Write-Output "My Powershell config script was not started."
+}
+
 # Prompt to start the winapps script
 $startWinApps = Read-Host "Do you want to install and update apps? (yes/y/enter for yes, no/n for no)"
 if ($startWinApps -eq "yes" -or $startWinApps -eq "y" -or [string]::IsNullOrEmpty($startWinApps)) {
@@ -49,13 +60,3 @@ if ($startWinApps -eq "yes" -or $startWinApps -eq "y" -or [string]::IsNullOrEmpt
     Write-Output "Winapps script was not started."
 }
 
-# Prompt to start My Powershell config
-$startMyPowershell = Read-Host "Do you want to start My Powershell config? (yes/y/enter for yes, no/n for no)"
-if ($startMyPowershell -eq "yes" -or $startMyPowershell -eq "y" -or [string]::IsNullOrEmpty($startMyPowershell)) {
-    # Download and run the My Powershell config script
-    Write-Output "Downloading and running My Powershell config script..."
-    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
-    gsudo powershell -File "$env:TEMP\pwsh.ps1"
-} else {
-    Write-Output "My Powershell config script was not started."
-}
