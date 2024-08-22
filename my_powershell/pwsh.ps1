@@ -28,6 +28,62 @@ if (-not (Test-IsAdmin)) {
     }
 }
 
+# Function to check if the script is running as Administrator
+function Test-IsAdmin {
+    $currentUser = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentUser.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# Self-elevate if not running as Administrator
+if (-not (Test-IsAdmin)) {
+    Write-Host "Script is not running as Administrator. Attempting to self-elevate..."
+
+    $currentScript = $MyInvocation.MyCommand.Path
+
+    # Create a new PowerShell process with Administrator privileges
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$currentScript`""
+    $processInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $processInfo.FileName = "powershell"
+    $processInfo.Arguments = $arguments
+    $processInfo.Verb = "runas"  # This tells Windows to run the process as administrator
+
+    try {
+        # Start the new elevated process
+        $process = [System.Diagnostics.Process]::Start($processInfo)
+        $process.WaitForExit()
+        exit $process.ExitCode
+    } catch {
+        Write-Host "User declined to run the script as Administrator." -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Function to check if winget is installed, and install or update it if necessary
+function Ensure-Winget {
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Host "winget not found. Installing winget..."
+        $wingetInstallerUrl = "https://aka.ms/getwinget"
+        $wingetInstaller = "$env:TEMP\wingetInstaller.msixbundle"
+        
+        # Download the installer
+        Invoke-WebRequest -Uri $wingetInstallerUrl -OutFile $wingetInstaller
+
+        # Install winget (requires admin)
+        Add-AppxPackage -Path $wingetInstaller
+
+        # Cleanup
+        Remove-Item $wingetInstaller -Force
+
+        Write-Host "winget installed successfully."
+    } else {
+        Write-Host "winget is already installed. Updating to the latest version..."
+        winget upgrade --id Microsoft.Winget --silent --accept-package-agreements --accept-source-agreements
+    }
+}
+
+# Ensure winget is installed and up to date
+Ensure-Winget
+
 # Set the GITPATH variable to the directory where the script is located
 $scriptPath = $MyInvocation.MyCommand.Path
 if (-not $scriptPath) {
