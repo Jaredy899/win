@@ -97,28 +97,31 @@ function Configure-TimeSettings {
     }
 }
 
+# Function to change the user password
 function Set-UserPassword {
     param (
         [string]$username,
         [string]$password
     )
     Try {
+        Write-Output "Attempting to change the password for $username..."
         net user "$username" "$password" *>$null
-        Write-Output "Password for ${username} account set."
+        Write-Output "Password for ${username} account set successfully."
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
     }
 }
 
-function Main {
-    Ensure-Elevation
+# Ask if the user wants to change the password
+$changePassword = Read-Host "Do you want to change the user password? (yes/y/enter for yes, no/n for no)"
+if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
+    $username = Read-Host "Enter the username"
+    $password = Read-Host "Enter the new password"
+    Set-UserPassword -username $username -password $password
+} else {
+    Write-Output "Password change was not performed."
+}
 
-    $changeUser = Read-Host "Do you want to change the username and password? (y/n)"
-    if ($changeUser -eq "y") {
-        $username = Read-Host "Enter the new username"
-        $password = Read-Host "Enter the new password"
-        Set-UserPassword -username $username -password $password
-    }
 
     Configure-TimeSettings
 
