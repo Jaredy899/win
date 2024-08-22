@@ -1,15 +1,34 @@
 # Set the GITPATH variable to the directory where the script is located
-$GITPATH = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scriptPath = $MyInvocation.MyCommand.Path
+if (-not $scriptPath) {
+    # Alternative method if MyInvocation is not available
+    $scriptPath = $PSScriptRoot
+}
+$GITPATH = Split-Path -Parent $scriptPath
 
 # Function to install dependencies
 function Install-Depend {
-    $dependencies = @("git", "7zip", "bat", "fzf", "zoxide", "starship", "Alacritty", "Tabby")
+    $dependencies = @(
+        @{Name="Git.Git"; Type="Package"}, 
+        @{Name="7zip.7zip"; Type="Package"}, 
+        @{Name="BurntSushi.Bat"; Type="Package"},
+        @{Name="Starship.Starship"; Type="Package"},
+        @{Name="JanDeDobbeleer.OhMyPosh"; Type="Package"},
+        @{Name="Tabby.Tabby"; Type="Package"},
+        @{Name="Alacritty.Alacritty"; Type="Package"},
+        @{Name="junegunn.fzf"; Type="Package"},
+        @{Name="ajeetdsouza.zoxide"; Type="Package"}
+    )
 
-    foreach ($package in $dependencies) {
-        Write-Host "Installing $package..."
-        winget install --id $package --silent -e
+    foreach ($dependency in $dependencies) {
+        $name = $dependency.Name
+        Write-Host "Installing $name..."
+        if ($dependency.Type -eq "Package") {
+            winget install --id $name --silent -e
+        }
+
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "Failed to install $package. Please check your package manager." -ForegroundColor Red
+            Write-Host "Failed to install $name. Please check your package manager." -ForegroundColor Red
             exit 1
         }
     }
