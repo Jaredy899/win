@@ -72,8 +72,8 @@ function Install-Font {
 # Run the font installation
 Install-Font
 
-# Improved path detection
-$scriptPath = $MyInvocation.MyCommand.Path
+# Improved path detection to handle GitHub execution
+$scriptPath = $MyInvocation.MyCommand.Definition
 if (-not $scriptPath -or $scriptPath -eq "") {
     $scriptPath = $PSScriptRoot
 }
@@ -84,7 +84,7 @@ if (-not $scriptPath -or $scriptPath -eq "") {
 
 $GITPATH = Split-Path -Parent $scriptPath
 
-# Attempt to detect the location of the script in the GitHub repo
+# If GITPATH is not detected correctly, default to the directory containing the script
 if ($GITPATH -eq $null -or $GITPATH -eq "") {
     Write-Host "GITPATH could not be detected. Defaulting to the current directory."
     $GITPATH = Get-Location
