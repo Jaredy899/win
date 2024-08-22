@@ -5,17 +5,25 @@ function Ensure-Scoop {
 
         # Install Scoop (without admin privileges)
         Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-
-        # Add the main and extras buckets for additional applications
-        scoop bucket add extras
-        scoop bucket add versions
     } else {
-        Write-Host "Scoop is already installed. Adding necessary buckets..."
-        
-        # Ensure necessary buckets are added
-        scoop bucket add extras
-        scoop bucket add versions
+        Write-Host "Scoop is already installed."
     }
+
+    # Ensure Git is installed before adding buckets
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Host "Git is required for Scoop buckets. Installing Git..."
+        scoop install git
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Failed to install Git. Please check your internet connection or the app name." -ForegroundColor Red
+            exit 1
+        }
+    }
+
+    # Add the main and extras buckets for additional applications
+    Write-Host "Adding Scoop buckets..."
+    scoop bucket add main
+    scoop bucket add extras
+    scoop bucket add versions
 }
 
 # Ensure Scoop is installed and configured
@@ -23,7 +31,7 @@ Ensure-Scoop
 
 # Install applications using Scoop
 function Install-Apps {
-    $apps = @("git", "7zip", "bat", "starship", "oh-my-posh", "tabby", "alacritty", "fzf", "zoxide", "fastfetch")
+    $apps = @("7zip", "bat", "starship", "oh-my-posh", "tabby", "alacritty", "fzf", "zoxide", "fastfetch")
 
     foreach ($app in $apps) {
         Write-Host "Installing $app..."
@@ -100,7 +108,7 @@ function Update-Profile {
     $linesToAdd = @(
         'starship init powershell | Out-String | Invoke-Expression',
         'zoxide init powershell | Out-String | Invoke-Expression',
-        'fastfetch'
+        "$fastfetchPath"
     )
 
     foreach ($line in $linesToAdd) {
