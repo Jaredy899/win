@@ -84,6 +84,12 @@ if (-not $scriptPath -or $scriptPath -eq "") {
 
 $GITPATH = Split-Path -Parent $scriptPath
 
+# Attempt to detect the location of the script in the GitHub repo
+if ($GITPATH -eq $null -or $GITPATH -eq "") {
+    Write-Host "GITPATH could not be detected. Defaulting to the current directory."
+    $GITPATH = Get-Location
+}
+
 Write-Host "GITPATH is set to: $GITPATH"
 
 # Function to copy configurations (no symbolic links)
