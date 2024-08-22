@@ -46,7 +46,33 @@ function Install-Apps {
 # Run the installation of applications
 Install-Apps
 
-## Attempt to determine the script's directory correctly
+# Function to install MesloLGS Nerd Font Mono
+function Install-Font {
+    $fontName = "MesloLGS NF"
+    $fontUrl = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+    $fontDir = "$env:UserProfile\Fonts"
+
+    if (-not (Test-Path -Path $fontDir)) {
+        New-Item -ItemType Directory -Path $fontDir -Force
+    }
+
+    # Check if the font is already installed
+    if (-not (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" | Where-Object { $_.PSChildName -like "*$fontName*" })) {
+        Write-Host "Installing font '$fontName'..."
+        $tempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("TempDir_" + [System.Guid]::NewGuid().ToString())) -Force
+        Invoke-WebRequest -Uri $fontUrl -OutFile "$tempDir\Meslo.zip"
+        Expand-Archive -Path "$tempDir\Meslo.zip" -DestinationPath $fontDir -Force
+        Remove-Item -Recurse -Force $tempDir
+        Write-Host "Font '$fontName' installed successfully."
+    } else {
+        Write-Host "Font '$fontName' is already installed."
+    }
+}
+
+# Run the font installation
+Install-Font
+
+# Attempt to determine the script's directory correctly
 $GITPATH = $PSScriptRoot
 
 if (-not (Test-Path "$GITPATH\config.jsonc") -or -not (Test-Path "$GITPATH\starship.toml")) {
@@ -85,7 +111,6 @@ function Link-Config {
     }
 }
 
-
 # Run the Link-Config function
 Link-Config
 
@@ -102,9 +127,9 @@ function Update-Profile {
 
     # Define the exact lines to add
     $linesToAdd = @(
-        'starship init powershell | Out-String | Invoke-Expression',
-        'zoxide init powershell | Out-String | Invoke-Expression',
-        'fastfetch'
+        "$starshipPath init powershell | Out-String | Invoke-Expression",
+        "$zoxidePath init powershell | Out-String | Invoke-Expression",
+        "fastfetch"
     )
 
     foreach ($line in $linesToAdd) {
