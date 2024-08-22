@@ -1,9 +1,25 @@
-function Ensure-Elevation {
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        Write-Output "Please run this script as an administrator."
-        exit
+# Function to change the password of the currently logged-in user
+function Set-UserPassword {
+    param (
+        [string]$password
+    )
+    $username = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Split("\")[-1]
+    Try {
+        Write-Output "Attempting to change the password for $username..."
+        net user "$username" "$password" *>$null
+        Write-Output "Password for ${username} account set successfully."
+    } Catch {
+        Write-Output "Failed to set password for ${username} account: $($_)"
     }
+}
+
+# Ask if the user wants to change the password
+$changePassword = Read-Host "Do you want to change your password? (yes/y/enter for yes, no/n for no)"
+if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
+    $password = Read-Host "Enter the new password"
+    Set-UserPassword -password $password
+} else {
+    Write-Output "Password change was not performed."
 }
 
 function Enable-RemoteDesktop {
@@ -97,34 +113,9 @@ function Configure-TimeSettings {
     }
 }
 
-# Function to change the user password
-function Set-UserPassword {
-    param (
-        [string]$username,
-        [string]$password
-    )
-    Try {
-        Write-Output "Attempting to change the password for $username..."
-        net user "$username" "$password" *>$null
-        Write-Output "Password for ${username} account set successfully."
-    } Catch {
-        Write-Output "Failed to set password for ${username} account: $($_)"
-    }
-}
-
-# Ask if the user wants to change the password
-$changePassword = Read-Host "Do you want to change the user password? (yes/y/enter for yes, no/n for no)"
-if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
-    $username = Read-Host "Enter the username"
-    $password = Read-Host "Enter the new password"
-    Set-UserPassword -username $username -password $password
-} else {
-    Write-Output "Password change was not performed."
-}
-
-
+# Main function to execute all tasks
+function Main {
     Configure-TimeSettings
-
     Enable-RemoteDesktop
     Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
     Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any"
