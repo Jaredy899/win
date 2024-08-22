@@ -11,10 +11,10 @@ function Install-Depend {
     $dependencies = @(
         @{Name="Git.Git"; Type="Package"}, 
         @{Name="7zip.7zip"; Type="Package"}, 
-        @{Name="BurntSushi.Bat"; Type="Package"},
+        @{Name="sharkdp.bat"; Type="Package"},
         @{Name="Starship.Starship"; Type="Package"},
         @{Name="JanDeDobbeleer.OhMyPosh"; Type="Package"},
-        @{Name="Tabby.Tabby"; Type="Package"},
+        @{Name="Eugeny.Tabby"; Type="Package"},
         @{Name="Alacritty.Alacritty"; Type="Package"},
         @{Name="junegunn.fzf"; Type="Package"},
         @{Name="ajeetdsouza.zoxide"; Type="Package"}
@@ -23,13 +23,19 @@ function Install-Depend {
     foreach ($dependency in $dependencies) {
         $name = $dependency.Name
         Write-Host "Installing $name..."
-        if ($dependency.Type -eq "Package") {
-            winget install --id $name --silent -e
-        }
 
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Failed to install $name. Please check your package manager." -ForegroundColor Red
-            exit 1
+        # Check if the package is already installed
+        $installed = winget list --id $name | Select-String $name
+
+        if ($installed) {
+            Write-Host "$name is already installed. Skipping..."
+        } else {
+            # Install the package if not installed
+            winget install --id $name --silent -e
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Failed to install $name. Please check your package manager." -ForegroundColor Red
+                exit 1
+            }
         }
     }
 }
@@ -46,7 +52,7 @@ function Install-Font {
 
     if (-not (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" | Where-Object { $_.PSChildName -like "*$fontName*" })) {
         Write-Host "Installing font '$fontName'..."
-        $tempDir = New-TemporaryFile -ItemType Directory
+        $tempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("TempDir_" + [System.Guid]::NewGuid().ToString())) -Force
         Invoke-WebRequest -Uri $fontUrl -OutFile "$tempDir\Meslo.zip"
         Expand-Archive -Path "$tempDir\Meslo.zip" -DestinationPath $fontDir -Force
         Remove-Item -Recurse -Force $tempDir
@@ -112,7 +118,7 @@ function Update-Profile {
     $profileContent = Get-Content $profileFile -Raw
     $linesToAdd = @(
         'starship init powershell | Out-String | Invoke-Expression'
-        'Import-Module Zoxide'
+        'zoxide init powershell | Out-String | Invoke-Expression'
         'fastfetch'
     )
 
