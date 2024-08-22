@@ -114,17 +114,30 @@ function Update-Profile {
         New-Item -ItemType File -Path $profileFile -Force
     }
 
-    # Add lines to the profile
-    $profileContent = Get-Content $profileFile -Raw
+    # Read the profile content line-by-line
+    $profileContent = Get-Content $profileFile
+
+    # Define the exact lines to add
     $linesToAdd = @(
-        'starship init powershell | Out-String | Invoke-Expression'
-        'zoxide init powershell | Out-String | Invoke-Expression'
+        'starship init powershell | Out-String | Invoke-Expression',
+        'zoxide init powershell | Out-String | Invoke-Expression',
         'fastfetch'
     )
 
     foreach ($line in $linesToAdd) {
-        if ($profileContent -notcontains $line) {
-            Add-Content $profileFile -Value $line
+        $found = $false
+        foreach ($existingLine in $profileContent) {
+            if ($existingLine.Trim() -eq $line.Trim()) {
+                $found = $true
+                break
+            }
+        }
+
+        if (-not $found) {
+            Add-Content $profileFile -Value "`n$line"
+            Write-Host "Added '$line' to PowerShell profile."
+        } else {
+            Write-Host "'$line' is already in the PowerShell profile. Skipping..."
         }
     }
 
