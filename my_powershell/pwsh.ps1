@@ -168,3 +168,15 @@ function Update-Profile {
 
 # Run the Update-Profile function
 Update-Profile
+
+# Instructions for Manual Font Configuration
+Write-Host ""
+Write-Host "=== Manual Font Configuration ==="
+Write-Host "To set the font for Windows Terminal to 'CaskaydiaCove Nerd Font', please follow these steps:"
+Write-Host "1. Open Windows Terminal."
+Write-Host "2. Go to Settings."
+Write-Host "3. Select the 'Windows PowerShell' profile."
+Write-Host "4. Under 'Appearance', set the 'Font face' to 'CaskaydiaCove Nerd Font'."
+Write-Host "5. Save and close the settings."
+Write-Host "==============================="
+Write-Host ""
