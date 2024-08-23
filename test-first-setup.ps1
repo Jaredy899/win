@@ -1,18 +1,34 @@
-# Function to draw a box in the terminal
+# Function to draw a box in the terminal and wrap text if necessary
 function Draw-Box {
     param (
         [string]$text,
         [int]$width = 50
     )
 
-    $border = '+' + ('-' * ($width - 2)) + '+'
-    $padding = '|' + (' ' * ($width - 2)) + '|'
-    $textLine = '|' + $text.PadLeft(($width - 2 + $text.Length) / 2).PadRight($width - 2) + '|'
+    # Split the text into lines that fit within the specified width
+    $words = $text -split ' '
+    $lines = @()
+    $currentLine = ''
 
+    foreach ($word in $words) {
+        if (($currentLine.Length + $word.Length + 1) -lt $width) {
+            $currentLine += " $word"
+        } else {
+            $lines += $currentLine.Trim()
+            $currentLine = $word
+        }
+    }
+    $lines += $currentLine.Trim()
+
+    # Draw the box
+    $border = '+' + ('-' * ($width - 2)) + '+'
     Write-Output $border
-    Write-Output $padding
-    Write-Output $textLine
-    Write-Output $padding
+    Write-Output '|' + (' ' * ($width - 2)) + '|'
+    foreach ($line in $lines) {
+        $paddedLine = $line.PadLeft(($width - 2 + $line.Length) / 2).PadRight($width - 2)
+        Write-Output "|$paddedLine|"
+    }
+    Write-Output '|' + (' ' * ($width - 2)) + '|'
     Write-Output $border
 }
 
@@ -40,11 +56,10 @@ function Install-ScoopAndGsudo {
 Install-ScoopAndGsudo
 
 # Prompt to update Windows with a text-based box
-Draw-Box -text "Do you want to update Windows? By saying yes, it will ask for administrator privileges."
+Draw-Box -text "Do you want to update Windows? By saying yes, it will ask for administrator privileges." -width 70
+$response = Read-Host "Type 'y' to proceed or 'n' to skip"
 
-$response = Read-Host "Type 'yes' to proceed or 'no' to skip"
-
-if ($response.ToLower() -eq 'yes') {
+if ($response.ToLower() -eq 'y') {
     Write-Output "Downloading and running the Windows update script..."
     Invoke-RestMethod -Uri https://raw.githubusercontent.com/Jaredy899/setup/main/Windows-Update.ps1 -OutFile "$env:TEMP\windows_update.ps1"
     gsudo powershell -File "$env:TEMP\windows_update.ps1"
@@ -53,11 +68,10 @@ if ($response.ToLower() -eq 'yes') {
 }
 
 # Prompt to start the setup script with a text-based box
-Draw-Box -text "Do you want to start the Setup script? By saying yes, it will ask for administrator privileges."
+Draw-Box -text "Do you want to start the Setup script? By saying yes, it will ask for administrator privileges." -width 70
+$response = Read-Host "Type 'y' to proceed or 'n' to skip"
 
-$response = Read-Host "Type 'yes' to proceed or 'no' to skip"
-
-if ($response.ToLower() -eq 'yes') {
+if ($response.ToLower() -eq 'y') {
     Write-Output "Downloading and running the setup script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/setup2.ps1" -OutFile "$env:TEMP\setup2.ps1"
     gsudo powershell -File "$env:TEMP\setup2.ps1"
@@ -66,11 +80,10 @@ if ($response.ToLower() -eq 'yes') {
 }
 
 # Prompt to start My Powershell config with a text-based box
-Draw-Box -text "Do you want to start My Powershell config?"
+Draw-Box -text "Do you want to start My Powershell config?" -width 70
+$response = Read-Host "Type 'y' to proceed or 'n' to skip"
 
-$response = Read-Host "Type 'yes' to proceed or 'no' to skip"
-
-if ($response.ToLower() -eq 'yes') {
+if ($response.ToLower() -eq 'y') {
     Write-Output "Downloading and running My Powershell config script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
     . "$env:TEMP\pwsh.ps1"
@@ -79,11 +92,10 @@ if ($response.ToLower() -eq 'yes') {
 }
 
 # Prompt to start ChrisTitusTech's Windows Utility with a text-based box
-Draw-Box -text "Do you want to start ChrisTitusTech's Windows Utility? By saying yes, it will ask for administrator privileges."
+Draw-Box -text "Do you want to start ChrisTitusTech's Windows Utility? By saying yes, it will ask for administrator privileges." -width 70
+$response = Read-Host "Type 'y' to proceed or 'n' to skip"
 
-$response = Read-Host "Type 'yes' to proceed or 'no' to skip"
-
-if ($response.ToLower() -eq 'yes') {
+if ($response.ToLower() -eq 'y') {
     Write-Output "Downloading ChrisTitusTech's Windows Utility script..."
     Invoke-RestMethod -Uri "https://christitus.com/win" -OutFile "$env:TEMP\ctt_win.ps1"
     Write-Output "Running ChrisTitusTech's Windows Utility script..."
