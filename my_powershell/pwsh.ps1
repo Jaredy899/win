@@ -70,16 +70,14 @@ function Install-Font {
 # Run the font installation
 Install-Font
 
-# URLs for config.jsonc, starship.toml, and settings.json in your GitHub repo
+# URLs for config.jsonc and starship.toml in your GitHub repo
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell"
 $configUrl = "$githubBaseUrl/config.jsonc"
 $starshipUrl = "$githubBaseUrl/starship.toml"
-$settingsJsonUrl = "$githubBaseUrl/settings.json"
 
 # Paths for local files (if available)
 $localConfigJsonc = "$PSScriptRoot\config.jsonc"
 $localStarshipToml = "$PSScriptRoot\starship.toml"
-$localSettingsJson = "$PSScriptRoot\settings.json"
 
 # Function to copy configurations from GitHub or local
 function Link-Config {
@@ -109,17 +107,6 @@ function Link-Config {
     } else {
         Write-Host "Local starship.toml not found. Downloading from GitHub."
         Invoke-WebRequest -Uri $starshipUrl -OutFile "$configDir\starship.toml"
-    }
-
-    # Windows Terminal settings
-    $settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-
-    if (Test-Path -Path $localSettingsJson) {
-        Write-Host "Local settings.json found. Using local copy."
-        Copy-Item -Path $localSettingsJson -Destination $settingsPath -Force
-    } else {
-        Write-Host "Local settings.json not found. Downloading from GitHub."
-        Invoke-WebRequest -Uri $settingsJsonUrl -OutFile $settingsPath
     }
 
     Write-Host "Configuration files have been updated."
