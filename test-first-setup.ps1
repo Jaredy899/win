@@ -1,37 +1,3 @@
-# Function to draw a box in the terminal and wrap text if necessary
-function Draw-Box {
-    param (
-        [string]$text,
-        [int]$width = 50
-    )
-
-    # Split the text into lines that fit within the specified width
-    $words = $text -split ' '
-    $lines = @()
-    $currentLine = ''
-
-    foreach ($word in $words) {
-        if (($currentLine.Length + $word.Length + 1) -lt $width) {
-            $currentLine += " $word"
-        } else {
-            $lines += $currentLine.Trim()
-            $currentLine = $word
-        }
-    }
-    $lines += $currentLine.Trim()
-
-    # Draw the box
-    $border = '+' + ('-' * ($width - 2)) + '+'
-    Write-Output $border
-    Write-Output '|' + (' ' * ($width - 2)) + '|'
-    foreach ($line in $lines) {
-        $paddedLine = $line.PadLeft(($width - 2 + $line.Length) / 2).PadRight($width - 2)
-        Write-Output "|$paddedLine|"
-    }
-    Write-Output '|' + (' ' * ($width - 2)) + '|'
-    Write-Output $border
-}
-
 # Function to install Scoop and gsudo
 function Install-ScoopAndGsudo {
     Write-Output "Checking if Scoop is installed..."
@@ -55,23 +21,47 @@ function Install-ScoopAndGsudo {
 # Install Scoop and gsudo
 Install-ScoopAndGsudo
 
-# Prompt to update Windows with a text-based box
-Draw-Box -text "Do you want to update Windows? By saying yes, it will ask for administrator privileges." -width 70
-$response = Read-Host "Type 'y' to proceed or 'n' to skip"
+# Function to display a message box or console prompt based on PowerShell version
+function Show-Prompt {
+    param (
+        [string]$text,
+        [string]$caption = ""
+    )
 
-if ($response.ToLower() -eq 'y') {
+    if ($PSVersionTable.PSVersion.Major -ge 7) {
+        # Use message boxes in PowerShell 7 and above
+        Add-Type -AssemblyName PresentationFramework
+        $result = [System.Windows.MessageBox]::Show($text, $caption, [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question, [System.Windows.MessageBoxResult]::None, [System.Windows.MessageBoxOptions]::ServiceNotification)
+        return $result
+    } else {
+        # Use console prompt in PowerShell 5 and below
+        Write-Output $text
+        $response = Read-Host "Type 'y' to proceed or 'n' to skip"
+        return $response.ToLower() -eq 'y' ? 'Yes' : 'No'
+    }
+}
+
+# Prompt to update Windows
+$question = "Do you want to update Windows? By saying yes, it will ask for administrator privileges."
+$caption = "Windows Update"
+$response = Show-Prompt -text $question -caption $caption
+
+if ($response -eq 'Yes') {
+    # Run the Windows update script from the URL
     Write-Output "Downloading and running the Windows update script..."
-    Invoke-RestMethod -Uri https://raw.githubusercontent.com/Jaredy899/setup/main/Windows-Update.ps1 -OutFile "$env:TEMP\windows_update.ps1"
-    gsudo powershell -File "$env:TEMP\windows_update.ps1"
+    Invoke-RestMethod -Uri https://raw.githubusercontent.com/Jaredy899/setup/main/Windows-Update.ps1 -OutFile "$env:TEMP\setup2.ps1"
+    gsudo powershell -File "$env:TEMP\setup2.ps1"
 } else {
     Write-Output "Skipping Windows update."
 }
 
-# Prompt to start the setup script with a text-based box
-Draw-Box -text "Do you want to start the Setup script? By saying yes, it will ask for administrator privileges." -width 70
-$response = Read-Host "Type 'y' to proceed or 'n' to skip"
+# Prompt to start the setup script
+$question = "Do you want to start the Setup script? By saying yes, it will ask for administrator privileges."
+$caption = "Setup Script"
+$response = Show-Prompt -text $question -caption $caption
 
-if ($response.ToLower() -eq 'y') {
+if ($response -eq 'Yes') {
+    # Download and run the setup script
     Write-Output "Downloading and running the setup script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/setup2.ps1" -OutFile "$env:TEMP\setup2.ps1"
     gsudo powershell -File "$env:TEMP\setup2.ps1"
@@ -79,11 +69,13 @@ if ($response.ToLower() -eq 'y') {
     Write-Output "Setup script was not started."
 }
 
-# Prompt to start My Powershell config with a text-based box
-Draw-Box -text "Do you want to start My Powershell config?" -width 70
-$response = Read-Host "Type 'y' to proceed or 'n' to skip"
+# Prompt to start My Powershell config
+$question = "Do you want to start My Powershell config?"
+$caption = "My Powershell Config"
+$response = Show-Prompt -text $question -caption $caption
 
-if ($response.ToLower() -eq 'y') {
+if ($response -eq 'Yes') {
+    # Download and run the My Powershell config script
     Write-Output "Downloading and running My Powershell config script..."
     Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
     . "$env:TEMP\pwsh.ps1"
@@ -91,11 +83,13 @@ if ($response.ToLower() -eq 'y') {
     Write-Output "My Powershell config script was not started."
 }
 
-# Prompt to start ChrisTitusTech's Windows Utility with a text-based box
-Draw-Box -text "Do you want to start ChrisTitusTech's Windows Utility? By saying yes, it will ask for administrator privileges." -width 70
-$response = Read-Host "Type 'y' to proceed or 'n' to skip"
+# Prompt to start ChrisTitusTech's Windows Utility
+$question = "Do you want to start ChrisTitusTech's Windows Utility? By saying yes, it will ask for administrator privileges."
+$caption = "ChrisTitusTech's Windows Utility"
+$response = Show-Prompt -text $question -caption $caption
 
-if ($response.ToLower() -eq 'y') {
+if ($response -eq 'Yes') {
+    # Download and run ChrisTitusTech's Windows Utility script using gsudo
     Write-Output "Downloading ChrisTitusTech's Windows Utility script..."
     Invoke-RestMethod -Uri "https://christitus.com/win" -OutFile "$env:TEMP\ctt_win.ps1"
     Write-Output "Running ChrisTitusTech's Windows Utility script..."
