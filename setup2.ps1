@@ -101,17 +101,52 @@ function Configure-SSH {
 
 function Configure-TimeSettings {
     Try {
-        $currentTimeZone = (Get-TimeZone).Id
-        tzutil /s "$currentTimeZone" *>$null
+        # Display options for time zones
+        Write-Output "Select a time zone from the options below:"
+        $timeZones = @(
+            "Eastern Standard Time",
+            "Central Standard Time",
+            "Mountain Standard Time",
+            "Pacific Standard Time",
+            "Greenwich Standard Time",
+            "UTC",
+            "Hawaiian Standard Time",
+            "Alaskan Standard Time"
+        )
+        
+        # Display the list of options
+        for ($i = 0; $i -lt $timeZones.Count; $i++) {
+            Write-Output "$($i + 1). $($timeZones[$i])"
+        }
+
+        # Prompt the user to select a time zone
+        $selection = Read-Host "Enter the number corresponding to your time zone"
+
+        # Validate input and set the time zone
+        if ($selection -match '^\d+$' -and $selection -gt 0 -and $selection -le $timeZones.Count) {
+            $selectedTimeZone = $timeZones[$selection - 1]
+            tzutil /s "$selectedTimeZone" *>$null
+            Write-Output "Time zone set to $selectedTimeZone."
+        } else {
+            Write-Output "Invalid selection. Please run the script again and choose a valid number."
+            return
+        }
+
+        # Configure the time synchronization settings
         w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
-        Write-Output "Time settings configured and synchronized to $currentTimeZone."
+
+        Write-Output "Time settings configured and synchronized to $selectedTimeZone."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
 }
+
+# Call the function to configure time settings
+Configure-TimeSettings
+
 
 # Main function to execute all tasks
 function Main {
