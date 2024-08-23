@@ -8,7 +8,7 @@
         }
     },
     "display": {
-        "separator": "   ",
+        "separator": "  ",
         "color": "cyan"
     },
     "modules": [
@@ -18,24 +18,24 @@
         },
         {
             "type": "host",
-            "key": "  󰌢"
+            "key": "󰌢  "
         },
         {
             "type": "cpu",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "gpu",
             "detectionMethod": "pci",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "display",
-            "key": "  󱄄"
+            "key": "󱄄  "
         },
         {
             "type": "memory",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "custom",
@@ -43,20 +43,20 @@
         },
         {
             "type": "os",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "kernel",
-            "key": "  ",
+            "key": "  ",
             "format": "{1} {2}"
         },
         {
             "type": "wm",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "shell",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "custom",
@@ -66,7 +66,7 @@
             "type": "command",
             "key": "  OS Age ",
             "keyColor": "magenta",
-            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+            "text": "Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty InstallDate"
         },
         {
             "type": "uptime",

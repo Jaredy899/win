@@ -23,6 +23,7 @@ function Ensure-Scoop {
     Write-Host "Adding Scoop buckets..."
     scoop bucket add main
     scoop bucket add extras
+    scoop bucket add nerd-fonts
     scoop bucket add versions
 }
 
@@ -46,47 +47,41 @@ function Install-Apps {
 # Run the installation of applications
 Install-Apps
 
-# Function to check if a font is installed
-function Is-FontInstalled {
-    param (
-        [string]$fontName
-    )
-    $fontKey = "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts"
-    $installedFonts = Get-ItemProperty -Path $fontKey
-    return $installedFonts.PSObject.Properties.Name -contains $fontName
-}
-
-# Function to install MesloLGS Nerd Font Mono using curl
+# Function to install Cascadia Code Nerd Font using Scoop
 function Install-Font {
-    $fontName = "MesloLGS NF"
-    $fontUrl = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
-    $fontDir = "$env:UserProfile\Fonts"
+    $fontName = "CascadiaCode-NF"
 
-    if (-not (Test-Path -Path $fontDir)) {
-        New-Item -ItemType Directory -Path $fontDir -Force
+    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        Write-Host "Scoop not found. Please install Scoop first." -ForegroundColor Red
+        exit 1
     }
 
-    if (-not (Is-FontInstalled $fontName)) {
-        Write-Host "Installing font '$fontName' using curl..."
-        $tempDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("TempDir_" + [System.Guid]::NewGuid().ToString())) -Force
-        Start-Process -FilePath "curl.exe" -ArgumentList "-L $fontUrl -o `"$tempDir\Meslo.zip`"" -Wait -NoNewWindow
-        Expand-Archive -Path "$tempDir\Meslo.zip" -DestinationPath $fontDir -Force
-        Remove-Item -Recurse -Force $tempDir
+    Write-Host "Installing font '$fontName' using Scoop..."
+    scoop install nerd-fonts/$fontName
+
+    if ($LASTEXITCODE -eq 0) {
         Write-Host "Font '$fontName' installed successfully."
     } else {
-        Write-Host "Font '$fontName' is already installed."
+        Write-Host "Failed to install font '$fontName'. Please check your internet connection or the font name." -ForegroundColor Red
+        exit 1
     }
 }
 
 # Run the font installation
 Install-Font
 
-# URLs for config.jsonc and starship.toml in your GitHub repo
+# URLs for config.jsonc, starship.toml, and settings.json in your GitHub repo
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell"
 $configUrl = "$githubBaseUrl/config.jsonc"
 $starshipUrl = "$githubBaseUrl/starship.toml"
+$settingsJsonUrl = "$githubBaseUrl/settings.json"
 
-# Function to copy configurations from GitHub
+# Paths for local files (if available)
+$localConfigJsonc = "$PSScriptRoot\config.jsonc"
+$localStarshipToml = "$PSScriptRoot\starship.toml"
+$localSettingsJson = "$PSScriptRoot\settings.json"
+
+# Function to copy configurations from GitHub or local
 function Link-Config {
     $configDir = "$env:UserProfile\.config"
 
@@ -100,12 +95,34 @@ function Link-Config {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
-    Write-Host "Downloading and saving config.jsonc to $fastfetchConfigDir."
-    Invoke-WebRequest -Uri $configUrl -OutFile "$fastfetchConfigDir\config.jsonc"
+    if (Test-Path -Path $localConfigJsonc) {
+        Write-Host "Local config.jsonc found. Using local copy."
+        Copy-Item -Path $localConfigJsonc -Destination "$fastfetchConfigDir\config.jsonc" -Force
+    } else {
+        Write-Host "Local config.jsonc not found. Downloading from GitHub."
+        Invoke-WebRequest -Uri $configUrl -OutFile "$fastfetchConfigDir\config.jsonc"
+    }
 
-    # Starship configuration
-    Write-Host "Downloading and saving starship.toml to $configDir."
-    Invoke-WebRequest -Uri $starshipUrl -OutFile "$configDir\starship.toml"
+    if (Test-Path -Path $localStarshipToml) {
+        Write-Host "Local starship.toml found. Using local copy."
+        Copy-Item -Path $localStarshipToml -Destination "$configDir\starship.toml" -Force
+    } else {
+        Write-Host "Local starship.toml not found. Downloading from GitHub."
+        Invoke-WebRequest -Uri $starshipUrl -OutFile "$configDir\starship.toml"
+    }
+
+    # Windows Terminal settings
+    $settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+    if (Test-Path -Path $localSettingsJson) {
+        Write-Host "Local settings.json found. Using local copy."
+        Copy-Item -Path $localSettingsJson -Destination $settingsPath -Force
+    } else {
+        Write-Host "Local settings.json not found. Downloading from GitHub."
+        Invoke-WebRequest -Uri $settingsJsonUrl -OutFile $settingsPath
+    }
+
+    Write-Host "Configuration files have been updated."
 }
 
 # Run the Link-Config function
