@@ -143,12 +143,6 @@ function Configure-TimeSettings {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
 }
-
-# Call the function to configure time settings
-Configure-TimeSettings
-
-
-
 # Main function to execute all tasks
 function Main {
     Configure-TimeSettings

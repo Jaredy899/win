@@ -21,6 +21,38 @@ function Install-ScoopAndGsudo {
 # Install Scoop and gsudo
 Install-ScoopAndGsudo
 
+# Function to draw a box in the terminal and wrap text if necessary
+function Draw-Box {
+    param (
+        [string]$text,
+        [int]$width = 70
+    )
+
+    # Split the text into lines that fit within the specified width
+    $words = $text -split ' '
+    $lines = @()
+    $currentLine = ''
+
+    foreach ($word in $words) {
+        if (($currentLine.Length + $word.Length + 1) -lt ($width - 4)) { # Adjust for box padding and borders
+            $currentLine += " $word"
+        } else {
+            $lines += $currentLine.Trim()
+            $currentLine = $word
+        }
+    }
+    $lines += $currentLine.Trim()
+
+    # Draw the box
+    $border = '+' + ('-' * ($width - 2)) + '+'
+    Write-Host $border
+    foreach ($line in $lines) {
+        $paddedLine = $line.PadRight($width - 4) # Ensure the line is correctly padded to the box width
+        Write-Host "| $paddedLine |"
+    }
+    Write-Host $border
+}
+
 # Function to display a message box or console prompt based on PowerShell version
 function Show-Prompt {
     param (
@@ -35,7 +67,7 @@ function Show-Prompt {
         return $result
     } else {
         # Use console prompt in PowerShell 5 and below
-        Write-Output $text
+        Draw-Box -text "$text (y/n)" -width 70
         $response = Read-Host "Type 'y' to proceed or 'n' to skip"
         if ($response.ToLower() -eq 'y') {
             return 'Yes'
