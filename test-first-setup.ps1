@@ -37,7 +37,11 @@ function Show-Prompt {
         # Use console prompt in PowerShell 5 and below
         Write-Output $text
         $response = Read-Host "Type 'y' to proceed or 'n' to skip"
-        return $response.ToLower() -eq 'y' ? 'Yes' : 'No'
+        if ($response.ToLower() -eq 'y') {
+            return 'Yes'
+        } else {
+            return 'No'
+        }
     }
 }
 
