@@ -1,12 +1,24 @@
-# Function to ensure scoop is installed and configured
+# Function to ensure Scoop is installed and configured
 function Ensure-Scoop {
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         Write-Host "Scoop not found. Installing Scoop..."
-
-        # Install Scoop (without admin privileges)
         Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
     } else {
         Write-Host "Scoop is already installed."
+    }
+
+    # Set the Scoop directory to the global path
+    $globalScoopDir = "C:\ProgramData\scoop"
+    $bucketsDir = "$globalScoopDir\buckets"
+
+    if (-not (Test-Path -Path $globalScoopDir)) {
+        Write-Host "Creating Scoop global directory..."
+        New-Item -Path $globalScoopDir -ItemType Directory -Force
+    }
+
+    if (-not (Test-Path -Path $bucketsDir)) {
+        Write-Host "Creating Scoop buckets directory..."
+        New-Item -Path $bucketsDir -ItemType Directory -Force
     }
 
     # Ensure Git is installed before adding buckets
@@ -36,7 +48,7 @@ function Install-Apps {
 
     foreach ($app in $apps) {
         Write-Host "Installing $app..."
-        scoop install $app
+        scoop install $app -g  # Install apps globally
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to install $app. Please check your internet connection or the app name." -ForegroundColor Red
             exit 1
@@ -50,20 +62,22 @@ Install-Apps
 # Function to install Cascadia Code Nerd Font using Scoop
 function Install-Font {
     $fontName = "CascadiaCode-NF"
-
-    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-        Write-Host "Scoop not found. Please install Scoop first." -ForegroundColor Red
-        exit 1
-    }
+    $fontInstallDir = "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Windows\Fonts"
 
     Write-Host "Installing font '$fontName' using Scoop..."
-    scoop install nerd-fonts/$fontName
 
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Font '$fontName' installed successfully."
+    # Check if the font is already installed
+    if (-not (Test-Path -Path "$fontInstallDir\CaskaydiaCoveNerdFont-Regular.ttf")) {
+        scoop install nerd-fonts/$fontName -g  # Install font globally
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Font '$fontName' installed successfully."
+        } else {
+            Write-Host "Failed to install font '$fontName'. Please check your internet connection or the font name." -ForegroundColor Red
+            exit 1
+        }
     } else {
-        Write-Host "Failed to install font '$fontName'. Please check your internet connection or the font name." -ForegroundColor Red
-        exit 1
+        Write-Host "Font '$fontName' is already installed. Skipping installation."
     }
 }
 
