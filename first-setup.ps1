@@ -1,5 +1,5 @@
 # Function to check if the script is running with administrator privileges
-function Ensure-Admin {
+function Test-AdminRights {
     if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
         Write-Warning "You do not have Administrator rights to run this script! Please re-run this script as an Administrator."
         exit 1
@@ -9,7 +9,7 @@ function Ensure-Admin {
 }
 
 # Ensure the script is running with administrator privileges
-Ensure-Admin
+Test-AdminRights
 
 # Function to display a console prompt
 function Show-Prompt {

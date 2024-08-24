@@ -1,5 +1,5 @@
 # Function to ensure Scoop is installed and configured
-function Ensure-Scoop {
+function Install-Scoop {
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         Write-Host "Scoop not found. Installing Scoop..."
         Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
@@ -40,7 +40,7 @@ function Ensure-Scoop {
 }
 
 # Ensure Scoop is installed and configured
-Ensure-Scoop
+Install-Scoop
 
 # Install applications using Scoop
 function Install-Apps {
@@ -94,7 +94,7 @@ $localConfigJsonc = "$PSScriptRoot\config.jsonc"
 $localStarshipToml = "$PSScriptRoot\starship.toml"
 
 # Function to copy configurations from GitHub or local
-function Link-Config {
+function Set-Config {
     $configDir = "$env:UserProfile\.config"
 
     if (-not (Test-Path -Path $configDir)) {
@@ -126,8 +126,8 @@ function Link-Config {
     Write-Host "Configuration files have been updated."
 }
 
-# Run the Link-Config function
-Link-Config
+# Run the Set-Config function
+Set-Config
 
 # Function to update PowerShell profile
 function Update-Profile {
