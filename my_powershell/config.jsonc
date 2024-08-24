@@ -8,7 +8,7 @@
         }
     },
     "display": {
-        "separator": "  ",
+        "separator": "   ",
         "color": "cyan"
     },
     "modules": [
@@ -18,24 +18,32 @@
         },
         {
             "type": "host",
-            "key": "󰌢  "
+            "key": "  󰌢"
         },
         {
             "type": "cpu",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "gpu",
             "detectionMethod": "pci",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "display",
-            "key": "󱄄  "
+            "key": "  󱄄"
         },
         {
             "type": "memory",
-            "key": "  "
+            "key": "  "
+        },
+        {
+            "type": "disk",
+            "key": "  "
+        },
+        {
+            "type": "battery",
+            "key": "  "
         },
         {
             "type": "custom",
@@ -43,20 +51,47 @@
         },
         {
             "type": "os",
-            "key": "  "
+            "key": "  "
         },
         {
             "type": "kernel",
-            "key": "  ",
+            "key": "  ",
             "format": "{1} {2}"
         },
-        {
-            "type": "wm",
-            "key": "  "
-        },
+        // {
+        //     "type": "wm",
+        //     "key": "  "
+        // },
         {
             "type": "shell",
-            "key": "  "
+            "key": "  "
+        },
+        {
+            "type": "processes",
+            "key": "  󰧑"
+        },
+        {
+            "type": "packages",
+            "key": "  "
+        },
+        {
+            "type": "custom",
+            "format": "|──────────────\u001b[1mMiscellaneous\u001b[0m──────────────────|"
+        },
+        {
+            "type": "datetime",
+            "key": "  "
+        },
+        {
+            "type": "localip",
+            "showIpv6": false,
+            "showMac": false,
+            "key": "  󰩠"
+        },
+        {
+            "type": "weather",
+            "timeout": 1000,
+            "key": "  "
         },
         {
             "type": "custom",
@@ -66,7 +101,7 @@
             "type": "command",
             "key": "  OS Age ",
             "keyColor": "magenta",
-            "text": "Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty InstallDate"
+            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
         },
         {
             "type": "uptime",
