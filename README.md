@@ -8,5 +8,6 @@ This script uses scoop to install certain required features so you can run mypow
 
 To get started, open your terminal and run the following command:
 ```ps1
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
 irm jaredcervantes.com/win | iex
 ```

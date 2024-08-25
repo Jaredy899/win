@@ -1,6 +1,3 @@
-# Set the PowerShell execution policy to RemoteSigned
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-
 # Define the GitHub base URL for your setup scripts
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell"
 
@@ -107,6 +104,20 @@ function Initialize-ConfigFiles {
 
 # Run the Initialize-ConfigFiles function
 Initialize-ConfigFiles
+
+# Install Terminal-Icons module if not already installed
+function Install-TerminalIcons {
+    if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
+        Write-Host "Installing Terminal-Icons module..."
+        Install-Module -Name Terminal-Icons -Repository PSGallery -Force
+        Write-Host "Terminal-Icons module installed successfully."
+    } else {
+        Write-Host "Terminal-Icons module is already installed."
+    }
+}
+
+# Run the Install-TerminalIcons function
+Install-TerminalIcons
 
 # Instructions for Manual Font Configuration
 Write-Host ""
