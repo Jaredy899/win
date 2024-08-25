@@ -1,10 +1,3 @@
-function Get-WinUtilWingetLatest {
-    <#
-    .SYNOPSIS
-        Uses GitHub API to check for the latest release of Winget.
-    .DESCRIPTION
-        This function grabs the latest version of Winget and returns the download path to Install-WinUtilWinget for installation.
-    #>
     # Invoke-WebRequest is notoriously slow when the byte progress is displayed. The following lines disable the progress bar and reset them at the end of the function
     $PreviousProgressPreference = $ProgressPreference
     $ProgressPreference = "silentlyContinue"
@@ -23,4 +16,3 @@ function Get-WinUtilWingetLatest {
         throw [WingetFailedInstall]::new('Failed to get latest Winget release and license')
     }
     $ProgressPreference = $PreviousProgressPreference
-}

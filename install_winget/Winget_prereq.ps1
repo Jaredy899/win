@@ -1,11 +1,3 @@
-function Get-WinUtilWingetPrerequisites {
-    <#
-    .SYNOPSIS
-        Downloads the Winget Prereqs.
-    .DESCRIPTION
-        Downloads Prereqs for Winget. Version numbers are coded as variables and can be updated as uncommonly as Microsoft updates the prereqs.
-    #>
-
     # I don't know of a way to detect the prereqs automatically, so if someone has a better way of defining these, that would be great.
     # Microsoft.VCLibs version rarely changes, but for future compatibility I made it a variable.
     $versionVCLibs = "14.00"
@@ -25,4 +17,3 @@ function Get-WinUtilWingetPrerequisites {
     } catch {
         throw [WingetFailedInstall]::new('Failed to install prerequsites')
     }
-}

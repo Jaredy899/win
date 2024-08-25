@@ -1,17 +1,3 @@
-function Test-WinUtilPackageManager {
-    <#
-
-    .SYNOPSIS
-        Checks if Winget and/or Choco are installed
-
-    .PARAMETER winget
-        Check if Winget is installed
-
-    .PARAMETER choco
-        Check if Chocolatey is installed
-
-    #>
-
     Param(
         [System.Management.Automation.SwitchParameter]$winget,
         [System.Management.Automation.SwitchParameter]$choco
@@ -78,4 +64,3 @@ function Test-WinUtilPackageManager {
     }
 
     return $status
-}
