@@ -58,9 +58,13 @@ function Test-Apps {
     $appsNotInstalled = @()
 
     foreach ($app in $apps) {
-        $result = winget list --id $app -q
-        if (-not $result) {
+        Write-Host "Checking if $app is installed..."
+        $result = winget list --id $app 2>&1
+        if ($result -notmatch $app) {
+            Write-Host "$app is not installed."
             $appsNotInstalled += $app
+        } else {
+            Write-Host "$app is already installed."
         }
     }
 
