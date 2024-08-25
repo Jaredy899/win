@@ -6,6 +6,7 @@ $scoopScriptUrl = "$githubBaseUrl/scoop_install.ps1"
 $appsScriptUrl = "$githubBaseUrl/apps_install.ps1"
 $configJsoncUrl = "$githubBaseUrl/config.jsonc"
 $starshipTomlUrl = "$githubBaseUrl/starship.toml"
+$githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"  # Added this line to ensure the variable is defined
 
 # Local paths where the scripts will be temporarily downloaded
 $scoopScriptPath = "$env:TEMP\scoop_install.ps1"
@@ -82,8 +83,13 @@ function Initialize-Profile {
         New-Item -ItemType Directory -Path $profileDir -Force
     }
 
-    Invoke-WebRequest -Uri $githubProfileUrl -OutFile $localProfilePath
-    Write-Host "PowerShell profile has been set up successfully."
+    # Check if the GitHub URL for the profile is set and not empty
+    if (-not [string]::IsNullOrEmpty($githubProfileUrl)) {
+        Invoke-WebRequest -Uri $githubProfileUrl -OutFile $localProfilePath
+        Write-Host "PowerShell profile has been set up successfully."
+    } else {
+        Write-Error "GitHub profile URL is not set or is empty. Cannot set up the PowerShell profile."
+    }
 }
 
 # Run the Initialize-Profile function
