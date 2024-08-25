@@ -38,35 +38,9 @@ function Invoke-DownloadAndRunScript {
 # Ensure Winget is installed or updated
 Invoke-DownloadAndRunScript -url $wingetScriptUrl -localPath $wingetScriptPath
 
-# Function to check if applications are installed using Winget
-function Test-Apps {
-    $apps = @("Starship.Starship", "junegunn.fzf", "ajeetdsouza.zoxide", "Fastfetch-cli.Fastfetch", "GNU.Nano", "sxyazi.yazi")
-    $appsNotInstalled = @()
-
-    foreach ($app in $apps) {
-        Write-Host "Checking if $app is installed..."
-        $result = winget list --id $app 2>&1
-        if ($result -notmatch $app) {
-            Write-Host "$app is not installed."
-            $appsNotInstalled += $app
-        } else {
-            Write-Host "$app is already installed."
-        }
-    }
-
-    return $appsNotInstalled
-}
-
-# Check if the required applications are installed
-$missingApps = Test-Apps
-
-# Download and run the applications installation script if any apps are missing
-if ($missingApps.Count -gt 0) {
-    Write-Host "The following apps are not installed: $missingApps. Proceeding with installation..."
-    Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
-} else {
-    Write-Host "All required applications are already installed."
-}
+# Always run the applications installation script
+Write-Host "Running the applications installation script..."
+Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 
 # Function to check if Fira Code Nerd Font is installed
 function Test-FiraCodeFont {
