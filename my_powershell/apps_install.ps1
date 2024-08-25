@@ -7,7 +7,9 @@ $apps = @(
     "ajeetdsouza.zoxide",
     "Fastfetch-cli.Fastfetch",
     "GNU.Nano",
-    "sxyazi.yazi"
+    "sxyazi.yazi",
+    "Microsoft.WindowsTerminal",
+    "Microsoft.PowerShell"
 )
 
 # Function to install applications using Winget
