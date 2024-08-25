@@ -12,7 +12,7 @@ $scoopScriptPath = "$env:TEMP\scoop_install.ps1"
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 
 # Function to download and run a script
-function DownloadAndRunScript {
+function Invoke-DownloadAndRunScript {
     param (
         [string]$url,
         [string]$localPath
@@ -32,13 +32,13 @@ function DownloadAndRunScript {
 # Download and run the Scoop installation script if Scoop is not installed
 if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
     Write-Host "Scoop is not installed. Proceeding with installation..."
-    DownloadAndRunScript -url $scoopScriptUrl -localPath $scoopScriptPath
+    Invoke-DownloadAndRunScript -url $scoopScriptUrl -localPath $scoopScriptPath
 } else {
     Write-Host "Scoop is already installed."
 }
 
-# Function to check if applications are installed
-function Check-Apps {
+# Function to test if applications are installed
+function Test-Apps {
     $apps = @("bat", "starship", "fzf", "zoxide", "fastfetch", "curl", "nano", "yazi")
     $appsNotInstalled = @()
 
@@ -56,12 +56,12 @@ function Check-Apps {
 }
 
 # Get a list of apps that are not installed
-$missingApps = Check-Apps
+$missingApps = Test-Apps
 
 # Download and run the applications installation script if any apps are missing
 if ($missingApps.Count -gt 0) {
     Write-Host "The following apps are not installed: $missingApps. Proceeding with installation..."
-    DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
+    Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 } else {
     Write-Host "All required applications are already installed."
 }
@@ -73,11 +73,8 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
     $localProfilePath = "$env:UserProfile\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
 }
 
-# Example: Setup PowerShell profile and other configurations
-$githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"
-
-# Setup PowerShell profile
-function Setup-Profile {
+# Function to initialize the PowerShell profile
+function Initialize-Profile {
     Write-Host "Setting up PowerShell profile..."
 
     $profileDir = Split-Path $localProfilePath
@@ -89,11 +86,11 @@ function Setup-Profile {
     Write-Host "PowerShell profile has been set up successfully."
 }
 
-# Run the Setup-Profile function
-Setup-Profile
+# Run the Initialize-Profile function
+Initialize-Profile
 
-# Function to download and place config files
-function Setup-ConfigFiles {
+# Function to initialize configuration files
+function Initialize-ConfigFiles {
     Write-Host "Setting up configuration files..."
 
     $userConfigDir = "$env:UserProfile\.config"
@@ -115,8 +112,8 @@ function Setup-ConfigFiles {
     Write-Host "starship.toml has been set up at $localStarshipTomlPath."
 }
 
-# Run the Setup-ConfigFiles function
-Setup-ConfigFiles
+# Run the Initialize-ConfigFiles function
+Initialize-ConfigFiles
 
 # Instructions for Manual Font Configuration
 Write-Host ""
