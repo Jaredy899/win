@@ -9,7 +9,8 @@ function Install-WinUtilWinget {
     #>
 
     # Updated to reference GitHub for checking if Winget is installed
-    $isWingetInstalled = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/Test_winget.ps1" -UseBasicParsing | Invoke-Expression
+    $isWingetInstalledScript = "https://raw.githubusercontent.com/Jaredy899/setup/main/Test_winget.ps1"
+    $isWingetInstalled = Invoke-Expression (Invoke-WebRequest -Uri $isWingetInstalledScript -UseBasicParsing).Content
 
     try {
         if ($isWingetInstalled -eq "installed") {
@@ -39,12 +40,14 @@ function Install-WinUtilWinget {
         Write-Host "Downloading Winget Prerequisites`n"
         
         # Execute Winget_prereq.ps1 script from GitHub
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/Winget_prereq.ps1" -UseBasicParsing | Invoke-Expression
+        $wingetPrereqScript = "https://raw.githubusercontent.com/Jaredy899/setup/main/Winget_prereq.ps1"
+        Invoke-Expression (Invoke-WebRequest -Uri $wingetPrereqScript -UseBasicParsing).Content
         
         Write-Host "Downloading Winget and License File`r"
         
         # Execute Winget_latest.ps1 script from GitHub
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/Winget_latest.ps1" -UseBasicParsing | Invoke-Expression
+        $wingetLatestScript = "https://raw.githubusercontent.com/Jaredy899/setup/main/Winget_latest.ps1"
+        Invoke-Expression (Invoke-WebRequest -Uri $wingetLatestScript -UseBasicParsing).Content
         
         Write-Host "Installing Winget w/ Prerequisites`r"
         Add-AppxProvisionedPackage -Online -PackagePath $ENV:TEMP\Microsoft.DesktopAppInstaller.msixbundle -DependencyPackagePath $ENV:TEMP\Microsoft.VCLibs.x64.Desktop.appx, $ENV:TEMP\Microsoft.UI.Xaml.x64.appx -LicensePath $ENV:TEMP\License1.xml
@@ -60,5 +63,6 @@ function Install-WinUtilWinget {
     } catch {
         Write-Host "Failure detected while installing via GitHub method. Continuing with Chocolatey method as fallback." -ForegroundColor Red
         # In case install fails via GitHub method.
+        Write-Host $_ -ForegroundColor Red
     }
 }
