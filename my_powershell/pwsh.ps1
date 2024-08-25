@@ -17,7 +17,7 @@ $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_fira_code.ps1"
 $wingetScriptPath = "$env:TEMP\install_winget.ps1"
 
-# Function to download and run a script
+# Function to download and run a script using Start-BitsTransfer
 function Invoke-DownloadAndRunScript {
     param (
         [string]$url,
@@ -26,7 +26,7 @@ function Invoke-DownloadAndRunScript {
 
     Write-Host "Downloading script from $url..."
     try {
-        Invoke-WebRequest -Uri $url -OutFile $localPath -ErrorAction Stop
+        Start-BitsTransfer -Source $url -Destination $localPath -ErrorAction Stop
         Write-Host "Running script $localPath..."
         & $localPath
     }
@@ -46,33 +46,41 @@ Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 Write-Host "Running the Fira Code Nerd Font installation script..."
 Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
 
-# Determine the PowerShell profile path based on the PowerShell version
-if ($PSVersionTable.PSVersion.Major -lt 6) {
-    $localProfilePath = "$env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
-} else {
-    $localProfilePath = "$env:UserProfile\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
-}
+# URLs for GitHub profile configuration
+$githubProfileUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell/Microsoft.PowerShell_profile.ps1"
 
-# Function to initialize the PowerShell profile
+# Function to initialize PowerShell profile
 function Initialize-Profile {
-    Write-Host "Setting up PowerShell profile..."
+    param (
+        [string]$profilePath,
+        [string]$profileUrl
+    )
 
-    $profileDir = Split-Path $localProfilePath
+    Write-Host "Setting up PowerShell profile at $profilePath..."
+
+    $profileDir = Split-Path $profilePath
     if (-not (Test-Path -Path $profileDir)) {
         New-Item -ItemType Directory -Path $profileDir -Force
     }
 
     # Check if the GitHub URL for the profile is set and not empty
-    if (-not [string]::IsNullOrEmpty($githubProfileUrl)) {
-        Invoke-WebRequest -Uri $githubProfileUrl -OutFile $localProfilePath
-        Write-Host "PowerShell profile has been set up successfully."
+    if (-not [string]::IsNullOrEmpty($profileUrl)) {
+        Start-BitsTransfer -Source $profileUrl -Destination $profilePath -ErrorAction Stop
+        Write-Host "PowerShell profile has been set up successfully at $profilePath."
     } else {
-        Write-Error "GitHub profile URL is not set or is empty. Cannot set up the PowerShell profile."
+        Write-Error "GitHub profile URL is not set or is empty. Cannot set up the PowerShell profile at $profilePath."
     }
 }
 
-# Run the Initialize-Profile function
-Initialize-Profile
+# Paths for PowerShell 5 and PowerShell 7 profiles
+$ps5ProfilePath = "$env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+$ps7ProfilePath = "$env:UserProfile\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+
+# Initialize PowerShell 5 profile
+Initialize-Profile -profilePath $ps5ProfilePath -profileUrl $githubProfileUrl
+
+# Initialize PowerShell 7 profile
+Initialize-Profile -profilePath $ps7ProfilePath -profileUrl $githubProfileUrl
 
 # Function to initialize configuration files
 function Initialize-ConfigFiles {
@@ -88,12 +96,12 @@ function Initialize-ConfigFiles {
 
     # Download and set up config.jsonc for fastfetch
     $localConfigJsoncPath = "$fastfetchConfigDir\config.jsonc"
-    Invoke-WebRequest -Uri $configJsoncUrl -OutFile $localConfigJsoncPath
+    Start-BitsTransfer -Source $configJsoncUrl -Destination $localConfigJsoncPath -ErrorAction Stop
     Write-Host "fastfetch config.jsonc has been set up at $localConfigJsoncPath."
 
     # Download and set up starship.toml
     $localStarshipTomlPath = "$userConfigDir\starship.toml"
-    Invoke-WebRequest -Uri $starshipTomlUrl -OutFile $localStarshipTomlPath
+    Start-BitsTransfer -Source $starshipTomlUrl -Destination $localStarshipTomlPath -ErrorAction Stop
     Write-Host "starship.toml has been set up at $localStarshipTomlPath."
 }
 
