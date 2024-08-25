@@ -20,9 +20,25 @@ try {
 
     Write-Host "Installing dependencies..."
 
-    # Install the dependencies
-    Add-AppxPackage -Path $vclibsPackage
-    Add-AppxPackage -Path $xamlPackage
+    # Install the dependencies if they are not already installed or if a higher version is not present
+    if (-not (Get-AppxPackage -Name "*VCLibs*" | Where-Object { $_.Version -ge "14.0.33321.0" })) {
+        Add-AppxPackage -Path $vclibsPackage
+    } else {
+        Write-Host "A higher version of VCLibs is already installed. Skipping installation."
+    }
+
+    if (-not (Get-AppxPackage -Name "*UI.Xaml*" | Where-Object { $_.Version -ge "2.8.6.0" })) {
+        # Attempt to close Microsoft Store if it's open
+        $storeProcess = Get-Process -Name "WinStore.App" -ErrorAction SilentlyContinue
+        if ($storeProcess) {
+            Write-Host "Closing Microsoft Store to proceed with the installation..."
+            Stop-Process -Name "WinStore.App" -Force
+        }
+
+        Add-AppxPackage -Path $xamlPackage
+    } else {
+        Write-Host "A higher version of UI.Xaml is already installed. Skipping installation."
+    }
 
     Write-Host "Installing Winget..."
 
