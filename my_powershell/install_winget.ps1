@@ -7,12 +7,6 @@ function Install-Winget {
         [string]$WingetPackagePath = "$env:TEMP\source.msix"
     )
 
-    # Check if Winget is already installed
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Host "Winget is already installed."
-        return
-    }
-
     Write-Host "Downloading Winget package from $WingetPackageUrl..."
     try {
         Invoke-WebRequest -Uri $WingetPackageUrl -OutFile $WingetPackagePath -ErrorAction Stop
