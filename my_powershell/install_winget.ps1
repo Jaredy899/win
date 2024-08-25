@@ -2,7 +2,6 @@
 
 # Define URLs for the Winget package and its dependencies
 $wingetUrl = "https://aka.ms/getwinget"
-$vclibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
 $xamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
 
 # Define local file paths for the downloaded packages
@@ -15,7 +14,6 @@ Write-Host "Downloading Winget and dependencies..."
 try {
     # Download the required packages using Start-BitsTransfer for reliability and speed
     Start-BitsTransfer -Source $wingetUrl -Destination $wingetPackage -ErrorAction Stop
-    Start-BitsTransfer -Source $vclibsUrl -Destination $vclibsPackage -ErrorAction Stop
     Start-BitsTransfer -Source $xamlUrl -Destination $xamlPackage -ErrorAction Stop
 
     Write-Host "Installing dependencies..."
