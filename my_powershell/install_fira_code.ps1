@@ -23,7 +23,7 @@ function Install-FiraCodeFont {
             # Fetch the latest release information from GitHub API
             $apiUrl = "https://api.github.com/repos/$FontRepo/releases/latest"
             Write-Host "Fetching the latest release information from $apiUrl..."
-            $releaseInfo = Start-BitsTransfer -Uri $apiUrl -Headers @{ 'User-Agent' = 'PowerShell Script' }
+            $releaseInfo = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'PowerShell Script' }
 
             # Find the download URL for the font ZIP file
             $asset = $releaseInfo.assets | Where-Object { $_.name -like "$FontName.zip" }
@@ -37,7 +37,7 @@ function Install-FiraCodeFont {
             $extractPath = "$env:TEMP\${FontName}"
 
             Write-Host "Downloading Fira Code Nerd Font from $fontZipUrl..."
-            Start-BitsTransfer -Uri $fontZipUrl -OutFile $zipFilePath -ErrorAction Stop
+            Start-BitsTransfer -Source $fontZipUrl -Destination $zipFilePath -ErrorAction Stop
 
             Write-Host "Extracting Fira Code Nerd Font..."
             Expand-Archive -Path $zipFilePath -DestinationPath $extractPath -Force
