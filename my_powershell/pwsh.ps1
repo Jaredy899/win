@@ -1,16 +1,21 @@
+# Set the PowerShell execution policy to RemoteSigned
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+
 # Define the GitHub base URL for your setup scripts
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell"
 
 # Corrected specific URLs for each setup script
-$scoopScriptUrl = "$githubBaseUrl/scoop_install.ps1"
 $appsScriptUrl = "$githubBaseUrl/apps_install.ps1"
 $configJsoncUrl = "$githubBaseUrl/config.jsonc"
 $starshipTomlUrl = "$githubBaseUrl/starship.toml"
-$githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"  # Added this line to ensure the variable is defined
+$githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"
+$fontScriptUrl = "$githubBaseUrl/install_fira_code.ps1"
 
 # Local paths where the scripts will be temporarily downloaded
-$scoopScriptPath = "$env:TEMP\scoop_install.ps1"
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
+$fontScriptPath = "$env:TEMP\install_fira_code.ps1"
+$wingetPackageUrl = "https://cdn.winget.microsoft.com/cache/source.msix"
+$wingetPackagePath = "$env:TEMP\source.msix"
 
 # Function to download and run a script
 function Invoke-DownloadAndRunScript {
@@ -30,25 +35,31 @@ function Invoke-DownloadAndRunScript {
     }
 }
 
-# Download and run the Scoop installation script if Scoop is not installed
-if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-    Write-Host "Scoop is not installed. Proceeding with installation..."
-    Invoke-DownloadAndRunScript -url $scoopScriptUrl -localPath $scoopScriptPath
-} else {
-    Write-Host "Scoop is already installed."
+# Function to install or update Winget using the source.msix package
+function Install-Winget {
+    Write-Host "Downloading Winget package from $wingetPackageUrl..."
+    try {
+        Invoke-WebRequest -Uri $wingetPackageUrl -OutFile $wingetPackagePath -ErrorAction Stop
+        Write-Host "Installing Winget package..."
+        Add-AppxPackage -Path $wingetPackagePath -ErrorAction Stop
+        Write-Host "Winget installation or update completed successfully."
+    }
+    catch {
+        Write-Error "Failed to install Winget. Error: $_"
+    }
 }
 
-# Function to test if applications are installed
+# Ensure Winget is installed or updated
+Install-Winget
+
+# Function to check if applications are installed using Winget
 function Test-Apps {
-    $apps = @("bat", "starship", "fzf", "zoxide", "fastfetch", "curl", "nano", "yazi")
+    $apps = @("Starship.Starship", "junegunn.fzf", "ajeetdsouza.zoxide", "Fastfetch-cli.Fastfetch", "GNU.Nano", "sxyazi.yazi")
     $appsNotInstalled = @()
 
     foreach ($app in $apps) {
-        if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-            Write-Error "Scoop is not installed or not in PATH."
-            return
-        }
-        if (-not (scoop list $app -q | Select-String -Pattern $app)) {
+        $result = winget list --id $app -q
+        if (-not $result) {
             $appsNotInstalled += $app
         }
     }
@@ -56,7 +67,7 @@ function Test-Apps {
     return $appsNotInstalled
 }
 
-# Get a list of apps that are not installed
+# Check if the required applications are installed
 $missingApps = Test-Apps
 
 # Download and run the applications installation script if any apps are missing
@@ -65,6 +76,21 @@ if ($missingApps.Count -gt 0) {
     Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 } else {
     Write-Host "All required applications are already installed."
+}
+
+# Function to check if Fira Code Nerd Font is installed
+function Test-FiraCodeFont {
+    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+    $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
+    return $fontFamilies -contains "FiraCode Nerd Font"
+}
+
+# Check if Fira Code Nerd Font is installed and install if not
+if (-not (Test-FiraCodeFont)) {
+    Write-Host "Fira Code Nerd Font is not installed. Proceeding with installation..."
+    Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
+} else {
+    Write-Host "Fira Code Nerd Font is already installed."
 }
 
 # Determine the PowerShell profile path based on the PowerShell version
@@ -124,11 +150,11 @@ Initialize-ConfigFiles
 # Instructions for Manual Font Configuration
 Write-Host ""
 Write-Host "=== Manual Font Configuration ==="
-Write-Host "To set the font for Windows Terminal to 'CaskaydiaCove Nerd Font', please follow these steps:"
+Write-Host "To set the font for Windows Terminal to 'Fira Code Nerd Font', please follow these steps:"
 Write-Host "1. Open Windows Terminal."
 Write-Host "2. Go to Settings."
 Write-Host "3. Select the 'Windows PowerShell' profile."
-Write-Host "4. Under 'Appearance', set the 'Font face' to 'CaskaydiaCove Nerd Font'."
+Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'."
 Write-Host "5. Save and close the settings."
 Write-Host "==============================="
 Write-Host ""
