@@ -55,8 +55,20 @@ try {
 
     Write-Host "Installing Winget with Prerequisites`r"
     Add-AppxProvisionedPackage -Online -PackagePath $ENV:TEMP\Microsoft.DesktopAppInstaller.msixbundle -DependencyPackagePath $ENV:TEMP\Microsoft.VCLibs.x64.Desktop.appx, $ENV:TEMP\Microsoft.UI.Xaml.x64.appx -LicensePath $ENV:TEMP\License1.xml
-    Write-Host "Manually adding Winget Sources, from Winget CDN."
-    Add-AppxPackage -Path https://cdn.winget.microsoft.com/cache/source.msix # Ensure winget repository source is installed
+
+    # Check if the Winget source package is already installed
+    $sourcePackage = Get-AppxPackage -Name "Microsoft.Winget.Source" -AllUsers
+    if ($sourcePackage) {
+        Write-Host "Winget source package is already installed with version $($sourcePackage.Version). Skipping source installation."
+    } else {
+        Write-Host "Manually adding Winget Sources, from Winget CDN."
+        try {
+            Add-AppxPackage -Path https://cdn.winget.microsoft.com/cache/source.msix
+        } catch {
+            Write-Host "Failed to add Winget source package: $_" -ForegroundColor Red
+        }
+    }
+
     Write-Host "Winget Installed" -ForegroundColor Green
     Write-Host "Enabling NuGet and Module..."
     Install-PackageProvider -Name NuGet -Force
