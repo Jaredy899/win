@@ -1,6 +1,6 @@
 # apps_install.ps1
 function Install-Apps {
-    $apps = @("bat", "starship", "fzf", "zoxide", "fastfetch", "curl", "nano", "yazi", "terminal-icons", "Cascadia-Code")
+    $apps = @("bat", "starship", "fzf", "zoxide", "fastfetch", "curl", "nano", "yazi", "terminal-icons", "FiraCode-NF")
 
     foreach ($app in $apps) {
         Write-Host "Installing $app..."
