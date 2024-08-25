@@ -1,174 +1,78 @@
-# Function to ensure Scoop is installed and configured
-function Install-Scoop {
-    if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
-        Write-Host "Scoop not found. Installing Scoop..."
-        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-    } else {
-        Write-Host "Scoop is already installed."
-    }
+# Define the GitHub base URL for your setup scripts
+$githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main"
 
-    # Set the Scoop directory to the global path
-    $globalScoopDir = "C:\ProgramData\scoop"
-    $bucketsDir = "$globalScoopDir\buckets"
+# Define the specific URLs for each setup script
+$scoopScriptUrl = "$githubBaseUrl/setup/main/scoop_install.ps1"
+$appsScriptUrl = "$githubBaseUrl/setup/main/apps_install.ps1"
 
-    if (-not (Test-Path -Path $globalScoopDir)) {
-        Write-Host "Creating Scoop global directory..."
-        New-Item -Path $globalScoopDir -ItemType Directory -Force
-    }
+# Local paths where the scripts will be temporarily downloaded
+$scoopScriptPath = "$env:TEMP\scoop_install.ps1"
+$appsScriptPath = "$env:TEMP\apps_install.ps1"
 
-    if (-not (Test-Path -Path $bucketsDir)) {
-        Write-Host "Creating Scoop buckets directory..."
-        New-Item -Path $bucketsDir -ItemType Directory -Force
-    }
-
-    # Ensure Git is installed before adding buckets
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        Write-Host "Git is required for Scoop buckets. Installing Git..."
-        scoop install git
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Failed to install Git. Please check your internet connection or the app name." -ForegroundColor Red
-            exit 1
-        }
-    }
-
-    # Add the main and extras buckets for additional applications
-    Write-Host "Adding Scoop buckets..."
-    scoop bucket add main
-    scoop bucket add extras
-    scoop bucket add nerd-fonts
-    scoop bucket add versions
+# Download and run the Scoop installation script if Scoop is not installed
+if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+    Write-Host "Scoop is not installed. Downloading and running scoop_install.ps1 from GitHub..."
+    Invoke-WebRequest -Uri $scoopScriptUrl -OutFile $scoopScriptPath
+    & $scoopScriptPath
+} else {
+    Write-Host "Scoop is already installed."
 }
 
-# Ensure Scoop is installed and configured
-Install-Scoop
-
-# Install applications using Scoop
-function Install-Apps {
-    $apps = @("7zip", "bat", "starship", "oh-my-posh", "tabby", "alacritty", "fzf", "zoxide", "fastfetch", "curl")
+# Function to check if applications are installed
+function Check-Apps {
+    $apps = @("bat", "starship", "fzf", "zoxide", "fastfetch", "curl", "nano", "yazi")
+    $appsNotInstalled = @()
 
     foreach ($app in $apps) {
-        Write-Host "Installing $app..."
-        scoop install $app -g  # Install apps globally
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Failed to install $app. Please check your internet connection or the app name." -ForegroundColor Red
-            exit 1
-        }
-    }
-}
-
-# Run the installation of applications
-Install-Apps
-
-# Function to install Cascadia Code Nerd Font using Scoop
-function Install-Font {
-    $fontName = "CascadiaCode-NF"
-    $fontInstallDir = "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Windows\Fonts"
-
-    Write-Host "Installing font '$fontName' using Scoop..."
-
-    # Check if the font is already installed
-    if (-not (Test-Path -Path "$fontInstallDir\CaskaydiaCoveNerdFont-Regular.ttf")) {
-        scoop install nerd-fonts/$fontName -g  # Install font globally
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "Font '$fontName' installed successfully."
-        } else {
-            Write-Host "Failed to install font '$fontName'. Please check your internet connection or the font name." -ForegroundColor Red
-            exit 1
-        }
-    } else {
-        Write-Host "Font '$fontName' is already installed. Skipping installation."
-    }
-}
-
-# Run the font installation
-Install-Font
-
-# URLs for config.jsonc and starship.toml in your GitHub repo
-$githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell"
-$configUrl = "$githubBaseUrl/config.jsonc"
-$starshipUrl = "$githubBaseUrl/starship.toml"
-
-# Paths for local files (if available)
-$localConfigJsonc = "$PSScriptRoot\config.jsonc"
-$localStarshipToml = "$PSScriptRoot\starship.toml"
-
-# Function to copy configurations from GitHub or local
-function Set-Config {
-    $configDir = "$env:UserProfile\.config"
-
-    if (-not (Test-Path -Path $configDir)) {
-        New-Item -ItemType Directory -Path $configDir -Force
-    }
-
-    # Fastfetch configuration
-    $fastfetchConfigDir = "$configDir\fastfetch"
-    if (-not (Test-Path -Path $fastfetchConfigDir)) {
-        New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
-    }
-
-    if (Test-Path -Path $localConfigJsonc) {
-        Write-Host "Local config.jsonc found. Using local copy."
-        Copy-Item -Path $localConfigJsonc -Destination "$fastfetchConfigDir\config.jsonc" -Force
-    } else {
-        Write-Host "Local config.jsonc not found. Downloading from GitHub."
-        Invoke-WebRequest -Uri $configUrl -OutFile "$fastfetchConfigDir\config.jsonc"
-    }
-
-    if (Test-Path -Path $localStarshipToml) {
-        Write-Host "Local starship.toml found. Using local copy."
-        Copy-Item -Path $localStarshipToml -Destination "$configDir\starship.toml" -Force
-    } else {
-        Write-Host "Local starship.toml not found. Downloading from GitHub."
-        Invoke-WebRequest -Uri $starshipUrl -OutFile "$configDir\starship.toml"
-    }
-
-    Write-Host "Configuration files have been updated."
-}
-
-# Run the Set-Config function
-Set-Config
-
-# Function to update PowerShell profile
-function Update-Profile {
-    $profileFile = $PROFILE
-
-    if (-not (Test-Path -Path $profileFile)) {
-        New-Item -ItemType File -Path $profileFile -Force
-    }
-
-    # Read the profile content line-by-line
-    $profileContent = Get-Content $profileFile
-
-    # Define the exact lines to add
-    $linesToAdd = @(
-        'Invoke-Expression (& { (zoxide init powershell | Out-String) })',
-        'Invoke-Expression (&starship init powershell)',
-        'fastfetch'
-    )
-
-    foreach ($line in $linesToAdd) {
-        $found = $false
-        foreach ($existingLine in $profileContent) {
-            if ($existingLine.Trim() -eq $line.Trim()) {
-                $found = $true
-                break
-            }
-        }
-
-        if (-not $found) {
-            Add-Content $profileFile -Value "`n$line"
-            Write-Host "Added '$line' to PowerShell profile."
-        } else {
-            Write-Host "'$line' is already in the PowerShell profile. Skipping..."
+        if (-not (scoop list $app -q | Select-String -Pattern $app)) {
+            $appsNotInstalled += $app
         }
     }
 
-    Write-Host "PowerShell profile updated."
+    return $appsNotInstalled
 }
 
-# Run the Update-Profile function
-Update-Profile
+# Get a list of apps that are not installed
+$missingApps = Check-Apps
+
+# Download and run the applications installation script if any apps are missing
+if ($missingApps.Count -gt 0) {
+    Write-Host "The following apps are not installed: $missingApps. Downloading and running apps_install.ps1 from GitHub..."
+    Invoke-WebRequest -Uri $appsScriptUrl -OutFile $appsScriptPath
+    & $appsScriptPath
+} else {
+    Write-Host "All required applications are already installed."
+}
+
+# Determine the PowerShell profile path based on the PowerShell version
+if ($PSVersionTable.PSVersion.Major -lt 6) {
+    # PowerShell 5 or earlier
+    $localProfilePath = "$env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+} else {
+    # PowerShell 6 or newer
+    $localProfilePath = "$env:UserProfile\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+}
+
+# Example: Setup PowerShell profile and other configurations
+$githubProfileUrl = "$githubBaseUrl/my_powershell/Microsoft.PowerShell_profile.ps1"
+
+# Setup PowerShell profile
+function Setup-Profile {
+    Write-Host "Setting up PowerShell profile..."
+
+    # Ensure the PowerShell profile directory exists
+    $profileDir = Split-Path $localProfilePath
+    if (-not (Test-Path -Path $profileDir)) {
+        New-Item -ItemType Directory -Path $profileDir -Force
+    }
+
+    # Download and set the profile from GitHub
+    Invoke-WebRequest -Uri $githubProfileUrl -OutFile $localProfilePath
+    Write-Host "PowerShell profile has been set up successfully."
+}
+
+# Run the Setup-Profile function
+Setup-Profile
 
 # Instructions for Manual Font Configuration
 Write-Host ""
