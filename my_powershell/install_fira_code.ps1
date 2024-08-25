@@ -8,9 +8,18 @@ function Install-FiraCodeFont {
 
     try {
         [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
+        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
 
-        if ($fontFamilies -notcontains "${FontDisplayName}") {
+        # Check if the font is already installed
+        $isFontInstalled = $false
+        foreach ($font in $fontFamilies) {
+            if ($font.Name -like "*Fira*Code*") {
+                $isFontInstalled = $true
+                break
+            }
+        }
+
+        if (-not $isFontInstalled) {
             # Fetch the latest release information from GitHub API
             $apiUrl = "https://api.github.com/repos/$FontRepo/releases/latest"
             Write-Host "Fetching the latest release information from $apiUrl..."
@@ -36,7 +45,7 @@ function Install-FiraCodeFont {
             Write-Host "Installing Fira Code Nerd Font..."
             $destination = (New-Object -ComObject Shell.Application).Namespace(0x14)
             Get-ChildItem -Path $extractPath -Recurse -Filter "*.ttf" | ForEach-Object {
-                If (-not(Test-Path "C:\Windows\Fonts\$($_.Name)")) {
+                If (-not (Test-Path "C:\Windows\Fonts\$($_.Name)")) {
                     $destination.CopyHere($_.FullName, 0x10)
                 }
             }

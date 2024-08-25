@@ -42,20 +42,9 @@ Invoke-DownloadAndRunScript -url $wingetScriptUrl -localPath $wingetScriptPath
 Write-Host "Running the applications installation script..."
 Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 
-# Function to check if Fira Code Nerd Font is installed
-function Test-FiraCodeFont {
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-    $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
-    return $fontFamilies -contains "FiraCode Nerd Font"
-}
-
-# Check if Fira Code Nerd Font is installed and install if not
-if (-not (Test-FiraCodeFont)) {
-    Write-Host "Fira Code Nerd Font is not installed. Proceeding with installation..."
-    Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
-} else {
-    Write-Host "Fira Code Nerd Font is already installed."
-}
+# Run the font installation script, which includes the font check
+Write-Host "Running the Fira Code Nerd Font installation script..."
+Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
 
 # Determine the PowerShell profile path based on the PowerShell version
 if ($PSVersionTable.PSVersion.Major -lt 6) {
