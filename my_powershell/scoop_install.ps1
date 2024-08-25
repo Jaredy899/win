@@ -2,7 +2,7 @@
 function Install-Scoop {
     # Install Scoop using the simplified method with administrative privileges
     Write-Host "Installing Scoop using the simplified method..."
-    Invoke-Expression “& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin”
+    Invoke-Expression "& {$(Invoke-RestMethod 'https://get.scoop.sh')} -RunAsAdmin"
     
     # Ensure Git is installed before adding any buckets
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
