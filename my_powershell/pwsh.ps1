@@ -10,12 +10,12 @@ $configJsoncUrl = "$githubBaseUrl/config.jsonc"
 $starshipTomlUrl = "$githubBaseUrl/starship.toml"
 $githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"
 $fontScriptUrl = "$githubBaseUrl/install_fira_code.ps1"
+$wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_fira_code.ps1"
-$wingetPackageUrl = "https://cdn.winget.microsoft.com/cache/source.msix"
-$wingetPackagePath = "$env:TEMP\source.msix"
+$wingetScriptPath = "$env:TEMP\install_winget.ps1"
 
 # Function to download and run a script
 function Invoke-DownloadAndRunScript {
@@ -35,22 +35,8 @@ function Invoke-DownloadAndRunScript {
     }
 }
 
-# Function to install or update Winget using the source.msix package
-function Install-Winget {
-    Write-Host "Downloading Winget package from $wingetPackageUrl..."
-    try {
-        Invoke-WebRequest -Uri $wingetPackageUrl -OutFile $wingetPackagePath -ErrorAction Stop
-        Write-Host "Installing Winget package..."
-        Add-AppxPackage -Path $wingetPackagePath -ErrorAction Stop
-        Write-Host "Winget installation or update completed successfully."
-    }
-    catch {
-        Write-Error "Failed to install Winget. Error: $_"
-    }
-}
-
 # Ensure Winget is installed or updated
-Install-Winget
+Invoke-DownloadAndRunScript -url $wingetScriptUrl -localPath $wingetScriptPath
 
 # Function to check if applications are installed using Winget
 function Test-Apps {
