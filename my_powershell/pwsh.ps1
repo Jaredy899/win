@@ -4,6 +4,8 @@ $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powers
 # Corrected specific URLs for each setup script
 $scoopScriptUrl = "$githubBaseUrl/scoop_install.ps1"
 $appsScriptUrl = "$githubBaseUrl/apps_install.ps1"
+$configJsoncUrl = "$githubBaseUrl/config.jsonc"
+$starshipTomlUrl = "$githubBaseUrl/starship.toml"
 
 # Local paths where the scripts will be temporarily downloaded
 $scoopScriptPath = "$env:TEMP\scoop_install.ps1"
@@ -89,6 +91,32 @@ function Setup-Profile {
 
 # Run the Setup-Profile function
 Setup-Profile
+
+# Function to download and place config files
+function Setup-ConfigFiles {
+    Write-Host "Setting up configuration files..."
+
+    $userConfigDir = "$env:UserProfile\.config"
+    $fastfetchConfigDir = "$userConfigDir\fastfetch"
+
+    # Ensure directories exist
+    if (-not (Test-Path -Path $fastfetchConfigDir)) {
+        New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
+    }
+
+    # Download and set up config.jsonc for fastfetch
+    $localConfigJsoncPath = "$fastfetchConfigDir\config.jsonc"
+    Invoke-WebRequest -Uri $configJsoncUrl -OutFile $localConfigJsoncPath
+    Write-Host "fastfetch config.jsonc has been set up at $localConfigJsoncPath."
+
+    # Download and set up starship.toml
+    $localStarshipTomlPath = "$userConfigDir\starship.toml"
+    Invoke-WebRequest -Uri $starshipTomlUrl -OutFile $localStarshipTomlPath
+    Write-Host "starship.toml has been set up at $localStarshipTomlPath."
+}
+
+# Run the Setup-ConfigFiles function
+Setup-ConfigFiles
 
 # Instructions for Manual Font Configuration
 Write-Host ""
