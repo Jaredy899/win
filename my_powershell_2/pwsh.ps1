@@ -1,3 +1,6 @@
+# Set the PowerShell execution policy to RemoteSigned
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+
 # Define the GitHub base URL for your setup scripts
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell"
 
