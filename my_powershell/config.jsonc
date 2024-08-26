@@ -69,6 +69,7 @@
         {
             "type": "processes",
             "key": "  󰧑"
+            "format": "{1} (Processes)"
         },
         {
             "type": "packages",
