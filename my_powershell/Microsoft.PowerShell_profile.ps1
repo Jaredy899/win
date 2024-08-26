@@ -1,3 +1,8 @@
+# Detect if this is an SFTP session
+if ($env:SSH_TTY -and $env:SHELL -match "sftp-server") {
+    return
+}
+
 # Interactive check
 $sessionIsInteractive = $Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal' -or $PSCmdlet.MyInvocation.ExpectingInput
 
