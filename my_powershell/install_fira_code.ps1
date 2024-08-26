@@ -25,12 +25,6 @@ function Install-FiraCodeFont {
             Write-Host "Fetching the latest release information from $apiUrl..."
             $releaseInfo = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'PowerShell Script' }
 
-            # Debugging: Print out all asset names to find the correct pattern
-            Write-Host "Assets found in the latest release:"
-            foreach ($asset in $releaseInfo.assets) {
-                Write-Host $asset.name
-            }
-
             # Find the download URL for the font ZIP file
             $asset = $releaseInfo.assets | Where-Object { $_.name -like "$FontName*Windows*.zip" -or $_.name -like "$FontName*.zip" }
             if ($null -eq $asset) {
