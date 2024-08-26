@@ -1,52 +1,24 @@
-# install_winget.ps1
-
-# Define URLs for the Winget package and its dependencies
-$wingetUrl = "https://aka.ms/getwinget"
-$vclibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-$xamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
-
-# Define local file paths for the downloaded packages
-$wingetPackage = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-$vclibsPackage = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
-$xamlPackage = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
-
-Write-Host "Downloading Winget and dependencies..."
+Write-Host "Checking Winget version..."
 
 try {
-    # Download the required packages using Start-BitsTransfer for reliability and speed
-    Start-BitsTransfer -Source $wingetUrl -Destination $wingetPackage -ErrorAction Stop
-    Start-BitsTransfer -Source $vclibsUrl -Destination $vclibsPackage -ErrorAction Stop
-    Start-BitsTransfer -Source $xamlUrl -Destination $xamlPackage -ErrorAction Stop
+    # Check the installed version of Winget
+    $installedVersion = (winget --version).Trim().TrimStart('v')
 
-    Write-Host "Installing dependencies..."
+    # Fetch the latest version number from GitHub
+    $latestVersion = (Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli/releases/latest").tag_name.TrimStart("v")
 
-    # Install the dependencies if they are not already installed or if a higher version is not present
-    if (-not (Get-AppxPackage -Name "*VCLibs*" | Where-Object { $_.Version -ge "14.0.33321.0" })) {
-        Add-AppxPackage -Path $vclibsPackage
+    # Compare versions and update if necessary
+    if ([Version]$installedVersion -lt [Version]$latestVersion) {
+        Write-Host "Updating Winget to version $latestVersion..."
+        $latestWingetUrl = (Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli/releases/latest").assets | Where-Object { $_.name -like "*.msixbundle" } | Select-Object -First 1 -ExpandProperty browser_download_url
+        $latestWingetPackage = "$env:TEMP\Microsoft.DesktopAppInstaller_latest.msixbundle"
+        Start-BitsTransfer -Source $latestWingetUrl -Destination $latestWingetPackage -ErrorAction Stop
+        Add-AppxPackage -Path $latestWingetPackage
+        Write-Host "Winget updated to version $latestVersion successfully."
     } else {
-        Write-Host "A higher version of VCLibs is already installed. Skipping installation."
+        Write-Host "Winget is already up-to-date."
     }
-
-    if (-not (Get-AppxPackage -Name "*UI.Xaml*" | Where-Object { $_.Version -ge "2.8.6.0" })) {
-        # Attempt to close Microsoft Store if it's open
-        $storeProcess = Get-Process -Name "WinStore.App" -ErrorAction SilentlyContinue
-        if ($storeProcess) {
-            Write-Host "Closing Microsoft Store to proceed with the installation..."
-            Stop-Process -Name "WinStore.App" -Force
-        }
-
-        Add-AppxPackage -Path $xamlPackage
-    } else {
-        Write-Host "A higher version of UI.Xaml is already installed. Skipping installation."
-    }
-
-    Write-Host "Installing Winget..."
-
-    # Install Winget
-    Add-AppxPackage -Path $wingetPackage
-
-    Write-Host "Winget and dependencies installed successfully."
 }
 catch {
-    Write-Error "Failed to install Winget or its dependencies. Error: $_"
+    Write-Error "An error occurred: $_"
 }
