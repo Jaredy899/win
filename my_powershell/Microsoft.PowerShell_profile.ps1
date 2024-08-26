@@ -121,22 +121,31 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
                     $url = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell/profile.ps1"
                 }
 
-                # Check if profile file exists and compare hashes
-                if (Test-Path $profileFile) {
-                    $oldhash = Get-FileHash $profileFile
-                } else {
-                    $oldhash = $null
-                }
-
+                # Download the profile update
                 Invoke-RestMethod $url -OutFile "$env:temp\profile_update.ps1"
-                $newhash = Get-FileHash "$env:temp\profile_update.ps1"
+                
+                # Ensure the file is ready and not locked by another process
+                Start-Sleep -Seconds 1  # Add a short delay to allow the file system to stabilize
 
-                if ($null -eq $oldhash -or $newhash.Hash -ne $oldhash.Hash) {
-                    Write-Host "Profile update found. Updating profile..." -ForegroundColor Cyan
-                    Copy-Item -Path "$env:temp\profile_update.ps1" -Destination $profileFile -Force
-                    Write-Host "Profile has been updated. Please restart your shell to reflect changes." -ForegroundColor Magenta
+                if (Test-Path "$env:temp\profile_update.ps1") {
+                    $newhash = Get-FileHash "$env:temp\profile_update.ps1" -ErrorAction SilentlyContinue
+
+                    # Check if the original profile file exists and compare hashes
+                    if (Test-Path $profileFile) {
+                        $oldhash = Get-FileHash $profileFile -ErrorAction SilentlyContinue
+                    } else {
+                        $oldhash = $null
+                    }
+
+                    if ($null -eq $oldhash -or $newhash.Hash -ne $oldhash.Hash) {
+                        Write-Host "Profile update found. Updating profile..." -ForegroundColor Cyan
+                        Copy-Item -Path "$env:temp\profile_update.ps1" -Destination $profileFile -Force
+                        Write-Host "Profile has been updated. Please restart your shell to reflect changes." -ForegroundColor Magenta
+                    } else {
+                        Write-Host "Profile is already up to date." -ForegroundColor Green
+                    }
                 } else {
-                    Write-Host "Profile is already up to date." -ForegroundColor Green
+                    Write-Host "Profile update file not found after download. Skipping update." -ForegroundColor Yellow
                 }
             } catch {
                 Write-Error "Unable to check for profile updates. Error: $_"
