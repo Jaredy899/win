@@ -62,6 +62,10 @@ home_symbol = "🏠" # This sets the symbol for the home directory
 "Videos" = "  "
 ".config" = "  "
 ".ssh" = " 󰣀 "
+"Powershell" = " 󰨊 "
+"WindowsPowershell" = " 󰨊 " 
+"My Games" = "  "
+"Rockstar Games" = "  "
 
 # C module configuration
 [c]
