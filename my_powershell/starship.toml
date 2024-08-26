@@ -1,3 +1,4 @@
+# Global prompt format configuration
 format = """
 [](#3B4252)\
 $python\
@@ -24,104 +25,128 @@ $docker_context\
 $time\
 [ ](fg:#33658A)\
 """
+
 command_timeout = 5000
+
 # Disable the blank line at the start of the prompt
 # add_newline = false
 
-# You can also replace your username with a neat symbol like  to save some space
+# Username configuration
 [username]
 show_always = true
 style_user = "bg:#3B4252"
 style_root = "bg:#3B4252"
 format = '[$user ]($style)'
 
+# Directory configuration
 [directory]
 style = "bg:#434C5E"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
+home_symbol = "󰋜 " # This sets the symbol for the home directory
 
-# Here is how you can shorten some long paths by text replacement
-# similar to mapped_locations in Oh My Posh:
+# Directory path substitutions (shortening)
 [directory.substitutions]
-"Documents" = "󰈙 "
-"Downloads" = " "
-"Music" = " "
-"Pictures" = " "
-# Keep in mind that the order matters. For example:
-# "Important Documents" = "  "
-# will not be replaced, because "Documents" was already substituted before.
-# So either put "Important Documents" before "Documents" or use the substituted version:
-# "Important  " = "  "
+"Documents" = " 󰈙 "
+"Downloads" = "  "
+"Music" = "  "
+"Pictures" = "  "
+"Applications" = " 󰀻 "
+"Desktop" = " 󰟀 "
+"Movies" = "  "
+"Google Drive" = "  "
+"Contacts" = " 󰛋 "
+"Favorites" = " 󰚝 "
+"Videos" = "  "
+".config" = "  "
+".ssh" = " 󰣀 "
 
+# C module configuration
 [c]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Docker context configuration
 [docker_context]
 symbol = " "
 style = "bg:#06969A"
-format = '[ $symbol $context ]($style) $path'
+format = '[ $symbol ]($style)'
 
+# Elixir configuration
 [elixir]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Elm configuration
 [elm]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
-[git_branch]
-symbol = ""
-style = "bg:#4C566A"
-format = '[ $symbol $branch ]($style)'
-
-[git_status]
-style = "bg:#4C566A"
-format = '[$all_status$ahead_behind ]($style)'
-
+# Golang configuration
 [golang]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Haskell configuration
 [haskell]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Java configuration
 [java]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Julia configuration
 [julia]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Node.js configuration
 [nodejs]
 symbol = ""
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Nim configuration
 [nim]
 symbol = " "
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Python configuration
 [python]
 style = "bg:#3B4252"
 format = '[(\($virtualenv\) )]($style)'
 
+# Rust configuration
 [rust]
 symbol = ""
 style = "bg:#86BBD8"
 format = '[ $symbol ($version) ]($style)'
 
+# Git branch configuration (disabled)
+[git_branch]
+symbol = ""
+style = "bg:#4C566A"
+format = '[ $symbol $branch ]($style)'
+disabled = true
+
+# Git status configuration (disabled)
+[git_status]
+style = "bg:#4C566A"
+format = '[$all_status$ahead_behind ]($style)'
+disabled = true
+
+# Time configuration
 [time]
 disabled = false
 time_format = "%R" # Hour:Minute Format
