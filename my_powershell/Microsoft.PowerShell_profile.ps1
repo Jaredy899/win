@@ -36,6 +36,11 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
         }
 
+        function winutil {
+            Invoke-RestMethod christitus.com/win | Invoke-Expression
+            
+        }
+
         # Define directory navigation aliases
         function home {
             Set-Location ~
