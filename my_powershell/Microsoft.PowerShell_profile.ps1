@@ -1,21 +1,22 @@
 # Start of PowerShell Profile Script
 
-# Check for internet connectivity
-$global:canConnectToGitHub = $false
-try {
-    $response = Invoke-WebRequest -Uri "https://www.github.com" -UseBasicParsing -TimeoutSec 2
-    if ($response.StatusCode -eq 200) {
-        $global:canConnectToGitHub = $true
-    }
-} catch {
-    # If there's an exception, we assume no connectivity
-    Write-Host "Unable to reach GitHub. Skipping updates due to connectivity issues." -ForegroundColor Yellow
-}
-
 # Ensure the script only runs interactively
 if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
     # Confirm the session is indeed interactive
     if (-not $env:SSH_CLIENT -and -not $env:SSH_TTY) {
+
+        # Check for internet connectivity (only if the session is interactive)
+        $global:canConnectToGitHub = $false
+        try {
+            $response = Invoke-WebRequest -Uri "https://www.github.com" -UseBasicParsing -TimeoutSec 2
+            if ($response.StatusCode -eq 200) {
+                $global:canConnectToGitHub = $true
+            }
+        } catch {
+            # If there's an exception, we assume no connectivity
+            Write-Host "Unable to reach GitHub. Skipping updates due to connectivity issues." -ForegroundColor Yellow
+        }
+
         # Place your interactive commands below this line
 
         # Run fastfetch only in an interactive session
