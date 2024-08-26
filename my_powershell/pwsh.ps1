@@ -130,6 +130,7 @@ Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'.
 Write-Host "5. Save and close the settings."
 Write-Host "==============================="
 Write-Host ""
+
 # Inform the user about automatic updates and custom alias preservation
 Write-Host "Note: This profile will update every time you run the script." -ForegroundColor Yellow
 Write-Host "If you wish to keep your own aliases or customizations, create a separate profile.ps1 file." -ForegroundColor Yellow
