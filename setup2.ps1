@@ -1,12 +1,14 @@
 # Function to change the password of the currently logged-in user
 function Set-UserPassword {
     param (
-        [string]$password
+        [SecureString]$password
     )
     $username = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Split("\")[-1]
     Try {
         Write-Output "Attempting to change the password for $username..."
-        net user "$username" "$password" *>$null
+        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+        net user "$username" "$plainPassword" *>$null
         Write-Output "Password for ${username} account set successfully."
     } Catch {
         Write-Output "Failed to set password for ${username} account: $($_)"
@@ -16,15 +18,15 @@ function Set-UserPassword {
 # Ask if the user wants to change the password
 $changePassword = Read-Host "Do you want to change your password? (yes/y/enter for yes, no/n for no)"
 if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
-    $password = Read-Host "Enter the new password"
+    $password = Read-Host "Enter the new password" -AsSecureString
     Set-UserPassword -password $password
 } else {
     Write-Output "Password change was not performed."
 }
 
-function Enable-RemoteDesktop {
+function Set-RemoteDesktop {
     Try {
-        New-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
+        New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
         Write-Output "Remote Desktop enabled."
     } Catch {
         Write-Output "Failed to enable Remote Desktop: $($_)"
@@ -66,7 +68,7 @@ function Install-WindowsCapability {
     }
 }
 
-function Configure-SSH {
+function Set-SSHConfiguration {
     Try {
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
@@ -76,10 +78,8 @@ function Configure-SSH {
     }
 
     Try {
-        $firewallRule = Get-NetFirewallRule -Name 'sshd' -ErrorAction Stop *>$null
-        Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
-    } Catch {
-        if ($_.Exception.Message -match "No MSFT_NetFirewallRule objects found with property 'InstanceID' equal to 'sshd'") {
+        $firewallRuleExists = Get-NetFirewallRule -Name 'sshd' -ErrorAction SilentlyContinue
+        if ($null -eq $firewallRuleExists) {
             Try {
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 *>$null
                 Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
@@ -87,19 +87,21 @@ function Configure-SSH {
                 Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
             }
         } else {
-            Write-Output "Failed to check for existing firewall rule: $($_)"
+            Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
         }
+    } Catch {
+        Write-Output "Failed to check for existing firewall rule: $($_)"
     }
 
     Try {
-        New-ItemProperty -Path "HKLM:\\SOFTWARE\\OpenSSH" -Name DefaultShell -Value "C:\\Program Files\\PowerShell\\7\\pwsh.exe" -PropertyType String -Force *>$null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force *>$null
         Write-Output "Default shell for OpenSSH set to PowerShell 7."
     } Catch {
         Write-Output "Failed to set default shell for OpenSSH: $($_)"
     }
 }
 
-function Configure-TimeSettings {
+function Set-TimeSettings {
     Try {
         # Display options for time zones
         Write-Output "Select a time zone from the options below:"
@@ -143,15 +145,16 @@ function Configure-TimeSettings {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
 }
+
 # Main function to execute all tasks
 function Main {
-    Configure-TimeSettings
-    Enable-RemoteDesktop
+    Set-TimeSettings
+    Set-RemoteDesktop
     Enable-FirewallRule -ruleGroup "remote desktop" -ruleName "Remote Desktop"
     Enable-FirewallRule -ruleName "Allow ICMPv4-In" -protocol "icmpv4" -localPort "8,any"
     Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
     Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
-    Configure-SSH
+    Set-SSHConfiguration
 
     Write-Output "##########################################################"
     Write-Output "#                                                        #"
