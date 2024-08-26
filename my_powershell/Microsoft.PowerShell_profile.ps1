@@ -1,7 +1,7 @@
 # Ensure the script only runs interactively
 if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
-    # Confirm the session is indeed interactive
-    if (-not $env:SSH_CLIENT -and -not $env:SSH_TTY) {
+    # Check if this is a regular SSH session, not SFTP
+    if ($env:SSH_CLIENT -and $env:SSH_TTY -or -not $env:SSH_CLIENT) {
 
         # Place your interactive commands below this line
 
@@ -44,7 +44,6 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
 
         function winutil {
             Invoke-RestMethod christitus.com/win | Invoke-Expression
-            
         }
 
         # Define directory navigation aliases
