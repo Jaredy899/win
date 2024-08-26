@@ -104,7 +104,7 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             }
         }
 
-        # Function to check for Profile Updates
+        # Function to check for Profile Updates (only Microsoft.PowerShell_profile.ps1)
         function Update-Profile {
             if (-not $global:canConnectToGitHub) {
                 Write-Host "Skipping profile update check due to GitHub.com not responding within 1 second." -ForegroundColor Yellow
@@ -112,14 +112,9 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             }
 
             try {
-                # Determine which profile to update based on the PowerShell version
-                if ($PSVersionTable.PSEdition -eq "Core") {
-                    $profileFile = "$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
-                    $url = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell/Microsoft.PowerShell_profile.ps1"
-                } else {
-                    $profileFile = "$HOME\Documents\WindowsPowerShell\profile.ps1"
-                    $url = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell/profile.ps1"
-                }
+                # Define the profile file and update URL
+                $profileFile = "$HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1"
+                $url = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell/Microsoft.PowerShell_profile.ps1"
 
                 # Download the profile update
                 Invoke-RestMethod $url -OutFile "$env:temp\profile_update.ps1"
@@ -152,33 +147,6 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             } finally {
                 # Clean up the temporary file
                 Remove-Item "$env:temp\profile_update.ps1" -ErrorAction SilentlyContinue
-            }
-
-            # Check if a custom user profile exists for aliases and personal functions
-            $customProfilePath = "$HOME\Documents\PowerShell\profile.ps1"
-            if ($PSVersionTable.PSEdition -ne "Core") {
-                $customProfilePath = "$HOME\Documents\WindowsPowerShell\profile.ps1"
-            }
-
-            if (-not (Test-Path $customProfilePath)) {
-                Write-Host "No custom profile.ps1 found. Would you like to create one for your own aliases and settings? (Y/N)" -ForegroundColor Yellow
-                $response = Read-Host
-
-                if ($response -eq 'Y' -or $response -eq 'y') {
-                    # Create an empty custom profile file
-                    New-Item -Path $customProfilePath -ItemType File -Force
-
-                    # Provide instructions for editing the profile
-                    Write-Host "An empty custom profile.ps1 has been created at $customProfilePath." -ForegroundColor Green
-                    Write-Host "To add your own aliases or functions, you can use a text editor to edit this file." -ForegroundColor Cyan
-                    Write-Host "For example, you can use nano by running the following command:" -ForegroundColor Cyan
-                    Write-Host "`nStart-Process 'nano' -ArgumentList '$customProfilePath'`n" -ForegroundColor White
-                    Write-Host "After adding your custom aliases or functions, save the file and restart your shell to apply the changes." -ForegroundColor Magenta
-                } else {
-                    Write-Host "No custom profile will be created. You can manually create one later at $customProfilePath if needed." -ForegroundColor Yellow
-                }
-            } else {
-                Write-Host "A custom profile.ps1 already exists. You can add your own aliases and settings there." -ForegroundColor Green
             }
         }
 
