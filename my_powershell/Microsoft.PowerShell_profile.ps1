@@ -1,87 +1,4 @@
-# Ensure the script only runs interactively
-if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal' -or $env:SSH_TTY) {
-    # This should cover ConsoleHost, Windows Terminal, and SSH sessions
-
-    # Check for internet connectivity (canConnectToGitHub flag)
-    $global:canConnectToGitHub = $false
-    try {
-        $response = Test-Connection -ComputerName "github.com" -Count 1 -Quiet -ErrorAction Stop
-        if ($response) {
-            $global:canConnectToGitHub = $true
-        }
-    } catch {
-        Write-Host "Skipping some checks and commands due to connectivity issues." -ForegroundColor Yellow
-    }
-
-    # Place your interactive commands below this line
-
-    # Run fastfetch only in an interactive session
-    fastfetch
-
-    # Initialize zoxide if installed
-    if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-        Invoke-Expression (& { (zoxide init powershell | Out-String) })
-    }
-
-    # Initialize starship if installed
-    if (Get-Command starship -ErrorAction SilentlyContinue) {
-        Invoke-Expression (& { starship init powershell })
-    }
-
-    # Import Terminal-Icons if installed
-    if (Get-Command Import-Module -ErrorAction SilentlyContinue) {
-        if (Get-Module -ListAvailable -Name Terminal-Icons) {
-            Import-Module Terminal-Icons
-        }
-    }
-
-    # Define aliases and functions
-    function jc {
-        Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
-    }
-    function ff {
-        fastfetch -c all
-    }
-
-    # Define directory navigation aliases
-    function home {
-        Set-Location ~
-    }
-    Set-Alias home home
-
-    function cd.. {
-        Set-Location ..
-    }
-    Set-Alias cd.. cd..
-
-    function .. {
-        Set-Location ..
-    }
-
-    function ... {
-        Set-Location ../..
-    }
-
-    function .... {
-        Set-Location ../../..
-    }
-
-    function ..... {
-        Set-Location ../../../..
-    }
-
-    # Additional commands that require connectivity
-    if ($global:canConnectToGitHub) {
-        # Example command: Checking for PowerShell updates
-        Update-PowerShell
-    } else {
-        Write-Host "Skipping PowerShell update check due to GitHub.com not responding within 1 second." -ForegroundColor Yellow
-    }
-
-    # Call the Update-Profile function
-    Update-Profile
-
-} # End of interactive check
+# Define functions first
 
 # Function to check for PowerShell updates
 function Update-PowerShell {
@@ -181,3 +98,90 @@ function Update-Profile {
         Write-Host "A custom profile.ps1 already exists. You can add your own aliases and settings there." -ForegroundColor Green
     }
 }
+
+# Then, place the interactive session and logic
+
+# Ensure the script only runs interactively
+if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal' -or $env:SSH_TTY) {
+    # This should cover ConsoleHost, Windows Terminal, and SSH sessions
+
+    # Check for internet connectivity (canConnectToGitHub flag)
+    $global:canConnectToGitHub = $false
+    try {
+        $response = Test-Connection -ComputerName "github.com" -Count 1 -Quiet -ErrorAction Stop
+        if ($response) {
+            $global:canConnectToGitHub = $true
+        }
+    } catch {
+        Write-Host "Skipping some checks and commands due to connectivity issues." -ForegroundColor Yellow
+    }
+
+    # Place your interactive commands below this line
+
+    # Run fastfetch only in an interactive session
+    fastfetch
+
+    # Initialize zoxide if installed
+    if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+        Invoke-Expression (& { (zoxide init powershell | Out-String) })
+    }
+
+    # Initialize starship if installed
+    if (Get-Command starship -ErrorAction SilentlyContinue) {
+        Invoke-Expression (& { starship init powershell })
+    }
+
+    # Import Terminal-Icons if installed
+    if (Get-Command Import-Module -ErrorAction SilentlyContinue) {
+        if (Get-Module -ListAvailable -Name Terminal-Icons) {
+            Import-Module Terminal-Icons
+        }
+    }
+
+    # Define aliases and functions
+    function jc {
+        Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
+    }
+    function ff {
+        fastfetch -c all
+    }
+
+    # Define directory navigation aliases
+    function home {
+        Set-Location ~
+    }
+    Set-Alias home home
+
+    function cd.. {
+        Set-Location ..
+    }
+    Set-Alias cd.. cd..
+
+    function .. {
+        Set-Location ..
+    }
+
+    function ... {
+        Set-Location ../..
+    }
+
+    function .... {
+        Set-Location ../../..
+    }
+
+    function ..... {
+        Set-Location ../../../..
+    }
+
+    # Additional commands that require connectivity
+    if ($global:canConnectToGitHub) {
+        # Example command: Checking for PowerShell updates
+        Update-PowerShell
+    } else {
+        Write-Host "Skipping PowerShell update check due to GitHub.com not responding within 1 second." -ForegroundColor Yellow
+    }
+
+    # Call the Update-Profile function
+    Update-Profile
+
+} # End of interactive check
