@@ -8,12 +8,17 @@ function Install-FiraCodeFont {
 
     try {
         [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
+        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
 
-        # Check if the font is already installed
+        # Check if any of the Fira Code Nerd Font variations are already installed
         $isFontInstalled = $false
-        foreach ($font in $fontFamilies) {
-            if ($font.Name -like "*Fira*Code*") {
+        $fontNamesToCheck = @(
+            "FiraCode Nerd Font",
+            "FiraCode Nerd Font Propo",
+            "FiraCode Nerd Font Mono"
+        )
+        foreach ($fontName in $fontNamesToCheck) {
+            if ($fontFamilies -contains $fontName) {
                 $isFontInstalled = $true
                 break
             }
