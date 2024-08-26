@@ -2,6 +2,7 @@
 if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
     # Confirm the session is indeed interactive
     if (-not $env:SSH_CLIENT -and -not $env:SSH_TTY) {
+
         # Place your interactive commands below this line
 
         # Run fastfetch only in an interactive session
@@ -18,18 +19,21 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
         }
 
         # Define aliases and functions
-        function Invoke-ff {
+        function ff {
             fastfetch -c all
         }
-        Set-Alias ff Invoke-ff
 
-        function Invoke-apps {
-            winget update --all --include-unknown
+        function Get-PubIP { 
+            (Invoke-WebRequest http://ifconfig.me/ip).Content 
         }
-        Set-Alias apps Invoke-apps
 
-        function codes {
-            Set-Location -Path "G:\My Drive\Codes"
+        function flushdns {
+            Clear-DnsClientCache
+            Write-Host "DNS has been flushed"
+        }
+        
+        function jc {
+            Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
         }
 
         # Define directory navigation aliases

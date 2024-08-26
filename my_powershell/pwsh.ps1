@@ -130,3 +130,9 @@ Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'.
 Write-Host "5. Save and close the settings."
 Write-Host "==============================="
 Write-Host ""
+# Inform the user about automatic updates and custom alias preservation
+Write-Host "Note: This profile will update every time you run the script." -ForegroundColor Yellow
+Write-Host "If you wish to keep your own aliases or customizations, create a separate profile.ps1 file." -ForegroundColor Yellow
+Write-Host "You can use nano to create or edit this file by running the following command:" -ForegroundColor Cyan
+Write-Host "`nStart-Process 'nano' -ArgumentList '$HOME\Documents\PowerShell\profile.ps1'`n" -ForegroundColor White
+Write-Host "After adding your custom aliases or functions, save the file and restart your shell to apply the changes." -ForegroundColor Magenta
