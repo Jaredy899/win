@@ -8,20 +8,13 @@ function Install-FiraCodeFont {
 
     try {
         [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families.Name
+        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
 
-        # Check if any of the Fira Code Nerd Font variations are already installed
+        # Check if the font is already installed
         $isFontInstalled = $false
-        $fontNamesToCheck = @(
-            "FiraCode Nerd Font",
-            "FiraCode Nerd Font Propo",
-            "FiraCode Nerd Font Mono"
-        )
-
-        foreach ($fontName in $fontNamesToCheck) {
-            if ($fontFamilies -contains $fontName) {
+        foreach ($font in $fontFamilies) {
+            if ($font.Name -like "*Fira*Code*") {
                 $isFontInstalled = $true
-                Write-Host "Font $fontName is already installed."
                 break
             }
         }
@@ -32,10 +25,16 @@ function Install-FiraCodeFont {
             Write-Host "Fetching the latest release information from $apiUrl..."
             $releaseInfo = Invoke-RestMethod -Uri $apiUrl -Headers @{ 'User-Agent' = 'PowerShell Script' }
 
-            # Find the download URL for the FiraCode.zip asset only
-            $asset = $releaseInfo.assets | Where-Object { $_.name -eq "$FontName.zip" }
+            # Debugging: Print out all asset names to find the correct pattern
+            Write-Host "Assets found in the latest release:"
+            foreach ($asset in $releaseInfo.assets) {
+                Write-Host $asset.name
+            }
+
+            # Find the download URL for the font ZIP file
+            $asset = $releaseInfo.assets | Where-Object { $_.name -like "$FontName*Windows*.zip" -or $_.name -like "$FontName*.zip" }
             if ($null -eq $asset) {
-                Write-Error "Could not find the asset $FontName.zip in the latest release."
+                Write-Error "Could not find a suitable asset for $FontName in the latest release."
                 return
             }
 
@@ -63,7 +62,7 @@ function Install-FiraCodeFont {
 
             Write-Host "Fira Code Nerd Font installed successfully."
         } else {
-            Write-Host "One or more Fira Code Nerd Font variations are already installed."
+            Write-Host "Font ${FontDisplayName} is already installed."
         }
     }
     catch {
