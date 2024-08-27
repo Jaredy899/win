@@ -1,3 +1,10 @@
+# Set the GITPATH variable to the directory where the script is located
+$GITPATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
+Write-Host "GITPATH is set to: $GITPATH"
+
+# GitHub URL base for the necessary configuration files
+$GITHUB_BASE_URL = "https://raw.githubusercontent.com/Jaredy899/setup/main"
+
 # Function to check if the script is running with administrator privileges
 function Test-AdminRights {
     if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
@@ -11,88 +18,44 @@ function Test-AdminRights {
 # Ensure the script is running with administrator privileges
 Test-AdminRights
 
-# Function to display the menu and handle user choices
-function Show-Menu {
+# Function to run a script from local or GitHub
+function Run-Script {
     param (
-        [string]$menuTitle,
-        [array]$options
+        [string]$scriptName,
+        [string]$localPath,
+        [string]$url
     )
-
-    Write-Host "###################################"
-    Write-Host "##           $menuTitle          ##"
-    Write-Host "###################################"
-    Write-Host
-
-    for ($i = 0; $i -lt $options.Length; $i++) {
-        Write-Host "$($i + 1)) $($options[$i])"
+    if (Test-Path "$localPath\$scriptName") {
+        Write-Host "Running $scriptName from local directory..."
+        & "$localPath\$scriptName"
+    } else {
+        Write-Host "Running $scriptName from GitHub..."
+        Invoke-RestMethod -Uri "$url/$scriptName" -OutFile "$env:TEMP\$scriptName"
+        & "$env:TEMP\$scriptName"
     }
-    Write-Host "0) Exit"
-    Write-Host
-
-    $selection = Read-Host "Please choose an option"
-    return $selection
-}
-
-# Function to update Windows
-function Update-Windows {
-    Write-Output "Downloading and running the Windows update script..."
-    Invoke-RestMethod -Uri https://raw.githubusercontent.com/Jaredy899/setup/main/Windows-Update.ps1 -OutFile "$env:TEMP\setup2.ps1"
-    powershell -File "$env:TEMP\setup2.ps1"
-}
-
-# Function to start the setup script
-function Start-SetupScript {
-    Write-Output "Downloading and running the setup script..."
-    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/setup2.ps1" -OutFile "$env:TEMP\setup2.ps1"
-    powershell -File "$env:TEMP\setup2.ps1"
-}
-
-# Function to run My PowerShell config
-function Run-MyPowerShellConfig {
-    Write-Output "Downloading and running My PowerShell config script..."
-    Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/setup/main/my_powershell/pwsh.ps1" -OutFile "$env:TEMP\pwsh.ps1"
-    . "$env:TEMP\pwsh.ps1"
-}
-
-# Function to run ChrisTitusTech's Windows Utility
-function Run-ChrisTitusTechUtility {
-    Write-Output "Downloading ChrisTitusTech's Windows Utility script..."
-    Invoke-RestMethod -Uri "https://christitus.com/win" -OutFile "$env:TEMP\ctt_win.ps1"
-    Write-Output "Running ChrisTitusTech's Windows Utility script..."
-    powershell -File "$env:TEMP\ctt_win.ps1"
 }
 
 # Menu loop
 while ($true) {
-    $menuTitle = "Select an option"
-    $options = @(
-        "Update Windows",
-        "Start Setup Script",
-        "Run My PowerShell Config",
-        "Run ChrisTitusTech's Windows Utility"
-    )
-    $selection = Show-Menu -menuTitle $menuTitle -options $options
+    Write-Host "#############################"
+    Write-Host "##   Select an option:     ##"
+    Write-Host "#############################"
+    Write-Host "1) Update Windows"
+    Write-Host "2) Start Setup Script"
+    Write-Host "3) Run My PowerShell Config"
+    Write-Host "4) Run ChrisTitusTech's Windows Utility"
+    Write-Host "0) Exit"
+    Write-Host
 
-    switch ($selection) {
-        1 {
-            Update-Windows
-        }
-        2 {
-            Start-SetupScript
-        }
-        3 {
-            Run-MyPowerShellConfig
-        }
-        4 {
-            Run-ChrisTitusTechUtility
-        }
-        0 {
-            Write-Host "Exiting setup script."
-            break
-        }
-        default {
-            Write-Host "Invalid option. Please enter a number between 0 and 4."
-        }
+    $choice = Read-Host "Enter your choice (0-4)"
+
+    switch ($choice) {
+        1 { Run-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+        2 { Run-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+        3 { Run-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
+        4 { Run-Script -scriptName "ctt_win.ps1" -localPath $GITPATH -url "https://christitus.com" }
+        0 { Write-Host "Exiting setup script."; break }
+        default { Write-Host "Invalid option. Please enter a number between 0 and 4." }
     }
 }
 
