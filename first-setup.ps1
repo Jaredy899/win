@@ -37,9 +37,9 @@ function Run-Script {
 
 # Menu loop
 while ($true) {
-    Write-Host "#############################"
-    Write-Host "##   Select an option:     ##"
-    Write-Host "#############################"
+    Write-Host "###########################"
+    Write-Host "##   Select an option:   ##"
+    Write-Host "###########################"
     Write-Host "1) Update Windows"
     Write-Host "2) Start Setup Script"
     Write-Host "3) Run My PowerShell Config"
