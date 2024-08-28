@@ -53,7 +53,7 @@ while ($true) {
         1 { Run-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         2 { Run-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         3 { Run-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
-        4 { Run-Script -scriptName "ctt_win.ps1" -localPath $GITPATH -url "https://christitus.com" }
+        4 { Run-Script -scriptName "ctt_win.ps1" -localPath $GITPATH -url "irm https://christitus.com/win | iex" }
         0 { Write-Host "Exiting setup script."; break }
         default { Write-Host "Invalid option. Please enter a number between 0 and 4." }
     }
