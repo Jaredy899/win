@@ -18,21 +18,29 @@ function Test-AdminRights {
 # Ensure the script is running with administrator privileges
 Test-AdminRights
 
-# Function to run a script from local or GitHub
-function Run-Script {
+# Function to invoke a script from local or GitHub
+function Invoke-Script {
     param (
         [string]$scriptName,
         [string]$localPath,
         [string]$url
     )
     if (Test-Path "$localPath\$scriptName") {
-        Write-Host "Running $scriptName from local directory..."
+        Write-Host "Invoking $scriptName from local directory..."
         & "$localPath\$scriptName"
     } else {
-        Write-Host "Running $scriptName from GitHub..."
-        Invoke-RestMethod -Uri "$url/$scriptName" -OutFile "$env:TEMP\$scriptName"
-        & "$env:TEMP\$scriptName"
+        Write-Host "Invoking $scriptName from GitHub..."
+        $tempScript = "$env:TEMP\$scriptName"
+        Invoke-RestMethod -Uri "$url/$scriptName" -OutFile $tempScript
+        & $tempScript
+        Remove-Item $tempScript -Force
     }
+}
+
+# Special function to invoke Chris Titus Tech's Windows Utility directly from URL
+function Invoke-ChrisTitusTechUtility {
+    Write-Host "Invoking Chris Titus Tech's Windows Utility..."
+    Invoke-Expression (Invoke-WebRequest -Uri "https://christitus.com/win" -UseBasicParsing).Content
 }
 
 # Menu loop
@@ -50,10 +58,10 @@ while ($true) {
     $choice = Read-Host "Enter your choice (0-4)"
 
     switch ($choice) {
-        1 { Run-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-        2 { Run-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-        3 { Run-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
-        4 { Run-Script -scriptName "ctt_win.ps1" -localPath $GITPATH -url "irm https://christitus.com/win | iex" }
+        1 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+        2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+        3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
+        4 { Invoke-ChrisTitusTechUtility }
         0 { Write-Host "Exiting setup script."; break }
         default { Write-Host "Invalid option. Please enter a number between 0 and 4." }
     }
