@@ -40,7 +40,7 @@ function Invoke-Script {
 # Special function to invoke Chris Titus Tech's Windows Utility directly from URL
 function Invoke-ChrisTitusTechUtility {
     Write-Host "Invoking Chris Titus Tech's Windows Utility..."
-    Invoke-Expression (Invoke-WebRequest -Uri "https://christitus.com/win" -UseBasicParsing).Content
+    Invoke-RestMethod "https://christitus.com/win" | Invoke-Expression
 }
 
 # Menu loop
