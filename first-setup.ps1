@@ -40,7 +40,8 @@ function Invoke-Script {
 # Special function to invoke Chris Titus Tech's Windows Utility directly from URL
 function Invoke-ChrisTitusTechUtility {
     Write-Host "Invoking Chris Titus Tech's Windows Utility..."
-    Invoke-RestMethod "https://christitus.com/win" | Invoke-Expression
+    $scriptContent = Invoke-RestMethod "https://christitus.com/win" -UseBasicParsing
+    Invoke-Expression $scriptContent.Content
 }
 
 # Menu loop
@@ -62,10 +63,16 @@ while ($true) {
         2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
         4 { Invoke-ChrisTitusTechUtility }
-        0 { Write-Host "Exiting setup script."; break }
+        0 { 
+            Write-Host "Exiting setup script."
+            break  # Exit the loop
+        }
         default { Write-Host "Invalid option. Please enter a number between 0 and 4." }
     }
 }
+
+# Exit the script completely after breaking the loop
+exit
 
 Write-Host "#############################"
 Write-Host "##                         ##"
