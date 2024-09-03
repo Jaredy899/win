@@ -146,6 +146,29 @@ function Set-TimeSettings {
     }
 }
 
+# Function to create a scheduled task for time synchronization at startup
+function Set-TimeSyncAtStartup {
+    Try {
+        $taskName = "TimeSyncAtStartup"
+        $action = New-ScheduledTaskAction -Execute "w32tm.exe" -Argument "/resync"
+        $trigger = New-ScheduledTaskTrigger -AtStartup
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+        $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+        # Check if the task already exists
+        $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($existingTask) {
+            Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+        }
+
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal
+        Write-Output "Scheduled task for time synchronization at startup has been created."
+    } Catch {
+        Write-Output "Failed to create scheduled task for time synchronization: $($_)"
+    }
+}
+
+
 # Main function to execute all tasks
 function Main {
     Set-TimeSettings
@@ -155,6 +178,7 @@ function Main {
     Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
     Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
     Set-SSHConfiguration
+    Set-TimeSyncAtStartup  # Call the new function here
 
     Write-Output "##########################################################"
     Write-Output "#                                                        #"
