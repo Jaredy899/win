@@ -6,12 +6,12 @@ $appsScriptUrl = "$githubBaseUrl/apps_install.ps1"
 $configJsoncUrl = "$githubBaseUrl/config.jsonc"
 $starshipTomlUrl = "$githubBaseUrl/starship.toml"
 $githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"
-$fontScriptUrl = "$githubBaseUrl/install_fira_code.ps1"
+$fontScriptUrl = "$githubBaseUrl/install_nerd_font.ps1"
 $wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
-$fontScriptPath = "$env:TEMP\install_fira_code.ps1"
+$fontScriptPath = "$env:TEMP\install_nerd_font.ps1"
 $wingetScriptPath = "$env:TEMP\install_winget.ps1"
 
 # Function to download and run a script using Start-BitsTransfer
@@ -40,7 +40,7 @@ Write-Host "Running the applications installation script..."
 Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 
 # Run the font installation script, which includes the font check
-Write-Host "Running the Fira Code Nerd Font installation script..."
+Write-Host "Running the MesloLGS Nerd Font installation script..."
 Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
 
 # URLs for GitHub profile configuration
@@ -122,11 +122,11 @@ Install-TerminalIcons
 # Instructions for Manual Font Configuration
 Write-Host ""
 Write-Host "=== Manual Font Configuration ==="
-Write-Host "To set the font for Windows Terminal to 'Fira Code Nerd Font', please follow these steps:"
+Write-Host "To set the font for Windows Terminal to 'MesloLGS Nerd Font', please follow these steps:"
 Write-Host "1. Open Windows Terminal."
 Write-Host "2. Go to Settings."
 Write-Host "3. Select the 'Windows PowerShell' profile."
-Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'."
+Write-Host "4. Under 'Appearance', set the 'Font face' to 'MesloLGS Nerd Font'."
 Write-Host "5. Save and close the settings."
 Write-Host "==============================="
 Write-Host ""
