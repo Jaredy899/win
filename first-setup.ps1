@@ -43,6 +43,48 @@ function Invoke-ChrisTitusTechUtility {
     Invoke-RestMethod -Uri "https://christitus.com/win" | Invoke-Expression
 }
 
+# Function to set up Nord backgrounds
+function Set-NordBackgrounds {
+    $backgroundPath = "$GITPATH\nord-background"
+    if (Test-Path $backgroundPath) {
+        Write-Host "Setting up Nord backgrounds..."
+        
+        # Set up slideshow
+        if (Test-Path $backgroundPath) {
+            # Enable slideshow
+            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value ""
+            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -Value 10
+            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -Value 0
+            
+            # Set slideshow properties
+            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Interval -Value 1800
+            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Shuffle -Value 1
+            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name SlideshowDirectoryPath -Value $backgroundPath
+            
+            # Refresh the desktop
+            RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
+            
+            Write-Host "Wallpaper slideshow set up successfully. It will change every 30 minutes using all images in $backgroundPath."
+        } else {
+            Write-Host "Background folder not found at $backgroundPath"
+        }
+        
+        # Set lock screen image (if a specific file is desired)
+        $lockScreenPath = "$backgroundPath\lockscreen.jpg"
+        if (Test-Path $lockScreenPath) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Name LockScreenImagePath -Value $lockScreenPath
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Name LockScreenImageUrl -Value $lockScreenPath
+            Write-Host "Lock screen image set successfully."
+        } else {
+            Write-Host "No specific lock screen image (lockscreen.jpg) found in $backgroundPath. The lock screen will use the default behavior."
+        }
+        
+        Write-Host "Nord backgrounds setup complete."
+    } else {
+        Write-Host "Nord background folder not found at $backgroundPath"
+    }
+}
+
 # Menu loop
 while ($true) {
     Write-Host "###########################"
@@ -51,22 +93,24 @@ while ($true) {
     Write-Host "1) Update Windows"
     Write-Host "2) Start Setup Script"
     Write-Host "3) Run My PowerShell Config"
-    Write-Host "4) Run ChrisTitusTech's Windows Utility"
+    Write-Host "4) Set up Nord Backgrounds"
+    Write-Host "5) Run ChrisTitusTech's Windows Utility"
     Write-Host "0) Exit"
     Write-Host
 
-    $choice = Read-Host "Enter your choice (0-4)"
+    $choice = Read-Host "Enter your choice (0-5)"
 
     switch ($choice) {
         1 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
-        4 { Invoke-ChrisTitusTechUtility }
+        4 { Set-NordBackgrounds }
+        5 { Invoke-ChrisTitusTechUtility }
         0 { 
             Write-Host "Exiting setup script."
             exit 0  # Exit the script immediately
         }
-        default { Write-Host "Invalid option. Please enter a number between 0 and 4." }
+        default { Write-Host "Invalid option. Please enter a number between 0 and 5." }
     }
 }
 
