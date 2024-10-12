@@ -1,9 +1,9 @@
 # Function to install the latest Fira Code Nerd Font
-function Install-MesloLGSFont {
+function Install-FiraCodeFont {
     param (
         [string]$FontRepo = "ryanoasis/nerd-fonts",
-        [string]$FontName = "Meslo",
-        [string]$FontDisplayName = "MesloLGS Nerd Font"
+        [string]$FontName = "FiraCode",
+        [string]$FontDisplayName = "Fira Code Nerd Font"
     )
 
     try {
@@ -13,7 +13,7 @@ function Install-MesloLGSFont {
         # Check if the font is already installed
         $isFontInstalled = $false
         foreach ($font in $fontFamilies) {
-            if ($font.Name -like "*Meslo*LGS*") {
+            if ($font.Name -like "*Fira*Code*") {
                 $isFontInstalled = $true
                 break
             }
@@ -36,13 +36,13 @@ function Install-MesloLGSFont {
             $zipFilePath = "$env:TEMP\${FontName}.zip"
             $extractPath = "$env:TEMP\${FontName}"
 
-            Write-Host "Downloading MesloLGS Nerd Font from $fontZipUrl..."
+            Write-Host "Downloading Fira Code Nerd Font from $fontZipUrl..."
             Start-BitsTransfer -Source $fontZipUrl -Destination $zipFilePath -ErrorAction Stop
 
-            Write-Host "Extracting MesloLGS Nerd Font..."
+            Write-Host "Extracting Fira Code Nerd Font..."
             Expand-Archive -Path $zipFilePath -DestinationPath $extractPath -Force
 
-            Write-Host "Installing MesloLGS Nerd Font..."
+            Write-Host "Installing Fira Code Nerd Font..."
             $destination = (New-Object -ComObject Shell.Application).Namespace(0x14)
             Get-ChildItem -Path $extractPath -Recurse -Filter "*.ttf" | ForEach-Object {
                 If (-not (Test-Path "C:\Windows\Fonts\$($_.Name)")) {
@@ -54,7 +54,7 @@ function Install-MesloLGSFont {
             Remove-Item -Path $extractPath -Recurse -Force
             Remove-Item -Path $zipFilePath -Force
 
-            Write-Host "MesloLGS Nerd Font installed successfully."
+            Write-Host "Fira Code Nerd Font installed successfully."
         } else {
             Write-Host "Font ${FontDisplayName} is already installed."
         }
@@ -64,5 +64,5 @@ function Install-MesloLGSFont {
     }
 }
 
-# Call the function to install MesloLGS Nerd Font
-Install-MesloLGSFont
+# Call the function to install Fira Code Nerd Font
+Install-FiraCodeFont
