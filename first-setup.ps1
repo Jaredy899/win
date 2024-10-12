@@ -46,29 +46,30 @@ function Invoke-ChrisTitusTechUtility {
 # Function to set up Nord backgrounds
 function Set-NordBackgrounds {
     $documentsPath = [Environment]::GetFolderPath("MyDocuments")
-    $nordBackgroundPath = Join-Path $documentsPath "NordBackgrounds"
+    $nordBackgroundPath = Join-Path $documentsPath "NordBackgrounds\nord-background-main"
     $zipPath = Join-Path $env:TEMP "nord-backgrounds.zip"
 
     try {
-        # Download the zip file
-        Write-Host "Downloading Nord backgrounds..."
-        Invoke-WebRequest -Uri "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip" -OutFile $zipPath
-
-        # Create NordBackgrounds folder in Documents if it doesn't exist
+        # Download the zip file if the folder doesn't exist
         if (-not (Test-Path $nordBackgroundPath)) {
-            New-Item -ItemType Directory -Path $nordBackgroundPath | Out-Null
+            Write-Host "Downloading Nord backgrounds..."
+            Invoke-WebRequest -Uri "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip" -OutFile $zipPath
+
+            # Create NordBackgrounds folder in Documents if it doesn't exist
+            New-Item -ItemType Directory -Path (Split-Path $nordBackgroundPath) -Force | Out-Null
+
+            # Extract the zip file
+            Write-Host "Extracting backgrounds to $nordBackgroundPath..."
+            Expand-Archive -Path $zipPath -DestinationPath (Split-Path $nordBackgroundPath) -Force
         }
 
-        # Extract the zip file
-        Write-Host "Extracting backgrounds to $nordBackgroundPath..."
-        Expand-Archive -Path $zipPath -DestinationPath $nordBackgroundPath -Force
-
-        # Find the actual background folder
-        $backgroundPath = Get-ChildItem -Path $nordBackgroundPath -Directory | Select-Object -First 1 -ExpandProperty FullName
-
-        if (Test-Path $backgroundPath) {
-            Write-Host "Setting up Nord backgrounds..."
+        if (Test-Path $nordBackgroundPath) {
+            Write-Host "Setting up Nord backgrounds from: $nordBackgroundPath"
             
+            # List contents of the folder
+            Write-Host "Contents of the background folder:"
+            Get-ChildItem $nordBackgroundPath | ForEach-Object { Write-Host $_.Name }
+
             # Set up slideshow
             Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value ""
             Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -Value 10
@@ -77,26 +78,26 @@ function Set-NordBackgrounds {
             # Set slideshow properties
             Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Interval -Value 1800
             Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Shuffle -Value 1
-            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name SlideshowDirectoryPath -Value $backgroundPath
+            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name SlideshowDirectoryPath -Value $nordBackgroundPath
             
             # Refresh the desktop
             RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
             
-            Write-Host "Wallpaper slideshow set up successfully. It will change every 30 minutes using all images in $backgroundPath."
+            Write-Host "Wallpaper slideshow set up. It will change every 30 minutes using images in $nordBackgroundPath."
             
-            # Set lock screen image (if a specific file is desired)
-            $lockScreenPath = Join-Path $backgroundPath "lockscreen.jpg"
-            if (Test-Path $lockScreenPath) {
-                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Name LockScreenImagePath -Value $lockScreenPath
-                Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\PersonalizationCSP" -Name LockScreenImageUrl -Value $lockScreenPath
-                Write-Host "Lock screen image set successfully."
+            # Set first wallpaper manually
+            $firstWallpaper = Get-ChildItem $nordBackgroundPath -Filter *.jpg | Select-Object -First 1
+            if ($firstWallpaper) {
+                Write-Host "Setting initial wallpaper to: $($firstWallpaper.FullName)"
+                Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value $firstWallpaper.FullName
+                RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
             } else {
-                Write-Host "No specific lock screen image (lockscreen.jpg) found. The lock screen will use the default behavior."
+                Write-Host "No jpg files found in the background folder."
             }
             
-            Write-Host "Nord backgrounds setup complete."
+            Write-Host "Nord backgrounds setup complete. Please check if the wallpaper has changed."
         } else {
-            Write-Host "Failed to find the background folder in the extracted files."
+            Write-Host "Failed to find the background folder at $nordBackgroundPath."
         }
     }
     catch {
