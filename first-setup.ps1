@@ -45,21 +45,26 @@ function Invoke-ChrisTitusTechUtility {
 
 # Function to set up Nord backgrounds
 function Set-NordBackgrounds {
-    $tempDir = [System.IO.Path]::GetTempPath()
-    $zipPath = Join-Path $tempDir "nord-backgrounds.zip"
-    $extractPath = Join-Path $tempDir "nord-backgrounds"
+    $documentsPath = [Environment]::GetFolderPath("MyDocuments")
+    $nordBackgroundPath = Join-Path $documentsPath "NordBackgrounds"
+    $zipPath = Join-Path $env:TEMP "nord-backgrounds.zip"
 
     try {
         # Download the zip file
         Write-Host "Downloading Nord backgrounds..."
         Invoke-WebRequest -Uri "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip" -OutFile $zipPath
 
+        # Create NordBackgrounds folder in Documents if it doesn't exist
+        if (-not (Test-Path $nordBackgroundPath)) {
+            New-Item -ItemType Directory -Path $nordBackgroundPath | Out-Null
+        }
+
         # Extract the zip file
-        Write-Host "Extracting backgrounds..."
-        Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+        Write-Host "Extracting backgrounds to $nordBackgroundPath..."
+        Expand-Archive -Path $zipPath -DestinationPath $nordBackgroundPath -Force
 
         # Find the actual background folder
-        $backgroundPath = Get-ChildItem -Path $extractPath -Directory | Select-Object -First 1 -ExpandProperty FullName
+        $backgroundPath = Get-ChildItem -Path $nordBackgroundPath -Directory | Select-Object -First 1 -ExpandProperty FullName
 
         if (Test-Path $backgroundPath) {
             Write-Host "Setting up Nord backgrounds..."
@@ -98,9 +103,8 @@ function Set-NordBackgrounds {
         Write-Host "An error occurred: $_"
     }
     finally {
-        # Clean up
+        # Clean up the temporary zip file
         if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-        if (Test-Path $extractPath) { Remove-Item $extractPath -Recurse -Force }
     }
 }
 
