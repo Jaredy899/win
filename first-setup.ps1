@@ -60,16 +60,46 @@ function Get-NordBackgrounds {
     $backgroundsPath = Join-Path $documentsPath "nord_backgrounds"
     $zipPath = Join-Path $documentsPath "nord_backgrounds.zip"
 
+    # Check if the directory already exists
+    if (Test-Path $backgroundsPath) {
+        $overwrite = Read-Host "The nord_backgrounds folder already exists. Do you want to overwrite it? (y/n)"
+        if ($overwrite -eq 'y') {
+            Remove-Item $backgroundsPath -Recurse -Force
+        } else {
+            Write-Host "Skipping Nord backgrounds download."
+            return
+        }
+    }
+
     Write-Host "Downloading Nord backgrounds..."
     $url = "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip"
     Invoke-WebRequest -Uri $url -OutFile $zipPath
 
     Write-Host "Extracting backgrounds..."
-    Expand-Archive -Path $zipPath -DestinationPath $documentsPath
-    Rename-Item -Path (Join-Path $documentsPath "nord-background-main") -NewName "nord_backgrounds"
-    Remove-Item -Path $zipPath
+    Expand-Archive -Path $zipPath -DestinationPath $documentsPath -Force
+    
+    # Check if the extracted folder exists before renaming
+    $extractedPath = Join-Path $documentsPath "nord-background-main"
+    if (Test-Path $extractedPath) {
+        # If nord_backgrounds already exists (which it shouldn't at this point), remove it
+        if (Test-Path $backgroundsPath) {
+            Remove-Item $backgroundsPath -Recurse -Force
+        }
+        Rename-Item -Path $extractedPath -NewName "nord_backgrounds"
+    } else {
+        Write-Host "Error: Extracted folder not found. Extraction may have failed."
+    }
 
-    Write-Host "Nord backgrounds have been downloaded and extracted to: $backgroundsPath"
+    # Clean up the zip file
+    if (Test-Path $zipPath) {
+        Remove-Item -Path $zipPath -Force
+    }
+
+    if (Test-Path $backgroundsPath) {
+        Write-Host "Nord backgrounds have been downloaded and extracted to: $backgroundsPath"
+    } else {
+        Write-Host "Error: Failed to set up Nord backgrounds."
+    }
 }
 
 # Menu loop
