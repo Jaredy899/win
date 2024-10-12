@@ -85,6 +85,17 @@ function Set-NordBackgrounds {
     }
 }
 
+# Function to activate Windows
+function Invoke-WindowsActivation {
+    Write-Host "Activating Windows..."
+    $confirmation = Read-Host "Are you sure you want to activate Windows? (y/n)"
+    if ($confirmation -eq 'y') {
+        Invoke-RestMethod https://get.activated.win | Invoke-Expression
+    } else {
+        Write-Host "Windows activation cancelled."
+    }
+}
+
 # Menu loop
 while ($true) {
     Write-Host "###########################"
@@ -94,23 +105,25 @@ while ($true) {
     Write-Host "2) Start Setup Script"
     Write-Host "3) Run My PowerShell Config"
     Write-Host "4) Set up Nord Backgrounds"
-    Write-Host "5) Run ChrisTitusTech's Windows Utility"
+    Write-Host "5) Activate Windows"
+    Write-Host "6) Run ChrisTitusTech's Windows Utility"
     Write-Host "0) Exit"
     Write-Host
 
-    $choice = Read-Host "Enter your choice (0-5)"
+    $choice = Read-Host "Enter your choice (0-6)"
 
     switch ($choice) {
         1 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
         4 { Set-NordBackgrounds }
-        5 { Invoke-ChrisTitusTechUtility }
+        5 { Invoke-WindowsActivation }
+        6 { Invoke-ChrisTitusTechUtility }
         0 { 
             Write-Host "Exiting setup script."
             exit 0  # Exit the script immediately
         }
-        default { Write-Host "Invalid option. Please enter a number between 0 and 5." }
+        default { Write-Host "Invalid option. Please enter a number between 0 and 6." }
     }
 }
 
