@@ -18,8 +18,31 @@ function Set-UserPassword {
 # Ask if the user wants to change the password
 $changePassword = Read-Host "Do you want to change your password? (yes/y/enter for yes, no/n for no)"
 if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
-    $password = Read-Host "Enter the new password" -AsSecureString
-    Set-UserPassword -password $password
+    $passwordsMatch = $false
+    while (-not $passwordsMatch) {
+        $password1 = Read-Host "Enter the new password" -AsSecureString
+        $password2 = Read-Host "Confirm the new password" -AsSecureString
+
+        # Convert SecureString to plain text for comparison
+        $BSTR1 = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password1)
+        $BSTR2 = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password2)
+        $plainPassword1 = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR1)
+        $plainPassword2 = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR2)
+
+        # Compare passwords
+        if ($plainPassword1 -eq $plainPassword2) {
+            $passwordsMatch = $true
+            Set-UserPassword -password $password1
+            Write-Output "Password changed successfully."
+        } else {
+            Write-Output "Passwords do not match. Please try again or press Ctrl+C to cancel."
+        }
+
+        # Clear the plain text passwords from memory
+        $plainPassword1 = $plainPassword2 = $null
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR1)
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR2)
+    }
 } else {
     Write-Output "Password change was not performed."
 }
