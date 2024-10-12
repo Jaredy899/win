@@ -3,7 +3,7 @@ $GITPATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Write-Host "GITPATH is set to: $GITPATH"
 
 # GitHub URL base for the necessary configuration files
-$GITHUB_BASE_URL = "https://raw.githubusercontent.com/Jaredy899/setup/main"
+$GITHUB_BASE_URL = "https://raw.githubusercontent.com/Jaredy899/setup/main/win"
 
 # Function to check if the script is running with administrator privileges
 function Test-AdminRights {
