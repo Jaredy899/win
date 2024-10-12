@@ -54,6 +54,24 @@ function Invoke-WindowsActivation {
     }
 }
 
+# Function to download and extract Nord backgrounds
+function Get-NordBackgrounds {
+    $documentsPath = [Environment]::GetFolderPath("MyDocuments")
+    $backgroundsPath = Join-Path $documentsPath "nord_backgrounds"
+    $zipPath = Join-Path $documentsPath "nord_backgrounds.zip"
+
+    Write-Host "Downloading Nord backgrounds..."
+    $url = "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip"
+    Invoke-WebRequest -Uri $url -OutFile $zipPath
+
+    Write-Host "Extracting backgrounds..."
+    Expand-Archive -Path $zipPath -DestinationPath $documentsPath
+    Rename-Item -Path (Join-Path $documentsPath "nord-background-main") -NewName "nord_backgrounds"
+    Remove-Item -Path $zipPath
+
+    Write-Host "Nord backgrounds have been downloaded and extracted to: $backgroundsPath"
+}
+
 # Menu loop
 while ($true) {
     Write-Host "###########################"
@@ -63,23 +81,25 @@ while ($true) {
     Write-Host "2) Start Setup Script"
     Write-Host "3) Run My PowerShell Config"
     Write-Host "4) Activate Windows"
-    Write-Host "5) Run ChrisTitusTech's Windows Utility"
+    Write-Host "5) Download Nord Backgrounds"
+    Write-Host "6) Run ChrisTitusTech's Windows Utility"
     Write-Host "0) Exit"
     Write-Host
 
-    $choice = Read-Host "Enter your choice (0-5)"
+    $choice = Read-Host "Enter your choice (0-6)"
 
     switch ($choice) {
         1 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
         3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
         4 { Invoke-WindowsActivation }
-        5 { Invoke-ChrisTitusTechUtility }
+        5 { Get-NordBackgrounds }
+        6 { Invoke-ChrisTitusTechUtility }
         0 { 
             Write-Host "Exiting setup script."
             exit 0  # Exit the script immediately
         }
-        default { Write-Host "Invalid option. Please enter a number between 0 and 5." }
+        default { Write-Host "Invalid option. Please enter a number between 0 and 6." }
     }
 }
 
