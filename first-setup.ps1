@@ -49,9 +49,12 @@ function Set-NordBackgrounds {
     if (-not (Test-Path $backgroundPath)) {
         Write-Host "Nord background folder not found. Downloading..."
         New-Item -ItemType Directory -Force -Path $backgroundPath | Out-Null
-        Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/win/refs/heads/main/nord-background" -OutFile "$backgroundPath\nord-backgrounds.zip"
-        Expand-Archive -Path "$backgroundPath\nord-backgrounds.zip" -DestinationPath $backgroundPath -Force
-        Remove-Item "$backgroundPath\nord-backgrounds.zip"
+        $zipPath = "$backgroundPath\nord-backgrounds.zip"
+        Invoke-RestMethod -Uri "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip" -OutFile $zipPath
+        Expand-Archive -Path $zipPath -DestinationPath $backgroundPath -Force
+        Remove-Item $zipPath
+        Move-Item "$backgroundPath\nord-background-main\*" $backgroundPath -Force
+        Remove-Item "$backgroundPath\nord-background-main" -Recurse -Force
     }
 
     if (Test-Path $backgroundPath) {
