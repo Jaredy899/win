@@ -157,13 +157,13 @@ function Set-TimeSettings {
             return
         }
 
-        # Configure the time synchronization settings
-        w32tm /config /manualpeerlist:"time.windows.com,0x1" /syncfromflags:manual /reliable:YES /update *>$null
+        # Configure the time synchronization settings using time.nist.gov
+        w32tm /config /manualpeerlist:"time.nist.gov,0x1" /syncfromflags:manual /reliable:YES /update *>$null
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
 
-        Write-Output "Time settings configured and synchronized to $selectedTimeZone."
+        Write-Output "Time settings configured and synchronized to $selectedTimeZone using time.nist.gov."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
