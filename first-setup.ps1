@@ -46,28 +46,31 @@ function Invoke-ChrisTitusTechUtility {
 # Function to set up Nord backgrounds
 function Set-NordBackgrounds {
     $backgroundPath = "$GITPATH\nord-background"
+    if (-not (Test-Path $backgroundPath)) {
+        Write-Host "Nord background folder not found. Downloading..."
+        New-Item -ItemType Directory -Force -Path $backgroundPath | Out-Null
+        Invoke-RestMethod -Uri "https://raw.githubusercontent.com/Jaredy899/win/refs/heads/main/nord-background" -OutFile "$backgroundPath\nord-backgrounds.zip"
+        Expand-Archive -Path "$backgroundPath\nord-backgrounds.zip" -DestinationPath $backgroundPath -Force
+        Remove-Item "$backgroundPath\nord-backgrounds.zip"
+    }
+
     if (Test-Path $backgroundPath) {
         Write-Host "Setting up Nord backgrounds..."
         
         # Set up slideshow
-        if (Test-Path $backgroundPath) {
-            # Enable slideshow
-            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value ""
-            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -Value 10
-            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -Value 0
-            
-            # Set slideshow properties
-            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Interval -Value 1800
-            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Shuffle -Value 1
-            Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name SlideshowDirectoryPath -Value $backgroundPath
-            
-            # Refresh the desktop
-            RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
-            
-            Write-Host "Wallpaper slideshow set up successfully. It will change every 30 minutes using all images in $backgroundPath."
-        } else {
-            Write-Host "Background folder not found at $backgroundPath"
-        }
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value ""
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -Value 10
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -Value 0
+        
+        # Set slideshow properties
+        Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Interval -Value 1800
+        Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name Shuffle -Value 1
+        Set-ItemProperty -Path "HKCU:\Control Panel\Personalization\Desktop Slideshow" -Name SlideshowDirectoryPath -Value $backgroundPath
+        
+        # Refresh the desktop
+        RUNDLL32.EXE USER32.DLL,UpdatePerUserSystemParameters ,1 ,True
+        
+        Write-Host "Wallpaper slideshow set up successfully. It will change every 30 minutes using all images in $backgroundPath."
         
         # Set lock screen image (if a specific file is desired)
         $lockScreenPath = "$backgroundPath\lockscreen.jpg"
@@ -81,7 +84,7 @@ function Set-NordBackgrounds {
         
         Write-Host "Nord backgrounds setup complete."
     } else {
-        Write-Host "Nord background folder not found at $backgroundPath"
+        Write-Host "Failed to download or extract Nord backgrounds."
     }
 }
 
