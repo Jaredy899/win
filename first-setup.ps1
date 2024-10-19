@@ -73,7 +73,7 @@ function Get-NordBackgrounds {
 
     Write-Host "Downloading Nord backgrounds..."
     $url = "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip"
-    Invoke-WebRequest -Uri $url -OutFile $zipPath
+    Start-BitsTransfer -Source $url -Destination $zipPath
 
     Write-Host "Extracting backgrounds..."
     Expand-Archive -Path $zipPath -DestinationPath $documentsPath -Force
