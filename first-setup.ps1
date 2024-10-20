@@ -59,63 +59,25 @@ function Get-NordBackgrounds {
     $documentsPath = [Environment]::GetFolderPath("MyDocuments")
     $backgroundsPath = Join-Path $documentsPath "nord_backgrounds"
     $zipPath = Join-Path $documentsPath "nord_backgrounds.zip"
+    $url = "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip"
 
-    # Check if the directory already exists
     if (Test-Path $backgroundsPath) {
-        $overwrite = Read-Host "The nord_backgrounds folder already exists. Do you want to overwrite it? (y/n)"
-        if ($overwrite -eq 'y') {
-            Remove-Item $backgroundsPath -Recurse -Force
-        } else {
-            Write-Host "Skipping Nord backgrounds download."
-            return
+        if ((Read-Host "Nord backgrounds folder exists. Overwrite? (y/n)") -ne 'y') {
+            Write-Host "Skipping Nord backgrounds download."; return
         }
+        Remove-Item $backgroundsPath -Recurse -Force
     }
 
-    Write-Host "Downloading Nord backgrounds..."
-    $url = "https://github.com/ChrisTitusTech/nord-background/archive/refs/heads/main.zip"
-    
     try {
-        # Use BITS to download the file
-        Start-BitsTransfer -Source $url -Destination $zipPath -ErrorAction Stop
+        Write-Host "Downloading and extracting Nord backgrounds..."
+        Invoke-WebRequest -Uri $url -OutFile $zipPath
+        Expand-Archive -Path $zipPath -DestinationPath $documentsPath -Force
+        Rename-Item -Path (Join-Path $documentsPath "nord-background-main") -NewName "nord_backgrounds"
+        Remove-Item -Path $zipPath -Force
+        Write-Host "Nord backgrounds set up in: $backgroundsPath"
     }
     catch {
-        Write-Host "Error downloading file: $_"
-        return
-    }
-
-    if (Test-Path $zipPath) {
-        Write-Host "Extracting backgrounds..."
-        try {
-            Expand-Archive -Path $zipPath -DestinationPath $documentsPath -Force -ErrorAction Stop
-        }
-        catch {
-            Write-Host "Error extracting zip file: $_"
-            return
-        }
-    
-        # Check if the extracted folder exists before renaming
-        $extractedPath = Join-Path $documentsPath "nord-background-main"
-        if (Test-Path $extractedPath) {
-            # If nord_backgrounds already exists (which it shouldn't at this point), remove it
-            if (Test-Path $backgroundsPath) {
-                Remove-Item $backgroundsPath -Recurse -Force
-            }
-            Rename-Item -Path $extractedPath -NewName "nord_backgrounds"
-        } else {
-            Write-Host "Error: Extracted folder not found. Extraction may have failed."
-            return
-        }
-
-        # Clean up the zip file
-        Remove-Item -Path $zipPath -Force
-
-        if (Test-Path $backgroundsPath) {
-            Write-Host "Nord backgrounds have been downloaded and extracted to: $backgroundsPath"
-        } else {
-            Write-Host "Error: Failed to set up Nord backgrounds."
-        }
-    } else {
-        Write-Host "Error: Downloaded zip file not found."
+        Write-Host "Error setting up Nord backgrounds: $_"
     }
 }
 
