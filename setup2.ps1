@@ -191,6 +191,14 @@ function Set-TimeSyncAtStartup {
     }
 }
 
+function Disable-WindowsRecall {
+    Try {
+        DISM /Online /Disable-Feature /FeatureName:Recall *>$null
+        Write-Output "Windows Recall feature has been disabled."
+    } Catch {
+        Write-Output "Failed to disable Windows Recall feature: $($_)"
+    }
+}
 
 # Main function to execute all tasks
 function Main {
@@ -201,7 +209,8 @@ function Main {
     Install-WindowsCapability -capabilityName "OpenSSH.Client~~~~0.0.1.0"
     Install-WindowsCapability -capabilityName "OpenSSH.Server~~~~0.0.1.0"
     Set-SSHConfiguration
-    Set-TimeSyncAtStartup  # Call the new function here
+    Set-TimeSyncAtStartup
+    Disable-WindowsRecall
 
     Write-Output "##########################################################"
     Write-Output "#                                                        #"
