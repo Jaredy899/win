@@ -106,14 +106,8 @@ while ($true) {
         6 { Invoke-ChrisTitusTechUtility }
         0 { 
             Write-Host "Exiting setup script."
-            exit 0  # Exit the script immediately
+            return  # Exit the script without closing the terminal
         }
         default { Write-Host "Invalid option. Please enter a number between 0 and 6." }
     }
 }
-
-Write-Host "#############################"
-Write-Host "##                         ##"
-Write-Host "## Setup script completed. ##"
-Write-Host "##                         ##"
-Write-Host "#############################"
