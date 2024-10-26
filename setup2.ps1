@@ -200,6 +200,27 @@ function Disable-WindowsRecall {
     }
 }
 
+function Delete-EdgeShortcut {
+    # Get the path to the current user's desktop
+    $desktopPath = [Environment]::GetFolderPath("Desktop")
+
+    # Define the name of the Edge shortcut
+    $edgeShortcutName = "Microsoft Edge.lnk"
+
+    # Construct the full path to the Edge shortcut
+    $edgeShortcutPath = Join-Path -Path $desktopPath -ChildPath $edgeShortcutName
+
+    # Check if the shortcut exists
+    if (Test-Path $edgeShortcutPath) {
+        # If it exists, delete the shortcut
+        Remove-Item -Path $edgeShortcutPath -Force
+        Write-Output "Microsoft Edge shortcut has been deleted from the desktop."
+    } else {
+        # If it doesn't exist, inform the user
+        Write-Output "Microsoft Edge shortcut was not found on the desktop."
+    }
+}
+
 # Main function to execute all tasks
 function Main {
     Set-TimeSettings
@@ -211,6 +232,7 @@ function Main {
     Set-SSHConfiguration
     Set-TimeSyncAtStartup
     Disable-WindowsRecall
+    Delete-EdgeShortcut
 
     Write-Output "##########################################################"
     Write-Output "#                                                        #"
