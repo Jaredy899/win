@@ -216,7 +216,7 @@ function Disable-WindowsRecall {
     }
 }
 
-function Delete-EdgeShortcut {
+function Remove-EdgeShortcut {
     # Get the path to the current user's desktop
     $desktopPath = [Environment]::GetFolderPath("Desktop")
 
@@ -248,7 +248,7 @@ function Main {
     Set-SSHConfiguration
     Set-TimeSyncAtStartup
     Disable-WindowsRecall
-    Delete-EdgeShortcut
+    Remove-EdgeShortcut
 
     Write-Output "##########################################################"
     Write-Output "#                                                        #"

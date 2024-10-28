@@ -9,6 +9,9 @@ $githubProfileUrl = "$githubBaseUrl/Microsoft.PowerShell_profile.ps1"
 $fontScriptUrl = "$githubBaseUrl/install_nerd_font.ps1"
 $wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 
+# Add new URL for shortcuts.ahk
+$shortcutsAhkUrl = "$githubBaseUrl/shortcuts.ahk"
+
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_nerd_font.ps1"
@@ -118,6 +121,43 @@ function Install-TerminalIcons {
 
 # Run the Install-TerminalIcons function
 Install-TerminalIcons
+
+# Function to setup AutoHotkey and shortcuts
+function Initialize-CustomShortcuts {
+    $response = Read-Host "Would you like to set up custom keyboard shortcuts using AutoHotkey? (y/n)"
+    
+    if ($response.ToLower() -eq 'y') {
+        Write-Host "Installing AutoHotkey and setting up shortcuts..."
+        
+        # Install AutoHotkey using winget
+        winget install -e --id AutoHotkey.AutoHotkey
+        
+        # Set up shortcuts.ahk in startup folder
+        $startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+        $shortcutsPath = "$startupFolder\shortcuts.ahk"
+        
+        # Download shortcuts.ahk
+        try {
+            Start-BitsTransfer -Source $shortcutsAhkUrl -Destination $shortcutsPath -ErrorAction Stop
+            Write-Host "AutoHotkey shortcuts have been set up successfully."
+            
+            # Start the shortcuts script
+            if (Test-Path $shortcutsPath) {
+                Start-Process $shortcutsPath
+                Write-Host "Custom shortcuts are now active."
+            }
+        }
+        catch {
+            Write-Error "Failed to download or setup shortcuts. Error: $_"
+        }
+    }
+    else {
+        Write-Host "Skipping custom shortcuts setup."
+    }
+}
+
+# Run the Initialize-CustomShortcuts function
+Initialize-CustomShortcuts
 
 # Instructions for Manual Font Configuration
 Write-Host ""
