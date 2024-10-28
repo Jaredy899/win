@@ -5,19 +5,6 @@ Write-Host "GITPATH is set to: $GITPATH"
 # GitHub URL base for the necessary configuration files
 $GITHUB_BASE_URL = "https://raw.githubusercontent.com/Jaredy899/win/refs/heads/main"
 
-# Function to check if the script is running with administrator privileges
-function Test-AdminRights {
-    if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        Write-Warning "You do not have Administrator rights to run this script! Please re-run this script as an Administrator."
-        exit 1
-    } else {
-        Write-Host "Running with administrator privileges."
-    }
-}
-
-# Ensure the script is running with administrator privileges
-Test-AdminRights
-
 # Function to invoke a script from local or GitHub
 function Invoke-Script {
     param (

@@ -1,3 +1,19 @@
+# Check if running as administrator
+function Test-Administrator {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# Self-elevate the script if required
+if (-not (Test-Administrator)) {
+    Write-Output "Requesting administrative privileges..."
+    Start-Process powershell.exe -Verb RunAs -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"")
+    Exit
+}
+
+Write-Output "Script running with administrative privileges..."
+
 # Function to change the password of the currently logged-in user
 function Set-UserPassword {
     param (
