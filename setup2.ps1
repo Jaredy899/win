@@ -142,35 +142,54 @@ function Set-SSHConfiguration {
 
 function Set-TimeSettings {
     Try {
-        # Display options for time zones
-        Write-Output "Select a time zone from the options below:"
-        $timeZones = @(
-            "Eastern Standard Time",
-            "Central Standard Time",
-            "Mountain Standard Time",
-            "Pacific Standard Time",
-            "Greenwich Standard Time",
-            "UTC",
-            "Hawaiian Standard Time",
-            "Alaskan Standard Time"
-        )
-        
-        # Display the list of options
-        for ($i = 0; $i -lt $timeZones.Count; $i++) {
-            Write-Output "$($i + 1). $($timeZones[$i])"
-        }
+        # Attempt to automatically detect timezone
+        Try {
+            # Get timezone from ipapi.co
+            $ianaTimezone = (Invoke-RestMethod -Uri "https://ipapi.co/timezone" -Method Get).Trim()
+            Write-Output "Detected timezone: $ianaTimezone"
+            
+            # Convert IANA to Windows timezone using WMI
+            $windowsTimezone = (Get-CimInstance -ClassName Win32_TimeZone | 
+                Where-Object { $_.StandardName -eq ([TimeZoneInfo]::FindSystemTimeZoneById($ianaTimezone)).StandardName }).StandardName
 
-        # Prompt the user to select a time zone
-        $selection = Read-Host "Enter the number corresponding to your time zone"
+            if ($windowsTimezone) {
+                tzutil /s "$windowsTimezone" *>$null
+                Write-Output "Time zone automatically set to $windowsTimezone"
+            } else {
+                throw "Could not map timezone"
+            }
+        } Catch {
+            Write-Output "Automatic timezone detection failed. Falling back to manual selection..."
+            # Display options for time zones
+            Write-Output "Select a time zone from the options below:"
+            $timeZones = @(
+                "Eastern Standard Time",
+                "Central Standard Time",
+                "Mountain Standard Time",
+                "Pacific Standard Time",
+                "Greenwich Standard Time",
+                "UTC",
+                "Hawaiian Standard Time",
+                "Alaskan Standard Time"
+            )
+            
+            # Display the list of options
+            for ($i = 0; $i -lt $timeZones.Count; $i++) {
+                Write-Output "$($i + 1). $($timeZones[$i])"
+            }
 
-        # Validate input and set the time zone
-        if ($selection -match '^\d+$' -and $selection -gt 0 -and $selection -le $timeZones.Count) {
-            $selectedTimeZone = $timeZones[$selection - 1]
-            tzutil /s "$selectedTimeZone" *>$null
-            Write-Output "Time zone set to $selectedTimeZone."
-        } else {
-            Write-Output "Invalid selection. Please run the script again and choose a valid number."
-            return
+            # Prompt the user to select a time zone
+            $selection = Read-Host "Enter the number corresponding to your time zone"
+
+            # Validate input and set the time zone
+            if ($selection -match '^\d+$' -and $selection -gt 0 -and $selection -le $timeZones.Count) {
+                $selectedTimeZone = $timeZones[$selection - 1]
+                tzutil /s "$selectedTimeZone" *>$null
+                Write-Output "Time zone set to $selectedTimeZone."
+            } else {
+                Write-Output "Invalid selection. Please run the script again and choose a valid number."
+                return
+            }
         }
 
         # Configure the time synchronization settings using time.nist.gov
@@ -179,7 +198,7 @@ function Set-TimeSettings {
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
 
-        Write-Output "Time settings configured and synchronized to $selectedTimeZone using time.nist.gov."
+        Write-Output "Time settings configured and synchronized using time.nist.gov."
     } Catch {
         Write-Output "Failed to configure time settings or synchronization: $($_)"
     }
