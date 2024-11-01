@@ -14,15 +14,6 @@ if FileExist("C:\Program Files\WindowsApps\Microsoft.WindowsTerminal*") {
 }
 return
 
-; Alt+B - Open Vivaldi browser
-!b::
-if FileExist("C:\Users\" A_UserName "\AppData\Local\Vivaldi\Application\vivaldi.exe") {
-    Run "C:\Users\%A_UserName%\AppData\Local\Vivaldi\Application\vivaldi.exe"
-} else if FileExist("C:\Program Files\Vivaldi\Application\vivaldi.exe") {
-    Run "C:\Program Files\Vivaldi\Application\vivaldi.exe"
-} else if FileExist("C:\Program Files (x86)\Vivaldi\Application\vivaldi.exe") {
-    Run "C:\Program Files (x86)\Vivaldi\Application\vivaldi.exe"
-} else {
-    MsgBox, Vivaldi browser not found in common installation locations.
-}
+; Alt+B - Open default browser
+!b::Run "http://"
 return
