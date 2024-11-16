@@ -144,19 +144,45 @@ function Set-TimeSettings {
     Try {
         # Attempt to automatically detect timezone
         Try {
-            # Get timezone from ipapi.co
-            $ianaTimezone = (Invoke-RestMethod -Uri "https://ipapi.co/timezone" -Method Get).Trim()
-            Write-Output "Detected timezone: $ianaTimezone"
+            # Try multiple geolocation services
+            $timezone = $null
             
-            # Convert IANA to Windows timezone using WMI
-            $windowsTimezone = (Get-CimInstance -ClassName Win32_TimeZone | 
-                Where-Object { $_.StandardName -eq ([TimeZoneInfo]::FindSystemTimeZoneById($ianaTimezone)).StandardName }).StandardName
+            # Try ipapi.co first
+            Try {
+                $timezone = (Invoke-RestMethod -Uri "https://ipapi.co/timezone" -Method Get -TimeoutSec 5).Trim()
+            } Catch {
+                Write-Output "ipapi.co detection failed, trying alternative service..."
+            }
+            
+            # If ipapi.co failed, try worldtimeapi.org
+            if (-not $timezone) {
+                Try {
+                    $response = Invoke-RestMethod -Uri "http://worldtimeapi.org/api/ip" -Method Get -TimeoutSec 5
+                    $timezone = $response.timezone
+                } Catch {
+                    Write-Output "worldtimeapi.org detection failed..."
+                }
+            }
 
-            if ($windowsTimezone) {
-                tzutil /s "$windowsTimezone" *>$null
-                Write-Output "Time zone automatically set to $windowsTimezone"
+            if ($timezone) {
+                Write-Output "Detected timezone: $timezone"
+                
+                # Convert IANA to Windows timezone
+                $tzList = [System.TimeZoneInfo]::GetSystemTimeZones()
+                $windowsTimezone = $tzList | Where-Object {
+                    $_.Id -eq $timezone -or 
+                    $_.DisplayName -match [regex]::Escape($timezone) -or 
+                    $_.StandardName -match [regex]::Escape($timezone)
+                } | Select-Object -First 1
+
+                if ($windowsTimezone) {
+                    tzutil /s $windowsTimezone.Id *>$null
+                    Write-Output "Time zone automatically set to $($windowsTimezone.DisplayName)"
+                } else {
+                    throw "Could not map timezone"
+                }
             } else {
-                throw "Could not map timezone"
+                throw "Could not detect timezone"
             }
         } Catch {
             Write-Output "Automatic timezone detection failed. Falling back to manual selection..."
