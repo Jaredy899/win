@@ -97,7 +97,7 @@ function Install-WindowsCapability {
     )
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
-            Add-WindowsCapability -Online -Name "$capabilityName" *>$null
+            dism /online /add-capability /capabilityname:$capabilityName *>$null
             Write-Output "${capabilityName} installed successfully."
         } Catch {
             Write-Output "Failed to install ${capabilityName}: $($_)"
