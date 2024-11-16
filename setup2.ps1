@@ -154,30 +154,23 @@ function Set-TimeSettings {
                 Write-Output "ipapi.co detection failed, trying alternative service..."
             }
             
-            # If ipapi.co failed, try worldtimeapi.org
-            if (-not $timezone) {
-                Try {
-                    $response = Invoke-RestMethod -Uri "http://worldtimeapi.org/api/ip" -Method Get -TimeoutSec 5
-                    $timezone = $response.timezone
-                } Catch {
-                    Write-Output "worldtimeapi.org detection failed..."
-                }
-            }
-
             if ($timezone) {
                 Write-Output "Detected timezone: $timezone"
                 
-                # Convert IANA to Windows timezone
-                $tzList = [System.TimeZoneInfo]::GetSystemTimeZones()
-                $windowsTimezone = $tzList | Where-Object {
-                    $_.Id -eq $timezone -or 
-                    $_.DisplayName -match [regex]::Escape($timezone) -or 
-                    $_.StandardName -match [regex]::Escape($timezone)
-                } | Select-Object -First 1
+                # Simplified mapping for common US timezones
+                $tzMapping = @{
+                    'America/New_York' = 'Eastern Standard Time'
+                    'America/Chicago' = 'Central Standard Time'
+                    'America/Denver' = 'Mountain Standard Time'
+                    'America/Los_Angeles' = 'Pacific Standard Time'
+                    'America/Anchorage' = 'Alaskan Standard Time'
+                    'Pacific/Honolulu' = 'Hawaiian Standard Time'
+                }
 
-                if ($windowsTimezone) {
-                    tzutil /s $windowsTimezone.Id *>$null
-                    Write-Output "Time zone automatically set to $($windowsTimezone.DisplayName)"
+                if ($tzMapping.ContainsKey($timezone)) {
+                    $windowsTimezone = $tzMapping[$timezone]
+                    tzutil /s $windowsTimezone *>$null
+                    Write-Output "Time zone automatically set to $windowsTimezone"
                 } else {
                     throw "Could not map timezone"
                 }
