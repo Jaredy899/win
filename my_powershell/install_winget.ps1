@@ -16,20 +16,23 @@ function Get-WingetStatus {
     }
 }
 
+Write-Host "=== Checking Winget Installation ===" -ForegroundColor Cyan
+
 # Check Winget installation status
 $isWingetInstalled = Get-WingetStatus
 
 try {
     if ($isWingetInstalled -eq "installed") {
-        Write-Host "`nWinget is already installed.`r" -ForegroundColor Green
+        Write-Host "`nWinget is already installed and up to date!" -ForegroundColor Green
         return
     } elseif ($isWingetInstalled -eq "outdated") {
-        Write-Host "`nWinget is Outdated. Continuing with install.`r" -ForegroundColor Yellow
+        Write-Host "`nWinget is outdated. Proceeding with update..." -ForegroundColor Yellow
     } else {
-        Write-Host "`nWinget is not Installed. Continuing with install.`r" -ForegroundColor Red
+        Write-Host "`nWinget is not installed. Starting installation..." -ForegroundColor Yellow
     }
 
     # Gets the computer's information
+    Write-Host "Checking system compatibility..." -ForegroundColor Blue
     if ($null -eq $sync.ComputerInfo) {
         $ComputerInfo = Get-ComputerInfo -ErrorAction Stop
     } else {
@@ -37,57 +40,64 @@ try {
     }
 
     if (($ComputerInfo.WindowsVersion) -lt "1809") {
-        # Checks if Windows Version is too old for Winget
         Write-Host "Winget is not supported on this version of Windows (Pre-1809)" -ForegroundColor Red
         return
     }
 
-    # Define URLs for the Winget package and its dependencies
+    # Define URLs and paths
+    Write-Host "`n=== Downloading Required Components ===" -ForegroundColor Cyan
+    
     $wingetUrl = "https://aka.ms/getwinget"
     $vclibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
     $xamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
 
-    # Define local file paths for the downloaded packages
     $wingetPackage = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
     $vclibsPackage = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
     $xamlPackage = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
 
-    Write-Host "Downloading Winget and dependencies..."
+    Write-Host "Downloading Winget and dependencies..." -ForegroundColor Yellow
 
-    # Download the required packages using Start-BitsTransfer for reliability and speed
+    # Download packages
     Start-BitsTransfer -Source $wingetUrl -Destination $wingetPackage -ErrorAction Stop
+    Write-Host "Downloaded Winget package successfully!" -ForegroundColor Green
+    
     Start-BitsTransfer -Source $vclibsUrl -Destination $vclibsPackage -ErrorAction Stop
+    Write-Host "Downloaded VCLibs package successfully!" -ForegroundColor Green
+    
     Start-BitsTransfer -Source $xamlUrl -Destination $xamlPackage -ErrorAction Stop
+    Write-Host "Downloaded XAML package successfully!" -ForegroundColor Green
 
-    Write-Host "Installing dependencies..."
+    Write-Host "`n=== Installing Components ===" -ForegroundColor Cyan
+    Write-Host "Installing dependencies..." -ForegroundColor Yellow
 
-    # Install the dependencies if they are not already installed or if a higher version is not present
+    # Install VCLibs
     if (-not (Get-AppxPackage -Name "*VCLibs*" | Where-Object { $_.Version -ge "14.0.33321.0" })) {
         Add-AppxPackage -Path $vclibsPackage
+        Write-Host "VCLibs installed successfully!" -ForegroundColor Green
     } else {
-        Write-Host "A higher version of VCLibs is already installed. Skipping installation."
+        Write-Host "A higher version of VCLibs is already installed." -ForegroundColor Blue
     }
 
+    # Install XAML
     if (-not (Get-AppxPackage -Name "*UI.Xaml*" | Where-Object { $_.Version -ge "2.8.6.0" })) {
-        # Attempt to close Microsoft Store if it's open
         $storeProcess = Get-Process -Name "WinStore.App" -ErrorAction SilentlyContinue
         if ($storeProcess) {
-            Write-Host "Closing Microsoft Store to proceed with the installation..."
+            Write-Host "Closing Microsoft Store to proceed with installation..." -ForegroundColor Yellow
             Stop-Process -Name "WinStore.App" -Force
         }
 
         Add-AppxPackage -Path $xamlPackage
+        Write-Host "UI.Xaml installed successfully!" -ForegroundColor Green
     } else {
-        Write-Host "A higher version of UI.Xaml is already installed. Skipping installation."
+        Write-Host "A higher version of UI.Xaml is already installed." -ForegroundColor Blue
     }
 
-    Write-Host "Installing Winget..."
-
-    # Install Winget
+    Write-Host "Installing Winget..." -ForegroundColor Yellow
     Add-AppxPackage -Path $wingetPackage
 
-    Write-Host "Winget and dependencies installed successfully."
+    Write-Host "`n=== Installation Complete ===" -ForegroundColor Cyan
+    Write-Host "Winget and all dependencies installed successfully!" -ForegroundColor Green
 }
 catch {
-    Write-Error "Failed to install Winget or its dependencies. Error: $_"
+    Write-Host "Failed to install Winget or its dependencies. Error: $_" -ForegroundColor Red
 }

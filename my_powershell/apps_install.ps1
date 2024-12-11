@@ -16,8 +16,11 @@ $apps = @(
 
 # Function to install applications using Winget
 function Install-Apps {
+    Write-Host "=== Starting Application Installation ===" -ForegroundColor Cyan
     foreach ($app in $apps) {
-        Write-Host "Installing $app using Winget..."
+        Write-Host "`nInstalling " -ForegroundColor Yellow -NoNewline
+        Write-Host "$app" -ForegroundColor Blue -NoNewline
+        Write-Host " using Winget..." -ForegroundColor Yellow
         
         try {
             # Run the Winget install command and capture the output
@@ -25,18 +28,19 @@ function Install-Apps {
             
             # Check if the app is already installed and up-to-date
             if ($installResult -match "No available upgrade found" -or $installResult -match "already installed" -or $installResult -match "Up to date") {
-                Write-Host "$app is already installed and up to date."
+                Write-Host "$app is already installed and up to date." -ForegroundColor Blue
             }
             elseif ($LASTEXITCODE -eq 0) {
-                Write-Host "$app installed successfully."
+                Write-Host "$app installed successfully!" -ForegroundColor Green
             } else {
-                Write-Error "Failed to install $app. Please check your internet connection or the app name."
+                Write-Host "Failed to install $app. Please check your internet connection or the app name." -ForegroundColor Red
             }
         }
         catch {
-            Write-Error "An error occurred while installing $app. Error: $_"
+            Write-Host "An error occurred while installing $app. Error: $_" -ForegroundColor Red
         }
     }
+    Write-Host "`n=== Application Installation Complete ===" -ForegroundColor Cyan
 }
 
 # Run the applications installation function

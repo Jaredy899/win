@@ -24,26 +24,31 @@ function Invoke-DownloadAndRunScript {
         [string]$localPath
     )
 
-    Write-Host "Downloading script from $url..."
+    Write-Host "Downloading script from " -ForegroundColor Yellow -NoNewline
+    Write-Host "$url" -ForegroundColor Blue -NoNewline
+    Write-Host "..." -ForegroundColor Yellow
     try {
         Start-BitsTransfer -Source $url -Destination $localPath -ErrorAction Stop
-        Write-Host "Running script $localPath..."
+        Write-Host "Running script " -ForegroundColor Yellow -NoNewline
+        Write-Host "$localPath" -ForegroundColor Blue -NoNewline
+        Write-Host "..." -ForegroundColor Yellow
         & $localPath
     }
     catch {
-        Write-Error "Failed to download or run the script from $url. Error: $_"
+        Write-Host "Failed to download or run the script from $url. Error: $_" -ForegroundColor Red
     }
 }
 
 # Ensure Winget is installed or updated
+Write-Host "Checking Winget installation..." -ForegroundColor Cyan
 Invoke-DownloadAndRunScript -url $wingetScriptUrl -localPath $wingetScriptPath
 
 # Always run the applications installation script
-Write-Host "Running the applications installation script..."
+Write-Host "Running the applications installation script..." -ForegroundColor Cyan
 Invoke-DownloadAndRunScript -url $appsScriptUrl -localPath $appsScriptPath
 
-# Run the font installation script, which includes the font check
-Write-Host "Running the Nerd Font installation script..."
+# Run the font installation script
+Write-Host "Running the Nerd Font installation script..." -ForegroundColor Cyan
 Invoke-DownloadAndRunScript -url $fontScriptUrl -localPath $fontScriptPath
 
 # URLs for GitHub profile configuration
@@ -56,19 +61,20 @@ function Initialize-Profile {
         [string]$profileUrl
     )
 
-    Write-Host "Setting up PowerShell profile at $profilePath..."
+    Write-Host "Setting up PowerShell profile at " -ForegroundColor Yellow -NoNewline
+    Write-Host "$profilePath" -ForegroundColor Blue -NoNewline
+    Write-Host "..." -ForegroundColor Yellow
 
     $profileDir = Split-Path $profilePath
     if (-not (Test-Path -Path $profileDir)) {
         New-Item -ItemType Directory -Path $profileDir -Force
     }
 
-    # Check if the GitHub URL for the profile is set and not empty
     if (-not [string]::IsNullOrEmpty($profileUrl)) {
         Start-BitsTransfer -Source $profileUrl -Destination $profilePath -ErrorAction Stop
-        Write-Host "PowerShell profile has been set up successfully at $profilePath."
+        Write-Host "PowerShell profile has been set up successfully!" -ForegroundColor Green
     } else {
-        Write-Error "GitHub profile URL is not set or is empty. Cannot set up the PowerShell profile at $profilePath."
+        Write-Host "GitHub profile URL is not set or is empty. Cannot set up the PowerShell profile." -ForegroundColor Red
     }
 }
 
@@ -84,38 +90,35 @@ Initialize-Profile -profilePath $ps7ProfilePath -profileUrl $githubProfileUrl
 
 # Function to initialize configuration files
 function Initialize-ConfigFiles {
-    Write-Host "Setting up configuration files..."
+    Write-Host "Setting up configuration files..." -ForegroundColor Cyan
 
     $userConfigDir = "$env:UserProfile\.config"
     $fastfetchConfigDir = "$userConfigDir\fastfetch"
 
-    # Ensure directories exist
     if (-not (Test-Path -Path $fastfetchConfigDir)) {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
     }
 
-    # Download and set up config.jsonc for fastfetch
     $localConfigJsoncPath = "$fastfetchConfigDir\config.jsonc"
     Start-BitsTransfer -Source $configJsoncUrl -Destination $localConfigJsoncPath -ErrorAction Stop
-    Write-Host "fastfetch config.jsonc has been set up at $localConfigJsoncPath."
+    Write-Host "fastfetch config.jsonc has been set up successfully!" -ForegroundColor Green
 
-    # Download and set up starship.toml
     $localStarshipTomlPath = "$userConfigDir\starship.toml"
     Start-BitsTransfer -Source $starshipTomlUrl -Destination $localStarshipTomlPath -ErrorAction Stop
-    Write-Host "starship.toml has been set up at $localStarshipTomlPath."
+    Write-Host "starship.toml has been set up successfully!" -ForegroundColor Green
 }
 
 # Run the Initialize-ConfigFiles function
 Initialize-ConfigFiles
 
-# Install Terminal-Icons module if not already installed
+# Function to install Terminal-Icons
 function Install-TerminalIcons {
     if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
-        Write-Host "Installing Terminal-Icons module..."
+        Write-Host "Installing Terminal-Icons module..." -ForegroundColor Yellow
         Install-Module -Name Terminal-Icons -Repository PSGallery -Force
-        Write-Host "Terminal-Icons module installed successfully."
+        Write-Host "Terminal-Icons module installed successfully!" -ForegroundColor Green
     } else {
-        Write-Host "Terminal-Icons module is already installed."
+        Write-Host "Terminal-Icons module is already installed." -ForegroundColor Blue
     }
 }
 
@@ -124,35 +127,32 @@ Install-TerminalIcons
 
 # Function to setup AutoHotkey and shortcuts
 function Initialize-CustomShortcuts {
-    $response = Read-Host "Would you like to set up custom keyboard shortcuts using AutoHotkey? (y/n)"
+    Write-Host "Would you like to set up custom keyboard shortcuts using AutoHotkey? (y/n) " -ForegroundColor Cyan -NoNewline
+    $response = Read-Host
     
     if ($response.ToLower() -eq 'y') {
-        Write-Host "Installing AutoHotkey and setting up shortcuts..."
+        Write-Host "Installing AutoHotkey and setting up shortcuts..." -ForegroundColor Yellow
         
-        # Install AutoHotkey using winget
         winget install -e --id AutoHotkey.AutoHotkey
         
-        # Set up shortcuts.ahk in startup folder
         $startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
         $shortcutsPath = "$startupFolder\shortcuts.ahk"
         
-        # Download shortcuts.ahk
         try {
             Start-BitsTransfer -Source $shortcutsAhkUrl -Destination $shortcutsPath -ErrorAction Stop
-            Write-Host "AutoHotkey shortcuts have been set up successfully."
+            Write-Host "AutoHotkey shortcuts have been set up successfully!" -ForegroundColor Green
             
-            # Start the shortcuts script
             if (Test-Path $shortcutsPath) {
                 Start-Process $shortcutsPath
-                Write-Host "Custom shortcuts are now active."
+                Write-Host "Custom shortcuts are now active!" -ForegroundColor Green
             }
         }
         catch {
-            Write-Error "Failed to download or setup shortcuts. Error: $_"
+            Write-Host "Failed to download or setup shortcuts. Error: $_" -ForegroundColor Red
         }
     }
     else {
-        Write-Host "Skipping custom shortcuts setup."
+        Write-Host "Skipping custom shortcuts setup." -ForegroundColor Blue
     }
 }
 
@@ -161,17 +161,17 @@ Initialize-CustomShortcuts
 
 # Instructions for Manual Font Configuration
 Write-Host ""
-Write-Host "=== Manual Font Configuration ==="
-Write-Host "To set the font for Windows Terminal to 'Fira Code Nerd Font', please follow these steps:"
-Write-Host "1. Open Windows Terminal."
-Write-Host "2. Go to Settings."
-Write-Host "3. Select the 'Windows PowerShell' profile."
-Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'."
-Write-Host "5. Save and close the settings."
-Write-Host "==============================="
+Write-Host "=== Manual Font Configuration ===" -ForegroundColor Cyan
+Write-Host "To set the font for Windows Terminal to 'Fira Code Nerd Font', please follow these steps:" -ForegroundColor Yellow
+Write-Host "1. Open Windows Terminal." -ForegroundColor White
+Write-Host "2. Go to Settings." -ForegroundColor White
+Write-Host "3. Select the 'Windows PowerShell' profile." -ForegroundColor White
+Write-Host "4. Under 'Appearance', set the 'Font face' to 'Fira Code Nerd Font'." -ForegroundColor White
+Write-Host "5. Save and close the settings." -ForegroundColor White
+Write-Host "===============================" -ForegroundColor Cyan
 Write-Host ""
 
-# Inform the user about automatic updates and custom alias preservation
+# Final notes
 Write-Host "Note: This profile will update every time you run the script." -ForegroundColor Yellow
 Write-Host "If you wish to keep your own aliases or customizations, create a separate profile.ps1 file." -ForegroundColor Yellow
 Write-Host "You can use nano to create or edit this file by running the following command:" -ForegroundColor Cyan
