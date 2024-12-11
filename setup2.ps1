@@ -21,13 +21,13 @@ function Set-UserPassword {
     )
     $username = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Split("\")[-1]
     Try {
-        Write-Output "Attempting to change the password for $username..."
+        Write-Host "Attempting to change the password for $username..." -ForegroundColor Yellow
         $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
         $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
         net user "$username" "$plainPassword" *>$null
-        Write-Output "Password for ${username} account set successfully."
+        Write-Host "Password for ${username} account set successfully." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to set password for ${username} account: $($_)"
+        Write-Host "Failed to set password for ${username} account: $($_)" -ForegroundColor Red
     }
 }
 
@@ -66,9 +66,9 @@ if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOr
 function Set-RemoteDesktop {
     Try {
         New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" -Name fDenyTSConnections -Value 0 -PropertyType DWORD -Force *>$null
-        Write-Output "Remote Desktop enabled."
+        Write-Host "Remote Desktop enabled." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to enable Remote Desktop: $($_)"
+        Write-Host "Failed to enable Remote Desktop: $($_)" -ForegroundColor Red
     }
 }
 
@@ -85,9 +85,9 @@ function Enable-FirewallRule {
         } else {
             netsh advfirewall firewall set rule group="$ruleGroup" new enable=Yes *>$null
         }
-        Write-Output "${ruleName} rule enabled."
+        Write-Host "${ruleName} rule enabled." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to enable ${ruleName} rule: $($_)"
+        Write-Host "Failed to enable ${ruleName} rule: $($_)" -ForegroundColor Red
     }
 }
 
@@ -98,12 +98,12 @@ function Install-WindowsCapability {
     if ((Get-WindowsCapability -Online | Where-Object Name -like "$capabilityName*").State -ne 'Installed') {
         Try {
             Add-WindowsCapability -Online -Name $capabilityName *>$null
-            Write-Output "${capabilityName} installed successfully."
+            Write-Host "${capabilityName} installed successfully." -ForegroundColor Green
         } Catch {
-            Write-Output "Failed to install ${capabilityName}: $($_)"
+            Write-Host "Failed to install ${capabilityName}: $($_)" -ForegroundColor Red
         }
     } else {
-        Write-Output "${capabilityName} is already installed."
+        Write-Host "${capabilityName} is already installed." -ForegroundColor Blue
     }
 }
 
@@ -111,9 +111,9 @@ function Set-SSHConfiguration {
     Try {
         Start-Service sshd *>$null
         Set-Service -Name sshd -StartupType 'Automatic' *>$null
-        Write-Output "SSH service started and set to start automatically."
+        Write-Host "SSH service started and set to start automatically." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to configure SSH service: $($_)"
+        Write-Host "Failed to configure SSH service: $($_)" -ForegroundColor Red
     }
 
     Try {
@@ -121,22 +121,22 @@ function Set-SSHConfiguration {
         if ($null -eq $firewallRuleExists) {
             Try {
                 New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 *>$null
-                Write-Output "Firewall rule for OpenSSH Server (sshd) created successfully."
+                Write-Host "Firewall rule for OpenSSH Server (sshd) created successfully." -ForegroundColor Green
             } Catch {
-                Write-Output "Failed to create firewall rule for OpenSSH Server (sshd): $($_)"
+                Write-Host "Failed to create firewall rule for OpenSSH Server (sshd): $($_)" -ForegroundColor Red
             }
         } else {
-            Write-Output "Firewall rule for OpenSSH Server (sshd) already exists."
+            Write-Host "Firewall rule for OpenSSH Server (sshd) already exists." -ForegroundColor Blue
         }
     } Catch {
-        Write-Output "Failed to check for existing firewall rule: $($_)"
+        Write-Host "Failed to check for existing firewall rule: $($_)" -ForegroundColor Red
     }
 
     Try {
         New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force *>$null
-        Write-Output "Default shell for OpenSSH set to PowerShell 7."
+        Write-Host "Default shell for OpenSSH set to PowerShell 7." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to set default shell for OpenSSH: $($_)"
+        Write-Host "Failed to set default shell for OpenSSH: $($_)" -ForegroundColor Red
     }
 }
 
@@ -155,7 +155,7 @@ function Set-TimeSettings {
             }
             
             if ($timezone) {
-                Write-Output "Detected timezone: $timezone"
+                Write-Host "Detected timezone: $timezone" -ForegroundColor Yellow
                 
                 # Simplified mapping for common US timezones
                 $tzMapping = @{
@@ -170,7 +170,7 @@ function Set-TimeSettings {
                 if ($tzMapping.ContainsKey($timezone)) {
                     $windowsTimezone = $tzMapping[$timezone]
                     tzutil /s $windowsTimezone *>$null
-                    Write-Output "Time zone automatically set to $windowsTimezone"
+                    Write-Host "Time zone automatically set to $windowsTimezone" -ForegroundColor Green
                 } else {
                     throw "Could not map timezone"
                 }
@@ -178,9 +178,9 @@ function Set-TimeSettings {
                 throw "Could not detect timezone"
             }
         } Catch {
-            Write-Output "Automatic timezone detection failed. Falling back to manual selection..."
+            Write-Host "Automatic timezone detection failed. Falling back to manual selection..." -ForegroundColor Yellow
             # Display options for time zones
-            Write-Output "Select a time zone from the options below:"
+            Write-Host "Select a time zone from the options below:" -ForegroundColor Cyan
             $timeZones = @(
                 "Eastern Standard Time",
                 "Central Standard Time",
@@ -239,18 +239,18 @@ function Set-TimeSyncAtStartup {
         }
 
         Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal
-        Write-Output "Scheduled task for time synchronization at startup has been created."
+        Write-Host "Scheduled task for time synchronization at startup has been created." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to create scheduled task for time synchronization: $($_)"
+        Write-Host "Failed to create scheduled task for time synchronization: $($_)" -ForegroundColor Red
     }
 }
 
 function Disable-WindowsRecall {
     Try {
         DISM /Online /Disable-Feature /FeatureName:Recall *>$null
-        Write-Output "Windows Recall feature has been disabled."
+        Write-Host "Windows Recall feature has been disabled." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to disable Windows Recall feature: $($_)"
+        Write-Host "Failed to disable Windows Recall feature: $($_)" -ForegroundColor Red
     }
 }
 
@@ -268,10 +268,10 @@ function Remove-EdgeShortcut {
     if (Test-Path $edgeShortcutPath) {
         # If it exists, delete the shortcut
         Remove-Item -Path $edgeShortcutPath -Force
-        Write-Output "Microsoft Edge shortcut has been deleted from the desktop."
+        Write-Host "Microsoft Edge shortcut has been deleted from the desktop." -ForegroundColor Green
     } else {
         # If it doesn't exist, inform the user
-        Write-Output "Microsoft Edge shortcut was not found on the desktop."
+        Write-Host "Microsoft Edge shortcut was not found on the desktop." -ForegroundColor Blue
     }
 }
 
@@ -288,11 +288,13 @@ function Main {
     Disable-WindowsRecall
     Remove-EdgeShortcut
 
-    Write-Output "##########################################################"
-    Write-Output "#                                                        #"
-    Write-Output "#     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      #"
-    Write-Output "#                                                        #"
-    Write-Output "##########################################################"
+    Write-Host "##########################################################" -ForegroundColor Cyan
+    Write-Host "#                                                        #" -ForegroundColor Cyan
+    Write-Host "#" -ForegroundColor Cyan -NoNewline
+    Write-Host "     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      " -ForegroundColor Green -NoNewline
+    Write-Host "#" -ForegroundColor Cyan
+    Write-Host "#                                                        #" -ForegroundColor Cyan
+    Write-Host "##########################################################" -ForegroundColor Cyan
 }
 
 # Execute the main function

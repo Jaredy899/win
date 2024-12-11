@@ -73,12 +73,12 @@ while ($true) {
     Write-Host "###########################" -ForegroundColor Cyan
     Write-Host "##   Select an option:   ##" -ForegroundColor Cyan
     Write-Host "###########################" -ForegroundColor Cyan
-    Write-Host "1)" -ForegroundColor Yellow -NoNewline; Write-Host " Update Windows"
-    Write-Host "2)" -ForegroundColor Yellow -NoNewline; Write-Host " Start Setup Script"
-    Write-Host "3)" -ForegroundColor Yellow -NoNewline; Write-Host " Run My PowerShell Config"
-    Write-Host "4)" -ForegroundColor Yellow -NoNewline; Write-Host " Activate Windows"
-    Write-Host "5)" -ForegroundColor Yellow -NoNewline; Write-Host " Download Nord Backgrounds"
-    Write-Host "6)" -ForegroundColor Yellow -NoNewline; Write-Host " Run ChrisTitusTech's Windows Utility"
+    Write-Host "1)" -ForegroundColor Blue -NoNewline; Write-Host " Update Windows"
+    Write-Host "2)" -ForegroundColor Blue -NoNewline; Write-Host " Start Setup Script"
+    Write-Host "3)" -ForegroundColor Blue -NoNewline; Write-Host " Run My PowerShell Config"
+    Write-Host "4)" -ForegroundColor Blue -NoNewline; Write-Host " Activate Windows"
+    Write-Host "5)" -ForegroundColor Blue -NoNewline; Write-Host " Download Nord Backgrounds"
+    Write-Host "6)" -ForegroundColor Blue -NoNewline; Write-Host " Run ChrisTitusTech's Windows Utility"
     Write-Host "0)" -ForegroundColor Red -NoNewline; Write-Host " Exit"
     Write-Host
 
