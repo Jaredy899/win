@@ -70,16 +70,16 @@ function Get-NordBackgrounds {
 
 # Menu loop
 while ($true) {
-    Write-Host "###########################"
-    Write-Host "##   Select an option:   ##"
-    Write-Host "###########################"
-    Write-Host "1) Update Windows"
-    Write-Host "2) Start Setup Script"
-    Write-Host "3) Run My PowerShell Config"
-    Write-Host "4) Activate Windows"
-    Write-Host "5) Download Nord Backgrounds"
-    Write-Host "6) Run ChrisTitusTech's Windows Utility"
-    Write-Host "0) Exit"
+    Write-Host "###########################" -ForegroundColor Cyan
+    Write-Host "##   Select an option:   ##" -ForegroundColor Cyan
+    Write-Host "###########################" -ForegroundColor Cyan
+    Write-Host "1)" -ForegroundColor Yellow -NoNewline; Write-Host " Update Windows"
+    Write-Host "2)" -ForegroundColor Yellow -NoNewline; Write-Host " Start Setup Script"
+    Write-Host "3)" -ForegroundColor Yellow -NoNewline; Write-Host " Run My PowerShell Config"
+    Write-Host "4)" -ForegroundColor Yellow -NoNewline; Write-Host " Activate Windows"
+    Write-Host "5)" -ForegroundColor Yellow -NoNewline; Write-Host " Download Nord Backgrounds"
+    Write-Host "6)" -ForegroundColor Yellow -NoNewline; Write-Host " Run ChrisTitusTech's Windows Utility"
+    Write-Host "0)" -ForegroundColor Red -NoNewline; Write-Host " Exit"
     Write-Host
 
     $choice = Read-Host "Enter your choice (0-6)"
