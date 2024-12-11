@@ -32,12 +32,17 @@ function Set-UserPassword {
 }
 
 # Ask if the user wants to change the password
-$changePassword = Read-Host "Do you want to change your password? (yes/y/enter for yes, no/n for no)"
+Write-Host "Do you want to change your password? " -ForegroundColor Cyan -NoNewline
+Write-Host "(yes/y/enter for yes, no/n for no)" -ForegroundColor DarkGray
+$changePassword = Read-Host
+
 if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOrEmpty($changePassword)) {
     $passwordsMatch = $false
     while (-not $passwordsMatch) {
-        $password1 = Read-Host "Enter the new password" -AsSecureString
-        $password2 = Read-Host "Confirm the new password" -AsSecureString
+        Write-Host "Enter the new password: " -ForegroundColor Yellow -NoNewline
+        $password1 = Read-Host -AsSecureString
+        Write-Host "Confirm the new password: " -ForegroundColor Yellow -NoNewline
+        $password2 = Read-Host -AsSecureString
 
         # Convert SecureString to plain text for comparison
         $BSTR1 = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password1)
@@ -49,9 +54,9 @@ if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOr
         if ($plainPassword1 -eq $plainPassword2) {
             $passwordsMatch = $true
             Set-UserPassword -password $password1
-            Write-Output "Password changed successfully."
+            Write-Host "Password changed successfully." -ForegroundColor Green
         } else {
-            Write-Output "Passwords do not match. Please try again or press Ctrl+C to cancel."
+            Write-Host "Passwords do not match. Please try again or press Ctrl+C to cancel." -ForegroundColor Red
         }
 
         # Clear the plain text passwords from memory
@@ -60,7 +65,7 @@ if ($changePassword -eq "yes" -or $changePassword -eq "y" -or [string]::IsNullOr
         [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR2)
     }
 } else {
-    Write-Output "Password change was not performed."
+    Write-Host "Password change was not performed." -ForegroundColor Blue
 }
 
 function Set-RemoteDesktop {
