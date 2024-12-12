@@ -7,7 +7,6 @@ $apps = @(
     "ajeetdsouza.zoxide",
     "Fastfetch-cli.Fastfetch",
     "sharkdp.bat",
-    "schollz.croc"
     "GNU.Nano",
     "sxyazi.yazi",
     "Microsoft.WindowsTerminal",
