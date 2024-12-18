@@ -1,7 +1,8 @@
+# Clear the screen at script start
+Clear-Host
+
 # Set the GITPATH variable to the directory where the script is located
 $GITPATH = Split-Path -Parent $MyInvocation.MyCommand.Definition
-Write-Host "GITPATH is set to: $GITPATH"
-
 # GitHub URL base for the necessary configuration files
 $GITHUB_BASE_URL = "https://raw.githubusercontent.com/Jaredy899/win/refs/heads/main"
 
@@ -69,32 +70,62 @@ function Get-NordBackgrounds {
 }
 
 # Menu loop
+$options = @(
+    "Update Windows",
+    "Start Setup Script",
+    "Run My PowerShell Config",
+    "Activate Windows",
+    "Download Nord Backgrounds",
+    "Run ChrisTitusTech's Windows Utility",
+    "Exit"
+)
+$selectedIndex = 0
+
 while ($true) {
-    Write-Host "###########################" -ForegroundColor Cyan
-    Write-Host "##   Select an option:   ##" -ForegroundColor Cyan
-    Write-Host "###########################" -ForegroundColor Cyan
-    Write-Host "1)" -ForegroundColor Blue -NoNewline; Write-Host " Update Windows"
-    Write-Host "2)" -ForegroundColor Blue -NoNewline; Write-Host " Start Setup Script"
-    Write-Host "3)" -ForegroundColor Blue -NoNewline; Write-Host " Run My PowerShell Config"
-    Write-Host "4)" -ForegroundColor Blue -NoNewline; Write-Host " Activate Windows"
-    Write-Host "5)" -ForegroundColor Blue -NoNewline; Write-Host " Download Nord Backgrounds"
-    Write-Host "6)" -ForegroundColor Blue -NoNewline; Write-Host " Run ChrisTitusTech's Windows Utility"
-    Write-Host "0)" -ForegroundColor Red -NoNewline; Write-Host " Exit"
+    Write-Host "Select an option:" -ForegroundColor Cyan
     Write-Host
-
-    $choice = Read-Host "Enter your choice (0-6)"
-
-    switch ($choice) {
-        1 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-        2 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-        3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
-        4 { Invoke-WindowsActivation }
-        5 { Get-NordBackgrounds }
-        6 { Invoke-ChrisTitusTechUtility }
-        0 { 
-            Write-Host "Exiting setup script."
-            return  # Exit the script without closing the terminal
+    
+    # Display all options
+    for ($i = 0; $i -lt $options.Length; $i++) {
+        if ($i -eq $selectedIndex) {
+            Write-Host ">" -ForegroundColor Green -NoNewline
+            Write-Host " $($options[$i])" -ForegroundColor Green
+        } else {
+            Write-Host "  $($options[$i])"
         }
-        default { Write-Host "Invalid option. Please enter a number between 0 and 6." }
     }
+
+    # Handle key input
+    $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+
+    switch ($key.VirtualKeyCode) {
+        38 { # Up arrow
+            $selectedIndex--
+            if ($selectedIndex -lt 0) { $selectedIndex = $options.Length - 1 }
+        }
+        40 { # Down arrow
+            $selectedIndex++
+            if ($selectedIndex -ge $options.Length) { $selectedIndex = 0 }
+        }
+        13 { # Enter key
+            Clear-Host
+            switch ($selectedIndex) {
+                0 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+                1 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+                2 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
+                3 { Invoke-WindowsActivation }
+                4 { Get-NordBackgrounds }
+                5 { Invoke-ChrisTitusTechUtility }
+                6 { 
+                    Write-Host "Exiting setup script."
+                    return
+                }
+            }
+            # Clear the screen after action completion
+            Write-Host "`nPress any key to return to menu..." -ForegroundColor Magenta
+            $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Clear-Host
+        }
+    }
+    Clear-Host
 }
