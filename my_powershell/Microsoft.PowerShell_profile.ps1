@@ -38,6 +38,10 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Write-Host "DNS has been flushed"
         }
         
+        function apps {
+            winget update --all --include-unknown --force
+        }
+        
         function jc {
             Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
         }
