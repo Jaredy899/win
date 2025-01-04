@@ -73,6 +73,7 @@ function Get-NordBackgrounds {
 $options = @(
     "Update Windows",
     "Start Setup Script",
+    "Add SSH Keys",
     "Run My PowerShell Config",
     "Activate Windows",
     "Download Nord Backgrounds",
@@ -112,11 +113,12 @@ while ($true) {
             switch ($selectedIndex) {
                 0 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
                 1 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-                2 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
-                3 { Invoke-WindowsActivation }
-                4 { Get-NordBackgrounds }
-                5 { Invoke-ChrisTitusTechUtility }
-                6 { 
+                2 { Invoke-Script -scriptName "add_ssh_key_windows.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
+                3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
+                4 { Invoke-WindowsActivation }
+                5 { Get-NordBackgrounds }
+                6 { Invoke-ChrisTitusTechUtility }
+                7 { 
                     Write-Host "Exiting setup script."
                     return
                 }
