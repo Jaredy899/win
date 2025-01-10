@@ -125,6 +125,25 @@ function Restart-SshService {
     }
 }
 
+# Function to fix SSH key permissions
+function Repair-SshKeyPermissions {
+    param (
+        [string]$keyPath = "$env:USERPROFILE\.ssh\id_rsa"
+    )
+
+    Write-Host "`nFixing permissions for private key..." -ForegroundColor Yellow
+    try {
+        # Remove all existing permissions
+        icacls $keyPath /inheritance:r
+        # Add permission only for current user
+        icacls $keyPath /grant ${env:USERNAME}:"(R)"
+        Write-Host "✓ Fixed permissions for $keyPath" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "✗ Failed to set key permissions: $_" -ForegroundColor Red
+    }
+}
+
 # Main script
 Initialize-SshEnvironment
 
@@ -161,6 +180,9 @@ Write-Host "✓ Set permissions for $adminKeys" -ForegroundColor Green
 
 # Restart SSH service
 Restart-SshService
+
+# Add this before the final "Press any key to exit"
+Repair-SshKeyPermissions
 
 Write-Host "`nPress any key to exit..." -ForegroundColor Gray
 $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
