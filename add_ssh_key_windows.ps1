@@ -131,7 +131,13 @@ function Repair-SshKeyPermissions {
         [string]$keyPath = "$env:USERPROFILE\.ssh\id_rsa"
     )
 
-    Write-Host "`nFixing permissions for private key..." -ForegroundColor Yellow
+    Write-Host "`nChecking private key permissions..." -ForegroundColor Yellow
+    
+    if (-not (Test-Path -Path $keyPath)) {
+        Write-Host "! No private key found at $keyPath - skipping permissions fix" -ForegroundColor Yellow
+        return
+    }
+
     try {
         # Remove all existing permissions
         icacls $keyPath /inheritance:r
