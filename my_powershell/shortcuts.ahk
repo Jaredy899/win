@@ -1,19 +1,36 @@
-﻿#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases
-#SingleInstance Force  ; Ensures that only one instance of this script is running
-SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory
+#Requires AutoHotkey v2.0
 
-; Alt+Q - Close active window
-!q::WinClose A
-
-; Alt+X - Open Terminal (Windows Terminal if available, otherwise PowerShell)
-!x::
-if FileExist("C:\Program Files\WindowsApps\Microsoft.WindowsTerminal*") {
-    Run wt.exe
-} else {
-    Run powershell.exe
+; Function to toggle application (open/activate or minimize)
+ToggleApp(exeName, runCmd)
+{
+    if WinExist("ahk_exe " exeName)
+    {
+        if WinActive("ahk_exe " exeName)
+            WinMinimize
+        else
+            WinActivate
+    }
+    else
+        Run runCmd
 }
-return
 
-; Alt+B - Open default browser
-!b::Run "http://"
-return
+; CapsLock + A to toggle Notepad
+CapsLock & a::ToggleApp("notepad.exe", "notepad.exe")
+
+; CapsLock + C to toggle Cursor
+CapsLock & c::ToggleApp("Cursor.exe", "C:\Users\Jared\AppData\Local\Programs\cursor\Cursor.exe")
+
+; CapsLock + B to toggle Browser
+CapsLock & b::ToggleApp("brave.exe", "C:\Users\Jared\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe")
+
+; CapsLock + G to toggle Terminal
+CapsLock & g::ToggleApp("WindowsTerminal.exe", "wt.exe")
+
+; CapsLock + F to toggle F1 24
+CapsLock & f::ToggleApp("F1_24.exe", "steam://rungameid/2488620") ; Adjust F1_24.exe to match the actual executable name
+
+; CapsLock + T to toggle Termius
+CapsLock & t::ToggleApp("Termius.exe", "C:\Users\Jared\AppData\Local\Programs\Termius\Termius.exe")
+
+; Alt + Q to close the active window
+!q::WinClose "A"
