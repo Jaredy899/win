@@ -32,5 +32,8 @@ CapsLock & f::ToggleApp("F1_24.exe", "steam://rungameid/2488620") ; Adjust F1_24
 ; CapsLock + T to toggle Termius
 CapsLock & t::ToggleApp("Termius.exe", "C:\Users\Jared\AppData\Local\Programs\Termius\Termius.exe")
 
+; CapsLock + P to toggle Proton Mail
+CapsLock & p::ToggleApp("Proton Mail.exe", "C:\Users\Jared\AppData\Local\proton_mail\Proton Mail.exe")
+
 ; Alt + Q to close the active window
 !q::WinClose "A"
