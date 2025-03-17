@@ -32,8 +32,21 @@ CapsLock & f::ToggleApp("F1_24.exe", "steam://rungameid/2488620") ; Adjust F1_24
 ; CapsLock + T to toggle Termius
 CapsLock & t::ToggleApp("Termius.exe", "C:\Users\Jared\AppData\Local\Programs\Termius\Termius.exe")
 
+; CapsLock + S to toggle Signal
+CapsLock & s::ToggleApp("Signal.exe", "C:\Users\Jared\AppData\Local\Programs\signal-desktop\Signal.exe")
+
 ; CapsLock + P to toggle Proton Mail
 CapsLock & p::ToggleApp("Proton Mail.exe", "C:\Users\Jared\AppData\Local\proton_mail\Proton Mail.exe")
+
+; CapsLock + W to open 3 tabs at once
+CapsLock & w::
+{
+    Run "https://outlook.office.com/mail/"
+    Sleep 500
+    Run "https://highlands365-my.sharepoint.com/:x:/r/personal/jcervantes_highlandscsb_org/_layouts/15/Doc.aspx?sourcedoc=%7B37546E0A-8DD7-464D-8BF7-77E6371E4ACB%7D&file=Contacts.xlsx&action=default&mobileredirect=true"
+    Sleep 500
+    Run "https://login.cbh3.crediblebh.com/"
+}
 
 ; Alt + Q to close the active window
 !q::WinClose "A"
