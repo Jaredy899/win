@@ -50,3 +50,6 @@ CapsLock & w::
 
 ; Alt + Q to close the active window
 !q::WinClose "A"
+
+; Alt + W to close the active tab in a browser
+!w::Send ^w
