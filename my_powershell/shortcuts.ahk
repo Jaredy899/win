@@ -52,4 +52,4 @@ CapsLock & w::
 !q::WinClose "A"
 
 ; Alt + W to close the active tab in a browser
-!w::Send ^w
+!w::Send ("^w")
