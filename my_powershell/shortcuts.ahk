@@ -48,6 +48,14 @@ CapsLock & w::
     Run "https://login.cbh3.crediblebh.com/"
 }
 
+; Global copy-paste hotkey (backtick)
+`::
+{
+    Send "^c"
+    Sleep 50
+    Send "^v"
+}
+
 ; Alt + Q to close the active window
 !q::WinClose "A"
 
