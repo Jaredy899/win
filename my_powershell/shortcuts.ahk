@@ -14,8 +14,8 @@ ToggleApp(exeName, runCmd)
         Run runCmd
 }
 
-; CapsLock + A to toggle Notepad
-CapsLock & a::ToggleApp("notepad.exe", "notepad.exe")
+; CapsLock + A to toggle T3
+CapsLock & a::Run("https://t3.chat/chat")
 
 ; CapsLock + C to toggle Cursor
 CapsLock & c::ToggleApp("Cursor.exe", "C:\Users\Jared\AppData\Local\Programs\cursor\Cursor.exe")
