@@ -61,3 +61,9 @@ CapsLock & w::
 
 ; Alt + W to close the active tab in a browser
 !w::Send ("^w")
+
+; Alt + T to open a new tab
+!t::Send ("^t")
+
+; Alt + Z to put the computer to sleep
+!z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
