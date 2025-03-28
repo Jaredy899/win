@@ -9,7 +9,7 @@ The script starts with asking if you want to update Windows, then if you want to
 - **SSH Key Management**: Easy GitHub SSH key import and configuration
 - **PowerShell Enhancement**: Custom PowerShell profile with improved productivity
 - **Visual Customization**: Terminal themes, fonts, and Nord backgrounds
-- **Security Features**: Code signing setup and system hardening
+- **Security Features**: System hardening options
 
 ## 💡 Usage
 
@@ -26,4 +26,3 @@ irm jaredcervantes.com/win | iex
 - **Windows-Update.ps1**: Windows update automation
 - **add_ssh_key_windows.ps1**: SSH key management
 - **my_powershell/**: PowerShell profile customization
-- **setup-codesigning.ps1**: Code signing certificate setup
