@@ -309,9 +309,9 @@ function Show-SetupMenu {
         "Start Setup Script",
         "Add SSH Keys",
         "Run My PowerShell Config",
+        "Setup Code Signing",
         "Activate Windows",
         "Download Nord Backgrounds",
-        "Setup AutoHotkey",
         "Run ChrisTitusTech's Windows Utility",
         "Exit"
     )
@@ -363,9 +363,9 @@ function Show-SetupMenu {
                     2 { Invoke-Script -ScriptName "setup2.ps1" -LocalPath $GITPATH -Url $GITHUB_BASE_URL }
                     3 { Invoke-Script -ScriptName "add_ssh_key_windows.ps1" -LocalPath $GITPATH -Url $GITHUB_BASE_URL }
                     4 { Invoke-Script -ScriptName "pwsh.ps1" -LocalPath "$GITPATH\my_powershell" -Url "$GITHUB_BASE_URL/my_powershell" }
-                    5 { Invoke-WindowsActivation }
-                    6 { Get-NordBackgrounds }
-                    7 { Invoke-Script -ScriptName "setup-autohotkey.ps1" -LocalPath $GITPATH -Url $GITHUB_BASE_URL }
+                    5 { Invoke-Script -ScriptName "setup-codesigning.ps1" -LocalPath $GITPATH -Url $GITHUB_BASE_URL }
+                    6 { Invoke-WindowsActivation }
+                    7 { Get-NordBackgrounds }
                     8 { Invoke-ChrisTitusTechUtility }
                     9 { 
                         Write-Host "`nExiting setup script." -ForegroundColor Cyan
