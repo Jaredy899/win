@@ -1,0 +1,63 @@
+{
+  "general": {
+    "github_base_url": "https://raw.githubusercontent.com/Jaredy899/win/main",
+    "version": "1.0.0"
+  },
+  "system": {
+    "remote_desktop": {
+      "enabled": true,
+      "firewall_rule_enabled": true
+    },
+    "ssh": {
+      "enabled": true,
+      "default_shell": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "firewall_rule_enabled": true
+    },
+    "time": {
+      "ntp_server": "time.nist.gov",
+      "sync_at_startup": true,
+      "auto_detect_timezone": true
+    }
+  },
+  "applications": {
+    "default_packages": [
+      "Microsoft.PowerShell",
+      "Microsoft.WindowsTerminal",
+      "Git.Git",
+      "AutoHotkey.AutoHotkey",
+      "Starship.Starship",
+      "FastFetch"
+    ],
+    "optional_packages": [
+      "Microsoft.VisualStudioCode",
+      "Mozilla.Firefox",
+      "7zip.7zip",
+      "Notepad++.Notepad++"
+    ]
+  },
+  "powershell": {
+    "modules": [
+      "Terminal-Icons",
+      "PSReadLine",
+      "PSWindowsUpdate"
+    ],
+    "theme": "nord",
+    "font": "FiraCode Nerd Font"
+  },
+  "paths": {
+    "ssh_path": "%ProgramData%\\ssh",
+    "admin_keys": "%ProgramData%\\ssh\\administrators_authorized_keys",
+    "profiles": {
+      "ps5": "%UserProfile%\\Documents\\WindowsPowerShell\\Microsoft.PowerShell_profile.ps1",
+      "ps7": "%UserProfile%\\Documents\\PowerShell\\Microsoft.PowerShell_profile.ps1"
+    },
+    "config_dir": "%UserProfile%\\.config"
+  },
+  "logging": {
+    "enabled": true,
+    "level": "info",
+    "path": "%UserProfile%\\AppData\\Local\\WindowsSetup\\logs",
+    "max_size": "10MB",
+    "max_files": 5
+  }
+} 
