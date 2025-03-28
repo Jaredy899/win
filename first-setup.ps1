@@ -183,29 +183,63 @@ function Invoke-ChrisTitusTechUtility {
     try {
         Write-Log "Invoking Chris Titus Tech's Windows Utility..." -Level "INFO"
         
+        # Local cache path
+        $cacheDir = Join-Path $env:TEMP "WinSetupCache"
+        $cacheFile = Join-Path $cacheDir "ctt_winutil.ps1"
+        $cacheMaxAgeHours = 24 # Cache valid for 24 hours
+        
+        # Create cache directory if it doesn't exist
+        if (-not (Test-Path $cacheDir)) {
+            New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
+            Write-Log "Created cache directory" -Level "INFO"
+        }
+        
+        $useCache = $false
+        
+        # Check if we have a valid cached version
+        if (Test-Path $cacheFile) {
+            $fileAge = (Get-Date) - (Get-Item $cacheFile).LastWriteTime
+            if ($fileAge.TotalHours -lt $cacheMaxAgeHours) {
+                $useCache = $true
+                Write-Log "Using cached version of ChrisTitusTech utility (age: $([math]::Round($fileAge.TotalHours, 1)) hours)" -Level "INFO"
+            } else {
+                Write-Log "Cache expired, downloading fresh copy" -Level "INFO"
+            }
+        }
+        
         # Set TLS 1.2 for compatibility
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         
-        try {
-            Invoke-RestMethod -Uri "https://christitus.com/win" -UseBasicParsing | Invoke-Expression
-            Write-Log "Chris Titus Tech's Windows Utility completed" -Level "SUCCESS"
-            return $true
-        }
-        catch {
-            Write-Log "Failed to invoke Chris Titus Tech's Windows Utility: $_" -Level "ERROR"
-            
-            # Fallback to manual download and execution
-            $tempScript = Join-Path $env:TEMP "ctt_win.ps1"
-            Invoke-WebRequest -Uri "https://christitus.com/win" -OutFile $tempScript -UseBasicParsing
-            
-            if (Test-Path $tempScript) {
-                & $tempScript
-                Remove-Item $tempScript -Force -ErrorAction SilentlyContinue
-                return $true
+        if ($useCache) {
+            # Use cached version
+            & $cacheFile
+        } else {
+            # Download fresh copy
+            try {
+                $scriptContent = Invoke-RestMethod -Uri "https://christitus.com/win" -UseBasicParsing
+                
+                # Save to cache
+                Set-Content -Path $cacheFile -Value $scriptContent -Force
+                Write-Log "Downloaded and cached ChrisTitusTech utility" -Level "INFO"
+                
+                # Execute
+                Invoke-Expression $scriptContent
             }
-            
-            return $false
+            catch {
+                Write-Log "Failed to download ChrisTitusTech utility: $_" -Level "ERROR"
+                
+                # Try using cached version even if expired as fallback
+                if (Test-Path $cacheFile) {
+                    Write-Log "Falling back to cached version" -Level "WARNING"
+                    & $cacheFile
+                } else {
+                    throw "Failed to download and no cache available"
+                }
+            }
         }
+        
+        Write-Log "Chris Titus Tech's Windows Utility completed" -Level "SUCCESS"
+        return $true
     }
     catch {
         Write-Log "Error in Invoke-ChrisTitusTechUtility: $_" -Level "ERROR"
