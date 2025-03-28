@@ -251,24 +251,59 @@ function Show-CurrentSshKeys {
     if (Test-Path -Path $adminKeys) {
         $keys = Get-Content -Path $adminKeys
         if ($keys) {
-            $keyCount = $keys.Count
+            $keyCount = if ($keys -is [array]) { $keys.Count } else { 1 }
             Write-Log "Found $keyCount SSH key(s)" -Level "INFO"
             
-            for ($i = 0; $i -lt $keys.Count; $i++) {
-                $key = $keys[$i]
-                # Display a truncated version of the key for readability
-                $keyParts = $key -split ' '
-                $keyType = $keyParts[0]
-                $keyFingerprint = $keyParts[1].Substring(0, 20) + "..." + $keyParts[1].Substring($keyParts[1].Length - 20)
-                $keyEmail = if ($keyParts.Count -gt 2) { $keyParts[2] } else { "N/A" }
-                
-                Write-Host "[$i] $keyType $keyFingerprint $keyEmail"
+            # Handle both array and single string cases
+            if ($keys -is [array]) {
+                for ($i = 0; $i -lt $keys.Count; $i++) {
+                    $key = $keys[$i]
+                    ShowKeyInfo -Key $key -Index $i
+                }
+            } else {
+                ShowKeyInfo -Key $keys -Index 0
             }
         } else {
             Write-Log "No SSH keys found" -Level "WARNING"
         }
     } else {
         Write-Log "SSH key file not found" -Level "WARNING"
+    }
+}
+
+# Helper function to safely display key information
+function ShowKeyInfo {
+    param(
+        [string]$Key,
+        [int]$Index
+    )
+    
+    try {
+        # Split the key into parts
+        $keyParts = $Key -split ' '
+        $keyType = $keyParts[0]
+        
+        # Safely handle the fingerprint
+        $keyFingerprint = "unknown"
+        if ($keyParts.Length -gt 1 -and $keyParts[1].Length -gt 40) {
+            $fingerprint = $keyParts[1]
+            $keyFingerprint = $fingerprint.Substring(0, 20) + "..." + $fingerprint.Substring($fingerprint.Length - 20)
+        } elseif ($keyParts.Length -gt 1) {
+            $keyFingerprint = $keyParts[1]
+        }
+        
+        # Get email if available
+        $keyEmail = if ($keyParts.Count -gt 2) { $keyParts[2] } else { "N/A" }
+        
+        Write-Host "[$Index] $keyType $keyFingerprint $keyEmail"
+    } catch {
+        # Fallback to displaying the key safely
+        $safeKey = if ($Key.Length -gt 40) {
+            $Key.Substring(0, 20) + "..." + $Key.Substring($Key.Length - 20)
+        } else {
+            $Key
+        }
+        Write-Host "[$Index] $safeKey"
     }
 }
 
@@ -314,36 +349,71 @@ try {
         Restart-Service sshd
     }
     
-    # Main menu
+    # Main menu with arrow key navigation
+    $options = @(
+        "Add SSH key manually",
+        "Import SSH key from GitHub",
+        "List current SSH keys",
+        "Delete all SSH keys",
+        "Exit"
+    )
+    $selectedIndex = 0
     $exitRequested = $false
     
     while (-not $exitRequested) {
         Clear-Host
         Write-Log "SSH Key Management Menu" -Level "INFO"
-        Write-Host "`n1. Add SSH key manually"
-        Write-Host "2. Import SSH key from GitHub"
-        Write-Host "3. List current SSH keys"
-        Write-Host "4. Delete all SSH keys"
-        Write-Host "5. Exit"
         Write-Host ""
         
-        $choice = Read-Host "Enter your choice (1-5)"
-        
-        switch ($choice) {
-            "1" { Add-SshKeyManually }
-            "2" { 
-                $githubUsername = Read-Host "Enter GitHub username"
-                Add-SshKeyFromGitHub -Username $githubUsername 
+        # Display options with selection indicator
+        for ($i = 0; $i -lt $options.Length; $i++) {
+            if ($i -eq $selectedIndex) {
+                Write-Host "  ► " -ForegroundColor Green -NoNewline
+                Write-Host $options[$i] -ForegroundColor Green
+            } else {
+                Write-Host "    $($options[$i])"
             }
-            "3" { Show-CurrentSshKeys }
-            "4" { Remove-AllSshKeys }
-            "5" { $exitRequested = $true }
-            default { Write-Log "Invalid choice. Please try again." -Level "WARNING" }
         }
         
-        if (-not $exitRequested) {
-            Write-Host "`nPress any key to continue..."
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        # Display navigation help
+        Write-Host "`n  " -NoNewline
+        Write-Host "↑↓" -ForegroundColor Cyan -NoNewline
+        Write-Host " to navigate, " -NoNewline
+        Write-Host "Enter" -ForegroundColor Cyan -NoNewline
+        Write-Host " to select"
+        
+        # Handle key input
+        $key = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        
+        switch ($key.VirtualKeyCode) {
+            38 { # Up arrow
+                $selectedIndex--
+                if ($selectedIndex -lt 0) { $selectedIndex = $options.Length - 1 }
+            }
+            40 { # Down arrow
+                $selectedIndex++
+                if ($selectedIndex -ge $options.Length) { $selectedIndex = 0 }
+            }
+            13 { # Enter key
+                Clear-Host
+                
+                # Handle option selection
+                switch ($selectedIndex) {
+                    0 { Add-SshKeyManually }
+                    1 { 
+                        $githubUsername = Read-Host "Enter GitHub username"
+                        Add-SshKeyFromGitHub -Username $githubUsername 
+                    }
+                    2 { Show-CurrentSshKeys }
+                    3 { Remove-AllSshKeys }
+                    4 { $exitRequested = $true }
+                }
+                
+                if (-not $exitRequested) {
+                    Write-Host "`nPress any key to continue..."
+                    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+                }
+            }
         }
     }
 } catch {
