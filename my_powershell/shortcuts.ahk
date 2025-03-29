@@ -38,6 +38,9 @@ CapsLock & s::ToggleApp("Signal.exe", "C:\Users\Jared\AppData\Local\Programs\sig
 ; CapsLock + P to toggle Proton Mail
 CapsLock & p::ToggleApp("Proton Mail.exe", "C:\Users\Jared\AppData\Local\proton_mail\Proton Mail.exe")
 
+; CapsLock + Y to toggle Youtube
+CapsLock & y::Run("https://www.youtube.com/feed/subscriptions")
+
 ; CapsLock + W to open 3 tabs at once
 CapsLock & w::
 {
