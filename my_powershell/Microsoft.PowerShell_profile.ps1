@@ -8,11 +8,6 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
         # Run fastfetch only in an interactive session
         fastfetch
 
-        # Initialize zoxide if installed
-        if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-            Invoke-Expression (& { (zoxide init powershell | Out-String) })
-        }
-
         # Initialize starship if installed
         if (Get-Command starship -ErrorAction SilentlyContinue) {
             Invoke-Expression (& { starship init powershell })
@@ -50,6 +45,77 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Invoke-RestMethod christitus.com/win | Invoke-Expression
         }
 
+        function app {
+            param (
+                [string]$appName
+            )
+
+            try {
+                # Search for the app and parse results
+                $results = winget search $appName | Out-String
+                $lines = $results -split "`r?`n" | Where-Object { $_ -match '\S' }
+                
+                # Find apps (lines after the separator)
+                $separator = $lines | Select-String -Pattern "^-{10,}" | Select-Object -First 1
+                if (!$separator) { 
+                    Write-Host "No results found for '$appName'."
+                    return 
+                }
+                
+                # Get app lines (everything after the separator)
+                $apps = $lines[($separator.LineNumber)..($lines.Count-1)] | Where-Object { $_ -match '\S' }
+                if ($apps.Count -eq 0) { 
+                    Write-Host "No packages found."
+                    return 
+                }
+                
+                # Display numbered options
+                Write-Host "Found packages:"
+                for ($i = 0; $i -lt $apps.Count; $i++) {
+                    Write-Host "[$($i+1)] $($apps[$i])"
+                }
+                
+                # Get selection
+                $choice = Read-Host "Enter number, ID, or press Enter for default"
+                
+                if ([string]::IsNullOrWhiteSpace($choice)) {
+                    winget install $appName
+                }
+                elseif ($choice -match '^\d+$' -and [int]$choice -gt 0 -and [int]$choice -le $apps.Count) {
+                    $id = ($apps[[int]$choice - 1] -split '\s+', 3)[1]
+                    Write-Host "Installing $id..."
+                    winget install --id $id
+                }
+                else {
+                    Write-Host "Installing $choice..."
+                    winget install --id $choice
+                }
+            }
+            catch {
+                Write-Host "Error: $_"
+            }
+        }
+
+        # Git convenience functions
+        function gcom {
+            param (
+                [Parameter(Mandatory=$true)]
+                [string]$message
+            )
+            git add .
+            git commit -m $message
+        }
+
+        function lazyg {
+            param (
+                [Parameter(Mandatory=$true)]
+                [string]$message
+            )
+            git add .
+            git commit -m $message
+            git push
+        }
+
         # Define directory navigation aliases
         function home {
             Set-Location ~
@@ -79,3 +145,6 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
 
     } # End of inner if block
 } # End of outer if block
+
+# Initialize zoxide directly
+Invoke-Expression (& { (zoxide init powershell | Out-String) })
