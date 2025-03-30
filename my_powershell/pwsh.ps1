@@ -12,6 +12,9 @@ $wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 # Add new URL for shortcuts.ahk
 $shortcutsAhkUrl = "$githubBaseUrl/shortcuts.ahk"
 
+# Add URL for downloading Neovim configs
+$nvimConfigsUrl = "https://github.com/Jaredy899/win/raw/main/my_powershell/nvim"
+
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_nerd_font.ps1"
@@ -164,13 +167,6 @@ function Initialize-NeovimConfig {
     Write-Host "Setting up Neovim configuration..." -ForegroundColor Cyan
     
     $nvimConfigDir = "$env:LOCALAPPDATA\nvim"
-    $nvimSourcePath = "$PSScriptRoot\nvim"
-    
-    # Check if local nvim folder exists
-    if (-not (Test-Path $nvimSourcePath)) {
-        Write-Host "Error: Source Neovim configuration folder not found at $nvimSourcePath" -ForegroundColor Red
-        return
-    }
     
     # Create nvim directory if it doesn't exist
     if (-not (Test-Path -Path $nvimConfigDir)) {
@@ -188,11 +184,40 @@ function Initialize-NeovimConfig {
         Remove-Item -Path "$nvimConfigDir\*" -Recurse -Force -ErrorAction SilentlyContinue
     }
     
-    # Copy all files and folders from the source
-    Write-Host "Copying Neovim configuration files to $nvimConfigDir..." -ForegroundColor Yellow
-    Copy-Item -Path "$nvimSourcePath\*" -Destination $nvimConfigDir -Recurse -Force
+    # Create a temporary directory to download the files
+    $tempDir = "$env:TEMP\nvim_download"
+    if (Test-Path $tempDir) {
+        Remove-Item -Path $tempDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
     
-    Write-Host "Neovim configuration installed successfully!" -ForegroundColor Green
+    # Download the nvim.zip file from GitHub
+    $zipUrl = "https://github.com/Jaredy899/win/archive/refs/heads/main.zip"
+    $zipPath = "$tempDir\repo.zip"
+    
+    Write-Host "Downloading Neovim configuration files from GitHub..." -ForegroundColor Yellow
+    try {
+        Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+        
+        # Extract the zip file
+        Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
+        
+        # Copy the nvim folder to the destination
+        $extractedNvimPath = "$tempDir\win-main\my_powershell\nvim"
+        if (Test-Path $extractedNvimPath) {
+            Copy-Item -Path "$extractedNvimPath\*" -Destination $nvimConfigDir -Recurse -Force
+            Write-Host "Neovim configuration installed successfully!" -ForegroundColor Green
+        } else {
+            Write-Host "Could not find nvim folder in the downloaded repository." -ForegroundColor Red
+        }
+    } catch {
+        Write-Host "Error downloading or extracting files: $_" -ForegroundColor Red
+    }
+    
+    # Clean up temporary files
+    if (Test-Path $tempDir) {
+        Remove-Item -Path $tempDir -Recurse -Force
+    }
 }
 
 # Run the Initialize-NeovimConfig function
