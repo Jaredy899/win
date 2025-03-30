@@ -12,6 +12,9 @@ $wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 # Add new URL for shortcuts.ahk
 $shortcutsAhkUrl = "$githubBaseUrl/shortcuts.ahk"
 
+# Add URL for downloading Neovim configs
+$nvimConfigsUrl = "$githubBaseUrl/nvim"
+
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_nerd_font.ps1"
@@ -158,6 +161,79 @@ function Initialize-CustomShortcuts {
 
 # Run the Initialize-CustomShortcuts function
 Initialize-CustomShortcuts
+
+# Function to setup Neovim configuration files
+function Initialize-NeovimConfig {
+    Write-Host "Setting up Neovim configuration..." -ForegroundColor Cyan
+    
+    $nvimConfigDir = "$env:LOCALAPPDATA\nvim"
+    
+    # Check if Neovim is installed
+    try {
+        $nvimInstalled = Get-Command nvim -ErrorAction SilentlyContinue
+        if (-not $nvimInstalled) {
+            Write-Host "Neovim does not appear to be installed yet. The config directory will still be created." -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Neovim does not appear to be installed yet. The config directory will still be created." -ForegroundColor Yellow
+    }
+    
+    # Create nvim directory if it doesn't exist
+    if (-not (Test-Path -Path $nvimConfigDir)) {
+        New-Item -ItemType Directory -Path $nvimConfigDir -Force
+        Write-Host "Created Neovim configuration directory: $nvimConfigDir" -ForegroundColor Green
+    } else {
+        Write-Host "Neovim configuration directory already exists: $nvimConfigDir" -ForegroundColor Blue
+        
+        # Backup existing config
+        $backupDir = "$nvimConfigDir.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+        Write-Host "Creating backup of existing Neovim configuration at: $backupDir" -ForegroundColor Yellow
+        Copy-Item -Path $nvimConfigDir -Destination $backupDir -Recurse -Force
+    }
+    
+    # Try local files first, then download from GitHub if local not found
+    $localRepoPath = "$PSScriptRoot"
+    $nvimSourcePath = "$localRepoPath\nvim"
+    
+    if (Test-Path $nvimSourcePath) {
+        # Local copy - from repository
+        Write-Host "Copying local Neovim configuration files to $nvimConfigDir..." -ForegroundColor Yellow
+        Copy-Item -Path "$nvimSourcePath\*" -Destination $nvimConfigDir -Recurse -Force
+        Write-Host "Neovim configuration installed successfully from local repository!" -ForegroundColor Green
+    } else {
+        # Download from GitHub
+        Write-Host "Local Neovim configuration not found. Attempting to download from GitHub..." -ForegroundColor Yellow
+        
+        $tempDir = "$env:TEMP\nvim_config"
+        if (Test-Path $tempDir) {
+            Remove-Item -Path $tempDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+        
+        try {
+            # Download init.lua or init.vim from GitHub
+            $initFileUrl = "$nvimConfigsUrl/init.lua"
+            $initFilePath = "$tempDir\init.lua"
+            
+            Start-BitsTransfer -Source $initFileUrl -Destination $initFilePath -ErrorAction Stop
+            Copy-Item -Path "$tempDir\*" -Destination $nvimConfigDir -Recurse -Force
+            Write-Host "Neovim configuration downloaded and installed successfully from GitHub!" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed to download Neovim configuration files: $_" -ForegroundColor Red
+            Write-Host "Make sure to add Neovim configuration files to your repository." -ForegroundColor Yellow
+        }
+        
+        # Clean up temp directory
+        if (Test-Path $tempDir) {
+            Remove-Item -Path $tempDir -Recurse -Force
+        }
+    }
+}
+
+# Run the Initialize-NeovimConfig function
+Initialize-NeovimConfig
 
 # Instructions for Manual Font Configuration
 Write-Host ""

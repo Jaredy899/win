@@ -10,7 +10,8 @@ $apps = @(
     "GNU.Nano",
     "sxyazi.yazi",
     "Microsoft.WindowsTerminal",
-    "Microsoft.PowerShell"
+    "Microsoft.PowerShell",
+    "Neovim.Neovim"
 )
 
 # Function to install applications using Winget
