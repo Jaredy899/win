@@ -167,18 +167,6 @@ function Initialize-NeovimConfig {
     Write-Host "Setting up Neovim configuration..." -ForegroundColor Cyan
     
     $nvimConfigDir = "$env:LOCALAPPDATA\nvim"
-    $nvimSourcePath = "$PSScriptRoot\nvim"
-    
-    # Check if Neovim is installed
-    try {
-        $nvimInstalled = Get-Command nvim -ErrorAction SilentlyContinue
-        if (-not $nvimInstalled) {
-            Write-Host "Neovim does not appear to be installed yet. The config directory will still be created." -ForegroundColor Yellow
-        }
-    }
-    catch {
-        Write-Host "Neovim does not appear to be installed yet. The config directory will still be created." -ForegroundColor Yellow
-    }
     
     # Create nvim directory if it doesn't exist
     if (-not (Test-Path -Path $nvimConfigDir)) {
@@ -191,23 +179,65 @@ function Initialize-NeovimConfig {
         $backupDir = "$nvimConfigDir.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
         Write-Host "Creating backup of existing Neovim configuration at: $backupDir" -ForegroundColor Yellow
         Copy-Item -Path $nvimConfigDir -Destination $backupDir -Recurse -Force
+        
+        # Clear existing directory
+        Remove-Item -Path "$nvimConfigDir\*" -Recurse -Force -ErrorAction SilentlyContinue
     }
     
-    # Check if nvim folder exists in my_powershell
-    if (Test-Path $nvimSourcePath) {
-        Write-Host "Copying Neovim configuration files from my_powershell to $nvimConfigDir..." -ForegroundColor Yellow
+    # Basic files to download
+    $files = @(
+        "init.lua",
+        ".stylua.toml",
+        "lazy-lock.json",
+        "LICENSE.md"
+    )
+    
+    # Download each file from GitHub to the nvim config directory
+    foreach ($file in $files) {
+        $fileUrl = "$nvimConfigsUrl/$file"
+        $filePath = "$nvimConfigDir\$file"
         
-        # Clear the destination directory first to avoid any conflicts
-        Remove-Item -Path "$nvimConfigDir\*" -Recurse -Force -ErrorAction SilentlyContinue
-        
-        # Copy all files and folders from the source
-        Copy-Item -Path "$nvimSourcePath\*" -Destination $nvimConfigDir -Recurse -Force
-        
-        Write-Host "Neovim configuration installed successfully!" -ForegroundColor Green
-    } else {
-        Write-Host "Error: Neovim configuration folder not found at $nvimSourcePath" -ForegroundColor Red
-        Write-Host "Please make sure the nvim folder exists in the my_powershell directory." -ForegroundColor Yellow
+        try {
+            Start-BitsTransfer -Source $fileUrl -Destination $filePath -ErrorAction Stop
+            Write-Host "Downloaded $file to Neovim config directory." -ForegroundColor Green
+        } catch {
+            Write-Host "Failed to download $file." -ForegroundColor Yellow
+        }
     }
+    
+    # Create and download lua directory contents
+    $luaDir = "$nvimConfigDir\lua"
+    if (-not (Test-Path -Path $luaDir)) {
+        New-Item -ItemType Directory -Path $luaDir -Force | Out-Null
+    }
+    
+    # Create and download doc directory contents
+    $docDir = "$nvimConfigDir\doc"
+    if (-not (Test-Path -Path $docDir)) {
+        New-Item -ItemType Directory -Path $docDir -Force | Out-Null
+    }
+    
+    # Try to download a basic lua/init.lua file
+    try {
+        $luaInitUrl = "$nvimConfigsUrl/lua/init.lua"
+        $luaInitPath = "$luaDir\init.lua"
+        Start-BitsTransfer -Source $luaInitUrl -Destination $luaInitPath -ErrorAction Stop
+        Write-Host "Downloaded lua/init.lua to Neovim config directory." -ForegroundColor Green
+    } catch {
+        Write-Host "Could not download lua/init.lua." -ForegroundColor Yellow
+    }
+    
+    # Try to download a basic doc/README.md file
+    try {
+        $docReadmeUrl = "$nvimConfigsUrl/doc/README.md"
+        $docReadmePath = "$docDir\README.md"
+        Start-BitsTransfer -Source $docReadmeUrl -Destination $docReadmePath -ErrorAction Stop
+        Write-Host "Downloaded doc/README.md to Neovim config directory." -ForegroundColor Green
+    } catch {
+        Write-Host "Could not download doc/README.md." -ForegroundColor Yellow
+    }
+    
+    Write-Host "Neovim configuration files have been set up in $nvimConfigDir" -ForegroundColor Green
 }
 
 # Run the Initialize-NeovimConfig function
