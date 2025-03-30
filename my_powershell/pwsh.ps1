@@ -167,6 +167,7 @@ function Initialize-NeovimConfig {
     Write-Host "Setting up Neovim configuration..." -ForegroundColor Cyan
     
     $nvimConfigDir = "$env:LOCALAPPDATA\nvim"
+    $nvimSourcePath = "$PSScriptRoot\nvim"
     
     # Check if Neovim is installed
     try {
@@ -192,43 +193,20 @@ function Initialize-NeovimConfig {
         Copy-Item -Path $nvimConfigDir -Destination $backupDir -Recurse -Force
     }
     
-    # Try local files first, then download from GitHub if local not found
-    $localRepoPath = "$PSScriptRoot"
-    $nvimSourcePath = "$localRepoPath\nvim"
-    
+    # Check if nvim folder exists in my_powershell
     if (Test-Path $nvimSourcePath) {
-        # Local copy - from repository
-        Write-Host "Copying local Neovim configuration files to $nvimConfigDir..." -ForegroundColor Yellow
+        Write-Host "Copying Neovim configuration files from my_powershell to $nvimConfigDir..." -ForegroundColor Yellow
+        
+        # Clear the destination directory first to avoid any conflicts
+        Remove-Item -Path "$nvimConfigDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+        
+        # Copy all files and folders from the source
         Copy-Item -Path "$nvimSourcePath\*" -Destination $nvimConfigDir -Recurse -Force
-        Write-Host "Neovim configuration installed successfully from local repository!" -ForegroundColor Green
+        
+        Write-Host "Neovim configuration installed successfully!" -ForegroundColor Green
     } else {
-        # Download from GitHub
-        Write-Host "Local Neovim configuration not found. Attempting to download from GitHub..." -ForegroundColor Yellow
-        
-        $tempDir = "$env:TEMP\nvim_config"
-        if (Test-Path $tempDir) {
-            Remove-Item -Path $tempDir -Recurse -Force
-        }
-        New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-        
-        try {
-            # Download init.lua or init.vim from GitHub
-            $initFileUrl = "$nvimConfigsUrl/init.lua"
-            $initFilePath = "$tempDir\init.lua"
-            
-            Start-BitsTransfer -Source $initFileUrl -Destination $initFilePath -ErrorAction Stop
-            Copy-Item -Path "$tempDir\*" -Destination $nvimConfigDir -Recurse -Force
-            Write-Host "Neovim configuration downloaded and installed successfully from GitHub!" -ForegroundColor Green
-        }
-        catch {
-            Write-Host "Failed to download Neovim configuration files: $_" -ForegroundColor Red
-            Write-Host "Make sure to add Neovim configuration files to your repository." -ForegroundColor Yellow
-        }
-        
-        # Clean up temp directory
-        if (Test-Path $tempDir) {
-            Remove-Item -Path $tempDir -Recurse -Force
-        }
+        Write-Host "Error: Neovim configuration folder not found at $nvimSourcePath" -ForegroundColor Red
+        Write-Host "Please make sure the nvim folder exists in the my_powershell directory." -ForegroundColor Yellow
     }
 }
 
