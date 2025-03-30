@@ -11,7 +11,8 @@ $apps = @(
     "sxyazi.yazi",
     "Microsoft.WindowsTerminal",
     "Microsoft.PowerShell",
-    "Neovim.Neovim"
+    "Neovim.Neovim",
+    "Git.Git"
 )
 
 # Function to install applications using Winget
