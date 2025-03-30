@@ -12,9 +12,6 @@ $wingetScriptUrl = "$githubBaseUrl/install_winget.ps1"
 # Add new URL for shortcuts.ahk
 $shortcutsAhkUrl = "$githubBaseUrl/shortcuts.ahk"
 
-# Add URL for downloading Neovim configs
-$nvimConfigsUrl = "$githubBaseUrl/nvim"
-
 # Local paths where the scripts will be temporarily downloaded
 $appsScriptPath = "$env:TEMP\apps_install.ps1"
 $fontScriptPath = "$env:TEMP\install_nerd_font.ps1"
