@@ -65,6 +65,9 @@ CapsLock & w::
 ; Alt + W to close the active tab in a browser
 !w::Send ("^w")
 
+; Open Downloads folder
+CapsLock & d::Run("explorer.exe " A_MyDocuments "\..\Downloads")
+
 ; Alt + T to open a new tab
 !t::Send ("^t")
 
