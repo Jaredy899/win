@@ -51,6 +51,14 @@ CapsLock & w::
     Run "https://login.cbh3.crediblebh.com/"
 }
 
+; CapsLock + X to delete the entire line
+CapsLock & x::
+{
+    Send("{Home}") ; Move the cursor to the beginning of the line
+    Send("^+{End}") ; Select the entire line
+    Send("{Del}") ; Delete the selected line
+}
+
 ; Global copy-paste hotkey (backtick)
 `::
 {
