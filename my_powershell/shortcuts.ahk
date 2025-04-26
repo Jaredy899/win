@@ -14,6 +14,20 @@ ToggleApp(exeName, runCmd)
         Run runCmd
 }
 
+; Mac-like Command key shortcuts using Alt
+!c::Send("^c")  ; Copy
+!v::Send("^v")  ; Paste
+!x::Send("^x")  ; Cut
+!s::Send("^s")  ; Save
+!f::Send("^f")  ; Find
+!a::Send("^a")  ; Select all
+!z::Send("^z")  ; Undo
+!+z::Send("^y") ; Redo
+!n::Send("^n")  ; New
+!p::Send("^p")  ; Print
+!o::Send("^o")  ; Open
+!w::Send("^w")  ; Close tab (preserved from your existing shortcuts)
+
 ; CapsLock + A to toggle T3
 CapsLock & a::Run("https://t3.chat/chat")
 
@@ -21,7 +35,7 @@ CapsLock & a::Run("https://t3.chat/chat")
 CapsLock & c::ToggleApp("Cursor.exe", "C:\Users\Jared\AppData\Local\Programs\cursor\Cursor.exe")
 
 ; CapsLock + B to toggle Browser
-CapsLock & b::ToggleApp("brave.exe", "C:\Users\Jared\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe")
+CapsLock & b::ToggleApp("thorium.exe", "C:\Users\Jared\AppData\Local\Thorium\Application\thorium.exe")
 
 ; CapsLock + G to toggle Terminal
 CapsLock & g::ToggleApp("WindowsTerminal.exe", "wt.exe")
@@ -51,14 +65,6 @@ CapsLock & w::
     Run "https://login.cbh3.crediblebh.com/"
 }
 
-CapsLock & x::{
-    ClipSaved := A_Clipboard
-    A_Clipboard := ""
-    Send("{Home}+{End}^x{Del}")
-    Sleep(100)
-    A_Clipboard := ClipSaved
-}
-
 ; Global copy-paste hotkey (backtick)
 `::
 {
@@ -67,20 +73,25 @@ CapsLock & x::{
     Send "^v"
 }
 
+CapsLock & x::{
+    ClipSaved := A_Clipboard
+    A_Clipboard := ""
+    Send("{Home}+{End}^x{Del}")
+    Sleep(100)
+    A_Clipboard := ClipSaved
+}
+
 ; Alt + Q to close the active window
 !q::WinClose "A"
-
-; Alt + W to close the active tab in a browser
-!w::Send ("^w")
-
-; Open Downloads folder
-CapsLock & d::Run("explorer.exe " A_MyDocuments "\..\Downloads")
 
 ; Alt + T to open a new tab
 !t::Send ("^t")
 
-; Alt + Z to put the computer to sleep
-!z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
+; Open Downloads folder
+CapsLock & d::Run("explorer.exe " A_MyDocuments "\..\Downloads")
+
+; CapsLock + Z to put the computer to sleep
+CapsLock & z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
 
 ; Alt + 1-9 to switch between browser tabs
 !1::Send("^1")
