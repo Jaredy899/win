@@ -45,6 +45,10 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Invoke-RestMethod christitus.com/win | Invoke-Expression
         }
 
+        function bios {
+            shutdown.exe /r /fw /f /t 0
+        }
+
         function app {
             param (
                 [string]$appName
@@ -149,6 +153,15 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
                 [string]$Path
             )
             Remove-Item -Path $Path -Recurse -Force
+        }
+
+        function mkdirg {
+            param(
+                [Parameter(Mandatory=$true)]
+                [string]$Path
+            )
+            New-Item -ItemType Directory -Path $Path -Force | Out-Null
+            Set-Location $Path
         }
 
     } # End of inner if block
