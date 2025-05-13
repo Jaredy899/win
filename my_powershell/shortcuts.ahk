@@ -35,7 +35,7 @@ CapsLock & a::Run("https://t3.chat/chat")
 CapsLock & c::ToggleApp("Cursor.exe", "C:\Users\Jared\AppData\Local\Programs\cursor\Cursor.exe")
 
 ; CapsLock + B to toggle Browser
-CapsLock & b::ToggleApp("thorium.exe", "C:\Users\Jared\AppData\Local\Thorium\Application\thorium.exe")
+CapsLock & b::ToggleApp("brave.exe", "C:\Users\Jared\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe")
 
 ; CapsLock + G to toggle Terminal
 CapsLock & g::ToggleApp("WindowsTerminal.exe", "wt.exe")
@@ -63,14 +63,6 @@ CapsLock & w::
     Run "https://highlands365-my.sharepoint.com/:x:/r/personal/jcervantes_highlandscsb_org/_layouts/15/Doc.aspx?sourcedoc=%7B37546E0A-8DD7-464D-8BF7-77E6371E4ACB%7D&file=Contacts.xlsx&action=default&mobileredirect=true"
     Sleep 500
     Run "https://login.cbh3.crediblebh.com/"
-}
-
-; Global copy-paste hotkey (backtick)
-`::
-{
-    Send "^c"
-    Sleep 50
-    Send "^v"
 }
 
 CapsLock & x::{
