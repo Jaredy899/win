@@ -142,6 +142,17 @@ function Initialize-CustomShortcuts {
             Start-BitsTransfer -Source $shortcutsAhkUrl -Destination $shortcutsPath -ErrorAction Stop
             Write-Host "AutoHotkey shortcuts have been set up successfully!" -ForegroundColor Green
             
+            # Create desktop shortcut
+            $desktopPath = [Environment]::GetFolderPath("Desktop")
+            $shortcutPath = "$desktopPath\Custom Shortcuts.lnk"
+            $WshShell = New-Object -ComObject WScript.Shell
+            $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+            $Shortcut.TargetPath = $shortcutsPath
+            $Shortcut.WorkingDirectory = $startupFolder
+            $Shortcut.Description = "Custom Keyboard Shortcuts"
+            $Shortcut.Save()
+            Write-Host "Desktop shortcut created successfully!" -ForegroundColor Green
+            
             if (Test-Path $shortcutsPath) {
                 Start-Process $shortcutsPath
                 Write-Host "Custom shortcuts are now active!" -ForegroundColor Green
