@@ -63,6 +63,8 @@ CapsLock & w::
     Run "https://highlands365-my.sharepoint.com/:x:/r/personal/jcervantes_highlandscsb_org/_layouts/15/Doc.aspx?sourcedoc=%7B37546E0A-8DD7-464D-8BF7-77E6371E4ACB%7D&file=Contacts.xlsx&action=default&mobileredirect=true"
     Sleep 500
     Run "https://login.cbh3.crediblebh.com/"
+    Sleep 500
+    Run "https://hcs.nu.vercel.app/"
 }
 
 CapsLock & x::{

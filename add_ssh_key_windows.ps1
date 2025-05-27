@@ -79,25 +79,41 @@ function Show-Menu {
     }
 }
 
-# Function to handle GitHub key import
 function Import-GitHubKeys {
     Write-Host "`nEnter GitHub username: " -ForegroundColor Cyan -NoNewline
     $githubUsername = Read-Host
-    
     Write-Host "`nFetching keys from GitHub..." -ForegroundColor Yellow
     $keys = Get-GitHubKeys -username $githubUsername
-    
-    if ($keys) {
-        Write-Host "`nFound $($keys.Count) keys for user " -NoNewline
-        Write-Host $githubUsername -ForegroundColor Cyan
-        
-        foreach ($key in $keys) {
-            Write-Host "`nKey ID: " -NoNewline
-            Write-Host $key.id -ForegroundColor Cyan
-            $addThis = Read-Host "Add this key? (y/n)"
-            if ($addThis -eq 'y') {
-                Add-UniqueKey -key $key.key
-            }
+    if (-not $keys) { return }
+
+    Write-Host "`nFound $($keys.Count) keys for user $githubUsername" `
+        -ForegroundColor Cyan
+
+    foreach ($entry in $keys) {
+        # Display id
+        Write-Host "`nKey ID   : $($entry.id)" -ForegroundColor Cyan
+
+        # Show key type
+        $keyType = ($entry.key -split ' ')[0]
+        Write-Host "Type     : $keyType" -ForegroundColor Yellow
+
+        # Compute fingerprint
+        $tmp = [IO.Path]::GetTempFileName()
+        try {
+            Set-Content -Path $tmp -Value $entry.key
+            $fp = (& ssh-keygen -lf $tmp) -split '\s+' | Select-Object -Index 1
+            Write-Host "Fingerprint: $fp" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Fingerprint: (could not compute)" -ForegroundColor Red
+        }
+        finally {
+            Remove-Item $tmp -ErrorAction SilentlyContinue
+        }
+
+        $add = Read-Host "Add this key? (y/n)"
+        if ($add -eq 'y') {
+            Add-UniqueKey -key $entry.key
         }
     }
 }
