@@ -147,13 +147,14 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Set-Location ../../../..
         }
 
-        function rmd {
-            param(
-                [Parameter(Mandatory=$true)]
-                [string]$Path
-            )
-            Remove-Item -Path $Path -Recurse -Force
-        }
+	function rmd {
+    		param (
+                    [Parameter(Mandatory = $true)]
+                    [string]$Path
+    		)
+    	        Remove-Item -Path $Path -Recurse -Force
+	    }
+	
 
         function mkdirg {
             param(
