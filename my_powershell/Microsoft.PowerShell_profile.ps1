@@ -12,7 +12,7 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
         if (Get-Command starship -ErrorAction SilentlyContinue) {
             Invoke-Expression (& { starship init powershell })
         }
-        
+
         # Ensure Terminal-Icons module is installed before importing
         if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
             Install-Module -Name Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
@@ -24,19 +24,19 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             fastfetch -c all
         }
 
-        function Get-PubIP { 
-            (Invoke-WebRequest http://ifconfig.me/ip).Content 
+        function Get-PubIP {
+            (Invoke-WebRequest http://ifconfig.me/ip).Content
         }
 
         function flushdns {
             Clear-DnsClientCache
             Write-Host "DNS has been flushed"
         }
-        
+
         function apps {
             winget update --all --include-unknown --force
         }
-        
+
         function jc {
             Invoke-RestMethod jaredcervantes.com/win | Invoke-Expression
         }
@@ -45,62 +45,28 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             Invoke-RestMethod christitus.com/win | Invoke-Expression
         }
 
+        function os {
+            Invoke-RestMethod jaredcervantes.com/winos | Invoke-Expression
+        }
+
         function bios {
             shutdown.exe /r /fw /f /t 0
         }
 
-        function app {
-            param (
-                [string]$appName
-            )
-
-            try {
-                # Search for the app and parse results
-                $results = winget search $appName | Out-String
-                $lines = $results -split "`r?`n" | Where-Object { $_ -match '\S' }
-                
-                # Find apps (lines after the separator)
-                $separator = $lines | Select-String -Pattern "^-{10,}" | Select-Object -First 1
-                if (!$separator) { 
-                    Write-Host "No results found for '$appName'."
-                    return 
-                }
-                
-                # Get app lines (everything after the separator)
-                $apps = $lines[($separator.LineNumber)..($lines.Count-1)] | Where-Object { $_ -match '\S' }
-                if ($apps.Count -eq 0) { 
-                    Write-Host "No packages found."
-                    return 
-                }
-                
-                # Display numbered options
-                Write-Host "Found packages:"
-                for ($i = 0; $i -lt $apps.Count; $i++) {
-                    Write-Host "[$($i+1)] $($apps[$i])"
-                }
-                
-                # Get selection
-                $choice = Read-Host "Enter number, ID, or press Enter for default"
-                
-                if ([string]::IsNullOrWhiteSpace($choice)) {
-                    winget install $appName
-                }
-                elseif ($choice -match '^\d+$' -and [int]$choice -gt 0 -and [int]$choice -le $apps.Count) {
-                    $id = ($apps[[int]$choice - 1] -split '\s+', 3)[1]
-                    Write-Host "Installing $id..."
-                    winget install --id $id
-                }
-                else {
-                    Write-Host "Installing $choice..."
-                    winget install --id $choice
-                }
-            }
-            catch {
-                Write-Host "Error: $_"
-            }
+        # Git convenience functions
+        
+        function gb {
+            git branch
         }
 
-        # Git convenience functions
+        function gbd {
+            param (
+                [Parameter(Mandatory=$true)]
+                [string]$branch
+            )
+            git branch -D $branch
+        }
+
         function gcom {
             param (
                 [Parameter(Mandatory=$true)]
@@ -118,6 +84,28 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             git add .
             git commit -m $message
             git push
+        }
+
+        function newb {
+          [CmdletBinding()]
+          param(
+            [Parameter(Mandatory = $true)]
+            [Alias('b')]
+            [string] $Branch,
+
+            [Parameter(Mandatory = $true)]
+            [Alias('m')]
+            [string] $Message
+          )
+
+          git checkout -b $Branch
+          if ($LASTEXITCODE -ne 0) { return }
+
+          git add .
+          git commit -m $Message
+          if ($LASTEXITCODE -ne 0) { return }
+
+          git push -u origin $Branch
         }
 
         # Define directory navigation aliases
@@ -153,8 +141,8 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
                     [string]$Path
     		)
     	        Remove-Item -Path $Path -Recurse -Force
-	    }
-	
+	}
+
 
         function mkdirg {
             param(
