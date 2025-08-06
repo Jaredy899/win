@@ -8,6 +8,7 @@ $apps = @(
     "Fastfetch-cli.Fastfetch",
     "sharkdp.bat",
     "GNU.Nano",
+    "eza-community.eza",
     "sxyazi.yazi",
     "Microsoft.WindowsTerminal",
     "Microsoft.PowerShell",
@@ -46,3 +47,4 @@ function Install-Apps {
 
 # Run the applications installation function
 Install-Apps
+
