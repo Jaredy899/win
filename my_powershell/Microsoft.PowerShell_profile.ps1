@@ -139,6 +139,19 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             }
         }
 
+        if (Get-Alias gp -ErrorAction SilentlyContinue) {
+            Remove-Item Alias:gp -Force
+        }
+
+        function gp {
+            param(
+                [Parameter(ValueFromRemainingArguments = $true)]
+                [string[]]$Args
+            )
+
+            git pull @Args
+        }
+
         # Define directory navigation aliases
         function home {
             Set-Location ~
