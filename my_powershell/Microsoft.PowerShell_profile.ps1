@@ -53,6 +53,15 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
             shutdown.exe /r /fw /f /t 0
         }
 
+        function cr {
+            param(
+                [Parameter(ValueFromRemainingArguments = $true)]
+                [string[]]$Args
+            )
+
+            cargo run @Args
+        }
+
         # Git convenience functions
         
         function gb {
@@ -106,6 +115,28 @@ if ($Host.Name -eq 'ConsoleHost' -or $Host.Name -eq 'Windows Terminal') {
           if ($LASTEXITCODE -ne 0) { return }
 
           git push -u origin $Branch
+        }
+
+        function gs {
+            $branch = git branch --all --color=never |
+                ForEach-Object { $_.Trim().TrimStart('*').Trim() } |
+                Sort-Object |
+                fzf --prompt="Switch to branch: "
+
+            if ($branch) {
+                # Remove "remotes/" prefix if present
+                if ($branch -like "remotes/*") {
+                    $branch = $branch -replace "^remotes/", ""
+                }
+
+                if ($branch -like "origin/*") {
+                    $localBranch = $branch -replace "^origin/", ""
+                    git switch -c $localBranch --track $branch
+                }
+                else {
+                    git switch $branch
+                }
+            }
         }
 
         # Define directory navigation aliases
