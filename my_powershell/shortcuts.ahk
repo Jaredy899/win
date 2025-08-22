@@ -64,7 +64,7 @@ CapsLock & w::
     Sleep 500
     Run "https://login.cbh3.crediblebh.com/"
     Sleep 500
-    Run "https://hcs.nu.vercel.app/"
+    Run "https://hcs-nu.vercel.app/"
 }
 
 CapsLock & x::{
@@ -85,7 +85,7 @@ CapsLock & x::{
 CapsLock & d::Run("explorer.exe " A_MyDocuments "\..\Downloads")
 
 ; CapsLock + Z to put the computer to sleep
-CapsLock & z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
+; CapsLock & z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
 
 ; Alt + 1-9 to switch between browser tabs
 !1::Send("^1")
@@ -97,3 +97,4 @@ CapsLock & z::DllCall("PowrProf\SetSuspendState", "Int", 0, "Int", 0, "Int", 0)
 !7::Send("^7")
 !8::Send("^8")
 !9::Send("^9")
+
