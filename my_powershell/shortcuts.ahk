@@ -29,7 +29,7 @@ ToggleApp(exeName, runCmd)
 !w::Send("^w")  ; Close tab (preserved from your existing shortcuts)
 
 ; CapsLock + A to toggle T3
-CapsLock & a::Run("https://t3.chat/chat")
+CapsLock & a::Run("https://t3.chat")
 
 ; CapsLock + C to toggle Cursor
 CapsLock & c::ToggleApp("Cursor.exe", "C:\Users\Jared\AppData\Local\Programs\cursor\Cursor.exe")
@@ -97,4 +97,5 @@ CapsLock & d::Run("explorer.exe " A_MyDocuments "\..\Downloads")
 !7::Send("^7")
 !8::Send("^8")
 !9::Send("^9")
+
 
