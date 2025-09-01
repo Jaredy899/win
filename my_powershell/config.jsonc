@@ -10,55 +10,55 @@
   },
 
   "display": {
-    "separator": "  ",
+    "separator": "  ", 
     "color": "cyan"
   },
 
   "modules": [
     {
       "type": "custom",
-      "format": "\u001b[36m───  SYSTEM OVERVIEW  ───\u001b[0m"
+      "format": "\u001b[36m─── SYSTEM OVERVIEW ───\u001b[0m"
     },
     {
       "type": "host",
-      "key": "  󰌢 Host",
+      "key": "  󰌢",
       "keyColor": "cyan"
     },
     {
       "type": "cpu",
-      "key": "   CPU",
+      "key": "  ",
       "keyColor": "yellow"
     },
     {
       "type": "gpu",
       "detectionMethod": "pci",
-      "key": "   GPU",
+      "key": "  ",
       "keyColor": "green"
     },
     {
       "type": "memory",
-      "key": "   RAM",
+      "key": "  ",
       "keyColor": "blue"
     },
     {
       "type": "disk",
-      "key": "   Disk",
+      "key": "  ",
       "keyColor": "magenta"
     },
     {
       "type": "display",
-      "key": "  󰍹 Display",
+      "key": "  󰍹",
       "keyColor": "red"
     },
     {
       "type": "battery",
-      "key": "  󰁹 Battery",
+      "key": "  󰁹",
       "format": "{#if {1} < 20}\u001b[31m{1}%\u001b[0m{#elif {1} < 60}\u001b[33m{1}%\u001b[0m{#else}\u001b[32m{1}%\u001b[0m{#endif}"
     },
 
     {
       "type": "custom",
-      "format": "\u001b[32m───  SOFTWARE STACK  ───\u001b[0m"
+      "format": "\u001b[32m─── SOFTWARE STACK ───\u001b[0m"
     },
     {
       "type": "os",
@@ -68,46 +68,46 @@
     },
     {
       "type": "shell",
-      "key": "   Shell",
+      "key": "  ",
       "keyColor": "yellow"
     },
     {
       "type": "processes",
-      "key": "  󰧑 Processes",
+      "key": "  󰧑",
       "format": "{1} running",
       "keyColor": "green"
     },
 
     {
       "type": "custom",
-      "format": "\u001b[33m───  NETWORK & TIME  ───\u001b[0m"
+      "format": "\u001b[33m─── NETWORK & TIME ───\u001b[0m"
     },
     {
       "type": "datetime",
-      "key": "   Date",
+      "key": "  ",
       "keyColor": "cyan"
     },
     {
       "type": "localip",
       "showIpv6": false,
       "showMac": false,
-      "key": "  󰩠 LAN",
+      "key": "  󰩠",
       "keyColor": "yellow"
     },
     {
       "type": "command",
-      "key": "  󰩠 Tailscale",
+      "key": "  󰩠",
       "keyColor": "blue",
-      "text": "where.exe tailscale >nul 2>&1 && (tailscale ip -4) || echo Not installed"
+      "text": "command -v tailscale >/dev/null 2>&1 && tailscale ip -4"
     },
 
     {
       "type": "custom",
-      "format": "\u001b[35m───  SYSTEM STATUS  ───\u001b[0m"
+      "format": "\u001b[35m─── SYSTEM STATUS ───\u001b[0m"
     },
     {
       "type": "uptime",
-      "key": "   Uptime",
+      "key": "  ",
       "keyColor": "magenta",
       "format": "{1} days {2} hours {3} minutes"
     },
