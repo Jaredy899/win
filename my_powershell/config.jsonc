@@ -10,7 +10,7 @@
   },
 
   "display": {
-    "separator": "  ", 
+    "separator": "  ",
     "color": "cyan"
   },
 
@@ -98,7 +98,7 @@
       "type": "command",
       "key": "  󰩠",
       "keyColor": "blue",
-      "text": "command -v tailscale >/dev/null 2>&1 && tailscale ip -4"
+      "text": "where.exe tailscale >nul 2>&1 && tailscale ip -4"
     },
 
     {
