@@ -110,6 +110,13 @@ function Get-ConfigFile {
     try {
         Write-Host "Downloading config: $filename..." -ForegroundColor Cyan
         $content = Invoke-WebRequest -Uri $configUrl -UseBasicParsing -ErrorAction Stop | Select-Object -ExpandProperty Content
+
+        # Remove UTF-8 BOM if present (causes JSON parsing issues)
+        if ($content -and $content.Length -gt 3 -and $content[0] -eq 0xEF -and $content[1] -eq 0xBB -and $content[2] -eq 0xBF) {
+            $content = $content.Substring(3)
+            Write-Host "Removed UTF-8 BOM from $filename" -ForegroundColor Gray
+        }
+
         Write-Host "✓ Successfully loaded $filename from GitHub" -ForegroundColor Green
         return $content
     }

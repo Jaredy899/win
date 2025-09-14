@@ -102,7 +102,7 @@ After running the setup script:
 
 ### Fully Automated Setup
 - **Completely standalone** - Single script file with zero embedded configs
-- **GitHub dependent** - Downloads all configs from repository at runtime
+- **GitHub dependent** - Downloads all configs from repository at runtime (handles UTF-8 BOM)
 - **Always replaces** - Updates config files every run with latest versions
 - **Windows Terminal config** - Sets PowerShell 7 as default with Fira Code Nerd Font Mono
 - **Smart caching** - Skips recreating scheduled tasks and capabilities if already correct
