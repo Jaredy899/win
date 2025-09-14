@@ -105,11 +105,13 @@ After running the setup script:
 - **GitHub dependent** - Downloads all configs from repository at runtime
 - **Always replaces** - Updates config files every run with latest versions
 - **Windows Terminal config** - Sets PowerShell 7 as default with Fira Code Nerd Font Mono
-- **No user prompts** - Handles NuGet, PSGallery, and all dependencies automatically
+- **Smart caching** - Skips recreating scheduled tasks and capabilities if already correct
+- **SSH server setup** - Configures OpenSSH server with key import from GitHub
+- **No user prompts** - Handles NuGet, PSGallery, and all dependencies automatically (except SSH)
 
 ### Interactive Options
 - **Password change** - Optional secure password update
-- **SSH key import** - Import keys from GitHub
+- **SSH key import** - Import keys from GitHub (prompts for username)
 - **AutoHotkey shortcuts** - Custom keyboard shortcuts (optional)
 - **Timezone selection** - Automatic or manual timezone setup
 
@@ -123,6 +125,7 @@ After running the setup script:
 # Then run admin setup
 .\setup.ps1 -AdminSetup
 ```
+> **Note:** OpenSSH installation and scheduled task creation may take several minutes. Progress messages will keep you informed.
 
 ### Development Machine Setup
 ```powershell

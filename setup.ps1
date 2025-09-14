@@ -4,7 +4,7 @@
 # Force admin mode - no options, just run everything
 $AdminSetup = $true
 $SkipApps = $false
-$SkipSSH = $true  # Skip interactive SSH setup for fully automated run
+$SkipSSH = $false  # Enable interactive SSH key setup with GitHub import
 
 # Force execution policy change
 try {
@@ -391,9 +391,19 @@ function Install-FiraCodeFont {
             $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
 
             foreach ($font in $fontFamilies) {
-                if ($font.Name -like "*Fira*Code*") {
+                if ($font.Name -like "*Fira*Code*" -or $font.Name -like "*FiraCode*") {
                     $isFontInstalled = $true
+                    Write-Host "Found installed font: $($font.Name)" -ForegroundColor Gray
                     break
+                }
+            }
+
+            # Also check Windows Fonts directory for FiraCode files
+            if (-not $isFontInstalled) {
+                $fontFiles = Get-ChildItem -Path "C:\Windows\Fonts" -Filter "*FiraCode*" -ErrorAction SilentlyContinue
+                if ($fontFiles) {
+                    $isFontInstalled = $true
+                    Write-Host "Found FiraCode font files in Windows Fonts directory" -ForegroundColor Gray
                 }
             }
         }
@@ -429,7 +439,13 @@ function Install-FiraCodeFont {
             $destination = (New-Object -ComObject Shell.Application).Namespace(0x14)
             Get-ChildItem -Path $extractPath -Recurse -Filter "*.ttf" | ForEach-Object {
                 If (-not (Test-Path "C:\Windows\Fonts\$($_.Name)")) {
-                    $destination.CopyHere($_.FullName, 0x10)
+                    try {
+                        # Use CopyHere with flags to avoid prompts (0x10 = Yes to all, 0x4 = No progress dialog)
+                        $destination.CopyHere($_.FullName, 0x14)
+                    }
+                    catch {
+                        Write-Host "Failed to install font $($_.Name): $_" -ForegroundColor Yellow
+                    }
                 }
             }
 
@@ -642,15 +658,42 @@ function Set-TimeSettings {
 function Set-TimeSyncAtStartup {
     Try {
         $taskName = "TimeSyncAtStartup"
+
+        # Check if task already exists and is configured correctly
+        $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+        if ($existingTask) {
+            # Verify the task is configured correctly
+            $taskCorrect = $true
+
+            # Check action (w32tm.exe /resync)
+            if ($existingTask.Actions[0].Execute -ne "w32tm.exe" -or $existingTask.Actions[0].Arguments -ne "/resync") {
+                $taskCorrect = $false
+            }
+
+            # Check trigger (at startup)
+            if (-not ($existingTask.Triggers | Where-Object { $_.PSObject.Properties.Name -contains "AtStartup" -and $_.AtStartup })) {
+                $taskCorrect = $false
+            }
+
+            # Check principal (SYSTEM account)
+            if ($existingTask.Principal.UserId -ne "SYSTEM" -or $existingTask.Principal.LogonType -ne "ServiceAccount") {
+                $taskCorrect = $false
+            }
+
+            if ($taskCorrect) {
+                Write-Host "Time sync task already exists and is properly configured." -ForegroundColor Blue
+                return
+            } else {
+                Write-Host "Existing time sync task is misconfigured, recreating..." -ForegroundColor Yellow
+                Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+            }
+        }
+
+        Write-Host "Setting up automatic time synchronization at startup..." -ForegroundColor Yellow
         $action = New-ScheduledTaskAction -Execute "w32tm.exe" -Argument "/resync"
         $trigger = New-ScheduledTaskTrigger -AtStartup
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-
-        $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-        if ($existingTask) {
-            Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-        }
 
         Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal
         Write-Host "Scheduled task for time synchronization at startup has been created." -ForegroundColor Green
