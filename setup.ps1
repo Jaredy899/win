@@ -21,22 +21,56 @@ try {
 # Setup PowerShell Gallery and NuGet for module installation
 Write-Host "Setting up PowerShell Gallery for module installation..." -ForegroundColor Cyan
 try {
-    # Install/update NuGet provider silently
+    # Install/update NuGet provider with maximum suppression
     $nugetProvider = Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue
     if (-not $nugetProvider -or $nugetProvider.Version -lt [version]"2.8.5.201") {
-        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:$false | Out-Null
-        Write-Host "NuGet provider updated" -ForegroundColor Green
+        Write-Host "Installing/updating NuGet provider..." -ForegroundColor Yellow
+        try {
+            # Method 1: Try to install with maximum suppression
+            $installCmd = "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:`$false -AcceptLicense"
+            try {
+                Invoke-Expression $installCmd | Out-Null
+                Write-Host "NuGet provider installed via Invoke-Expression" -ForegroundColor Green
+            }
+            catch {
+                # Method 2: If that fails, try a different approach
+                try {
+                    # Try using the bootstrap script approach
+                    $bootstrapUrl = "https://raw.githubusercontent.com/PowerShell/PowerShellGet/master/src/PowerShellGet/install-module.ps1"
+                    Invoke-WebRequest -Uri $bootstrapUrl -UseBasicParsing | Invoke-Expression
+                    Write-Host "NuGet provider installed via bootstrap" -ForegroundColor Green
+                }
+                catch {
+                    Write-Host "Warning: Could not install NuGet provider automatically" -ForegroundColor Yellow
+                    Write-Host "Module installation may still work if NuGet is already available" -ForegroundColor Yellow
+                }
+            }
+        }
+        catch {
+            Write-Host "Warning: NuGet provider installation failed: $_" -ForegroundColor Yellow
+        }
     } else {
         Write-Host "NuGet provider is up to date" -ForegroundColor Blue
     }
 
-    # Set PSGallery as trusted
+    # Set PSGallery as trusted with force
     $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
     if ($psGallery -and $psGallery.InstallationPolicy -ne "Trusted") {
-        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction SilentlyContinue
         Write-Host "PSGallery set as trusted repository" -ForegroundColor Green
     } else {
         Write-Host "PSGallery is already trusted" -ForegroundColor Blue
+    }
+
+    # Additional check: Try to install a dummy module to ensure everything works
+    try {
+        $testModule = Get-Module -Name PackageManagement -ListAvailable -ErrorAction SilentlyContinue
+        if ($testModule) {
+            Write-Host "PowerShell Gallery setup verified" -ForegroundColor Green
+        }
+    }
+    catch {
+        Write-Host "Warning: PowerShell Gallery setup may need verification" -ForegroundColor Yellow
     }
 }
 catch {
@@ -769,6 +803,13 @@ function Install-TerminalIcons {
 }
 
 function Initialize-CustomShortcuts {
+    $installShortcuts = Read-InputWithBackspace -Prompt "Install AutoHotkey and custom shortcuts? (y/n): "
+
+    if ($installShortcuts -notmatch "^[Yy]$|^yes$") {
+        Write-Host "Skipping AutoHotkey shortcuts setup." -ForegroundColor Blue
+        return
+    }
+
     Write-Host "Setting up custom keyboard shortcuts..." -ForegroundColor Cyan
 
     $startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"

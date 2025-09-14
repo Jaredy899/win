@@ -109,7 +109,7 @@ After running the setup script:
 ### Interactive Options
 - **Password change** - Optional secure password update
 - **SSH key import** - Import keys from GitHub
-- **AutoHotkey shortcuts** - Custom keyboard shortcuts
+- **AutoHotkey shortcuts** - Custom keyboard shortcuts (optional)
 - **Timezone selection** - Automatic or manual timezone setup
 
 ## 🔧 Usage Examples
