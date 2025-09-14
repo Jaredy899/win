@@ -18,6 +18,32 @@ try {
     }
 }
 
+# Setup PowerShell Gallery and NuGet for module installation
+Write-Host "Setting up PowerShell Gallery for module installation..." -ForegroundColor Cyan
+try {
+    # Install/update NuGet provider silently
+    $nugetProvider = Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue
+    if (-not $nugetProvider -or $nugetProvider.Version -lt [version]"2.8.5.201") {
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:$false | Out-Null
+        Write-Host "NuGet provider updated" -ForegroundColor Green
+    } else {
+        Write-Host "NuGet provider is up to date" -ForegroundColor Blue
+    }
+
+    # Set PSGallery as trusted
+    $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+    if ($psGallery -and $psGallery.InstallationPolicy -ne "Trusted") {
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Write-Host "PSGallery set as trusted repository" -ForegroundColor Green
+    } else {
+        Write-Host "PSGallery is already trusted" -ForegroundColor Blue
+    }
+}
+catch {
+    Write-Host "Warning: Could not setup PowerShell Gallery: $_" -ForegroundColor Yellow
+    Write-Host "Module installation may require manual intervention" -ForegroundColor Yellow
+}
+
 Write-Host @"
 ##########################################################
 #                                                        #
@@ -184,7 +210,7 @@ function Install-Apps {
 
     Write-Host "Installing $($appsToInstall.Count) applications..." -ForegroundColor Yellow
 
-    # Install missing apps (PowerShell 7+ supports parallel processing)
+    # Install all apps (PowerShell 7+ supports parallel processing, PS5 uses sequential)
     if ($PSVersionTable.PSVersion.Major -ge 7) {
         Write-Host "Using parallel installation (PowerShell 7+)..." -ForegroundColor Cyan
         $appsToInstall | ForEach-Object -Parallel {
@@ -257,9 +283,26 @@ function Install-LazyVim {
             New-Item -ItemType Directory -Path $configDir -Force | Out-Null
         }
 
-        # Clone LazyVim starter
+        # Clone LazyVim starter (use full git path if available)
         Write-Host "Cloning LazyVim starter configuration..." -ForegroundColor Yellow
-        $cloneCmd = "git clone https://github.com/$LazyVimRepo.git `"$ConfigPath`""
+
+        # Try to find git in common locations or use PATH
+        $gitPath = "git"
+        $gitLocations = @(
+            "$env:ProgramFiles\Git\bin\git.exe",
+            "$env:ProgramFiles(x86)\Git\bin\git.exe",
+            "$env:LocalAppData\Microsoft\WindowsApps\git.exe",
+            "git"  # fallback to PATH
+        )
+
+        foreach ($location in $gitLocations) {
+            if (Test-Path $location -ErrorAction SilentlyContinue) {
+                $gitPath = $location
+                break
+            }
+        }
+
+        $cloneCmd = "& `"$gitPath`" clone https://github.com/$LazyVimRepo.git `"$ConfigPath`""
         Invoke-Expression $cloneCmd
 
         if ($LASTEXITCODE -eq 0) {
@@ -290,16 +333,24 @@ function Install-FiraCodeFont {
 
     try {
         Write-Host "=== Starting Fira Code Nerd Font Installation ===" -ForegroundColor Cyan
-        [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-        $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
 
         # Check if the font is already installed
         $isFontInstalled = $false
-        foreach ($font in $fontFamilies) {
-            if ($font.Name -like "*Fira*Code*") {
-                $isFontInstalled = $true
-                break
+        try {
+            [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
+            $fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
+
+            foreach ($font in $fontFamilies) {
+                if ($font.Name -like "*Fira*Code*") {
+                    $isFontInstalled = $true
+                    break
+                }
             }
+        }
+        catch {
+            # If we can't check fonts, assume not installed and proceed
+            Write-Host "Warning: Could not check installed fonts, proceeding with installation" -ForegroundColor Yellow
+            $isFontInstalled = $false
         }
 
         if (-not $isFontInstalled) {
@@ -567,18 +618,6 @@ function Disable-WindowsRecall {
     }
 }
 
-function Remove-EdgeShortcut {
-    $desktopPath = [Environment]::GetFolderPath("Desktop")
-    $edgeShortcutName = "Microsoft Edge.lnk"
-    $edgeShortcutPath = Join-Path -Path $desktopPath -ChildPath $edgeShortcutName
-
-    if (Test-Path $edgeShortcutPath) {
-        Remove-Item -Path $edgeShortcutPath -Force
-        Write-Host "Microsoft Edge shortcut has been deleted from the desktop." -ForegroundColor Green
-    } else {
-        Write-Host "Microsoft Edge shortcut was not found on the desktop." -ForegroundColor Blue
-    }
-}
 
 # SSH key setup functions (simplified)
 function Initialize-SSHKeys {
@@ -653,17 +692,20 @@ function Initialize-ConfigFiles {
     $userConfigDir = "$env:UserProfile\.config"
     $fastfetchConfigDir = "$userConfigDir\fastfetch"
 
+    # Create directories if they don't exist (idempotent)
     if (-not (Test-Path -Path $fastfetchConfigDir)) {
         New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
+        Write-Host "Created fastfetch config directory" -ForegroundColor Green
     }
 
+    # Always replace config files with latest versions
     $configJsoncPath = "$fastfetchConfigDir\config.jsonc"
-    $configJsonc | Out-File -FilePath $configJsoncPath -Encoding UTF8
-    Write-Host "fastfetch config.jsonc has been set up successfully!" -ForegroundColor Green
+    $configJsonc | Out-File -FilePath $configJsoncPath -Encoding UTF8 -Force
+    Write-Host "fastfetch config.jsonc has been updated!" -ForegroundColor Green
 
     $starshipTomlPath = "$userConfigDir\starship.toml"
-    $starshipToml | Out-File -FilePath $starshipTomlPath -Encoding UTF8
-    Write-Host "starship.toml has been set up successfully!" -ForegroundColor Green
+    $starshipToml | Out-File -FilePath $starshipTomlPath -Encoding UTF8 -Force
+    Write-Host "starship.toml has been updated!" -ForegroundColor Green
 }
 
 function Initialize-PowerShellProfile {
@@ -675,6 +717,7 @@ function Initialize-PowerShellProfile {
     $profileDir5 = Split-Path $ps5ProfilePath
     $profileDir7 = Split-Path $ps7ProfilePath
 
+    # Create directories if they don't exist (idempotent)
     if (-not (Test-Path -Path $profileDir5)) {
         New-Item -ItemType Directory -Path $profileDir5 -Force
     }
@@ -682,40 +725,83 @@ function Initialize-PowerShellProfile {
         New-Item -ItemType Directory -Path $profileDir7 -Force
     }
 
-    $powerShellProfile | Out-File -FilePath $ps5ProfilePath -Encoding UTF8
-    $powerShellProfile | Out-File -FilePath $ps7ProfilePath -Encoding UTF8
+    # Always replace PowerShell profiles with latest versions
+    $powerShellProfile | Out-File -FilePath $ps5ProfilePath -Encoding UTF8 -Force
+    Write-Host "PowerShell 5 profile updated" -ForegroundColor Green
 
-    Write-Host "PowerShell profiles have been set up successfully!" -ForegroundColor Green
+    $powerShellProfile | Out-File -FilePath $ps7ProfilePath -Encoding UTF8 -Force
+    Write-Host "PowerShell 7 profile updated" -ForegroundColor Green
+
+    Write-Host "PowerShell profiles have been updated successfully!" -ForegroundColor Green
 }
 
 function Install-TerminalIcons {
     if (-not (Get-Module -ListAvailable -Name Terminal-Icons)) {
         Write-Host "Installing Terminal-Icons module..." -ForegroundColor Yellow
-        Install-Module -Name Terminal-Icons -Repository PSGallery -Force
-        Write-Host "Terminal-Icons module installed successfully!" -ForegroundColor Green
+
+        # PSGallery and NuGet should already be set up at the beginning of the script
+        try {
+            Install-Module -Name Terminal-Icons -Repository PSGallery -Force -Confirm:$false
+            Write-Host "Terminal-Icons module installed successfully!" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed to install Terminal-Icons: $_" -ForegroundColor Red
+        }
     } else {
         Write-Host "Terminal-Icons module is already installed." -ForegroundColor Blue
     }
 }
 
 function Initialize-CustomShortcuts {
-    Write-Host "Would you like to set up custom keyboard shortcuts using AutoHotkey? (y/n) " -ForegroundColor Cyan -NoNewline
-    $response = Read-Host
+    Write-Host "Setting up custom keyboard shortcuts..." -ForegroundColor Cyan
 
-    if ($response.ToLower() -eq 'y') {
-        Write-Host "Installing AutoHotkey and setting up shortcuts..." -ForegroundColor Yellow
+    $startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
+    $shortcutsPath = "$startupFolder\shortcuts.ahk"
 
+    # Check if AutoHotkey is installed
+    $ahkInstalled = $false
+    if (Get-Command "AutoHotkey.exe" -ErrorAction SilentlyContinue) {
+        $ahkInstalled = $true
+    } elseif (Test-Path "$env:ProgramFiles\AutoHotkey\AutoHotkey.exe") {
+        $ahkInstalled = $true
+    } elseif (Test-Path "${env:ProgramFiles(x86)}\AutoHotkey\AutoHotkey.exe") {
+        $ahkInstalled = $true
+    }
+
+    if (-not $ahkInstalled) {
+        Write-Host "Installing AutoHotkey..." -ForegroundColor Yellow
         winget install -e --id AutoHotkey.AutoHotkey
+        if ($LASTEXITCODE -eq 0) {
+            $ahkInstalled = $true
+            Write-Host "AutoHotkey installed successfully!" -ForegroundColor Green
+        } else {
+            Write-Host "Failed to install AutoHotkey, skipping shortcuts setup" -ForegroundColor Red
+            return
+        }
+    }
 
-        $startupFolder = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup"
-        $shortcutsPath = "$startupFolder\shortcuts.ahk"
-
+    # Check if shortcuts file already exists
+    if (Test-Path $shortcutsPath) {
+        Write-Host "AutoHotkey shortcuts already configured, skipping" -ForegroundColor Blue
+    } else {
         try {
             $shortcutsAhk | Out-File -FilePath $shortcutsPath -Encoding UTF8
             Write-Host "AutoHotkey shortcuts have been set up successfully!" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Failed to create shortcuts file. Error: $_" -ForegroundColor Red
+            return
+        }
+    }
 
-            $desktopPath = [Environment]::GetFolderPath("Desktop")
-            $shortcutPath = "$desktopPath\Custom Shortcuts.lnk"
+    # Check if desktop shortcut already exists
+    $desktopPath = [Environment]::GetFolderPath("Desktop")
+    $shortcutPath = "$desktopPath\Custom Shortcuts.lnk"
+
+    if (Test-Path $shortcutPath) {
+        Write-Host "Desktop shortcut already exists, skipping" -ForegroundColor Blue
+    } else {
+        try {
             $WshShell = New-Object -ComObject WScript.Shell
             $Shortcut = $WshShell.CreateShortcut($shortcutPath)
             $Shortcut.TargetPath = $shortcutsPath
@@ -723,67 +809,128 @@ function Initialize-CustomShortcuts {
             $Shortcut.Description = "Custom Keyboard Shortcuts"
             $Shortcut.Save()
             Write-Host "Desktop shortcut created successfully!" -ForegroundColor Green
-
-            if (Test-Path $shortcutsPath) {
-                Start-Process $shortcutsPath
-                Write-Host "Custom shortcuts are now active!" -ForegroundColor Green
-            }
         }
         catch {
-            Write-Host "Failed to download or setup shortcuts. Error: $_" -ForegroundColor Red
+            Write-Host "Failed to create desktop shortcut. Error: $_" -ForegroundColor Red
         }
     }
-    else {
-        Write-Host "Skipping custom shortcuts setup." -ForegroundColor Blue
+
+    # Try to start AutoHotkey if shortcuts file exists
+    if (Test-Path $shortcutsPath) {
+        try {
+            Start-Process $shortcutsPath -ErrorAction SilentlyContinue
+            Write-Host "Custom shortcuts are now active!" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "Could not start AutoHotkey automatically" -ForegroundColor Yellow
+        }
     }
 }
 
-# Main execution logic
+# Main execution logic - continue on errors where possible
 try {
     # Install Winget if needed
-    if (-not (Install-Winget)) {
-        Write-Host "Failed to install Winget. Some features may not work." -ForegroundColor Red
+    Write-Host "=== Installing Winget ===" -ForegroundColor Cyan
+    try {
+        if (-not (Install-Winget)) {
+            Write-Host "Failed to install Winget. Some features may not work." -ForegroundColor Red
+        }
+    }
+    catch {
+        Write-Host "Error installing Winget: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
     }
 
     # Install applications unless skipped
-    if (-not $SkipApps) {
-        Install-Apps
-    } else {
-        Write-Host "Skipping application installation as requested." -ForegroundColor Blue
+    Write-Host "`n=== Installing Applications ===" -ForegroundColor Cyan
+    try {
+        if (-not $SkipApps) {
+            Install-Apps
+        } else {
+            Write-Host "Skipping application installation as requested." -ForegroundColor Blue
+        }
+    }
+    catch {
+        Write-Host "Error installing applications: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
     }
 
     # Install LazyVim
-    Install-LazyVim
+    Write-Host "`n=== Installing LazyVim ===" -ForegroundColor Cyan
+    try {
+        Install-LazyVim
+    }
+    catch {
+        Write-Host "Error installing LazyVim: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
+    }
 
     # Install font
-    Install-FiraCodeFont
+    Write-Host "`n=== Installing Fonts ===" -ForegroundColor Cyan
+    try {
+        Install-FiraCodeFont
+    }
+    catch {
+        Write-Host "Error installing fonts: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
+    }
 
-# Setup configuration files (only if configs downloaded successfully)
-if ($configJsonc -and $starshipToml) {
-    Initialize-ConfigFiles
-} else {
-    Write-Host "Skipping configuration file setup - config files not available" -ForegroundColor Yellow
-}
+    # Setup configuration files (always replace with latest versions)
+    Write-Host "`n=== Setting up Configuration Files ===" -ForegroundColor Cyan
+    try {
+        if ($configJsonc -and $starshipToml) {
+            Initialize-ConfigFiles
+        } else {
+            Write-Host "Skipping configuration file setup - config files not available" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Error setting up configuration files: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
+    }
 
-    # Setup PowerShell profiles (only if config downloaded successfully)
-    if ($powerShellProfile) {
-        Initialize-PowerShellProfile
-    } else {
-        Write-Host "Skipping PowerShell profile setup - config file not available" -ForegroundColor Yellow
+    # Setup PowerShell profiles (always replace with latest versions)
+    Write-Host "`n=== Setting up PowerShell Profiles ===" -ForegroundColor Cyan
+    try {
+        if ($powerShellProfile) {
+            Initialize-PowerShellProfile
+        } else {
+            Write-Host "Skipping PowerShell profile setup - config file not available" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Error setting up PowerShell profiles: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
     }
 
     # Install Terminal-Icons
-    Install-TerminalIcons
+    Write-Host "`n=== Installing Terminal-Icons ===" -ForegroundColor Cyan
+    try {
+        Install-TerminalIcons
+    }
+    catch {
+        Write-Host "Error installing Terminal-Icons: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
+    }
 
     # Setup custom shortcuts (only if config downloaded successfully)
-    if ($shortcutsAhk) {
-        Initialize-CustomShortcuts
-    } else {
-        Write-Host "Skipping AutoHotkey shortcuts setup - config file not available" -ForegroundColor Yellow
+    Write-Host "`n=== Setting up AutoHotkey Shortcuts ===" -ForegroundColor Cyan
+    try {
+        if ($shortcutsAhk) {
+            Initialize-CustomShortcuts
+        } else {
+            Write-Host "Skipping AutoHotkey shortcuts setup - config file not available" -ForegroundColor Yellow
+        }
+    }
+    catch {
+        Write-Host "Error setting up AutoHotkey shortcuts: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
     }
 
     # Admin setup if requested
     if ($AdminSetup) {
+        Write-Host "`n=== Administrative Setup ===" -ForegroundColor Cyan
+        try {
         # Minimal ANSI colors (PS7/Windows Terminal/TUI)
         $esc   = [char]27
         $Cyan  = "${esc}[36m"
@@ -792,12 +939,19 @@ if ($configJsonc -and $starshipToml) {
         $Red   = "${esc}[31m"
         $Reset = "${esc}[0m"
 
-        # Fix for backspace issue in Windows Terminal
+        # Fix for backspace issue in Windows Terminal (PS5 compatible)
         # Set PSReadLine options for better input handling
-        if (Get-Module -ListAvailable -Name PSReadLine) {
-            Import-Module PSReadLine -Force
-            Set-PSReadLineOption -EditMode Windows
-            Set-PSReadLineOption -PredictionSource None
+        if (Get-Module -ListAvailable -Name PSReadLine -ErrorAction SilentlyContinue) {
+            try {
+                Import-Module PSReadLine -Force -ErrorAction SilentlyContinue
+                if (Get-Command Set-PSReadLineOption -ErrorAction SilentlyContinue) {
+                    Set-PSReadLineOption -EditMode Windows -ErrorAction SilentlyContinue
+                    Set-PSReadLineOption -PredictionSource None -ErrorAction SilentlyContinue
+                }
+            }
+            catch {
+                # PSReadLine not available or compatible, continue without it
+            }
         }
 
         # Alternative input function that works better in Windows Terminal
@@ -871,11 +1025,22 @@ if ($configJsonc -and $starshipToml) {
         Set-SSHConfiguration
         Set-TimeSyncAtStartup
         Disable-WindowsRecall
-        Remove-EdgeShortcut
+        }
+        catch {
+            Write-Host "Error during administrative setup: $_" -ForegroundColor Red
+            Write-Host "Continuing with remaining setup..." -ForegroundColor Yellow
+        }
     }
 
     # SSH setup (can run without admin)
-    Initialize-SSHKeys
+    Write-Host "`n=== Setting up SSH Keys ===" -ForegroundColor Cyan
+    try {
+        Initialize-SSHKeys
+    }
+    catch {
+        Write-Host "Error setting up SSH keys: $_" -ForegroundColor Red
+        Write-Host "Continuing with completion..." -ForegroundColor Yellow
+    }
 
     Write-Host ""
     Write-Host "##########################################################" -ForegroundColor Cyan

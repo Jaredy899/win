@@ -88,7 +88,6 @@ After running the setup script:
 - **Firewall Rules** - RDP and SSH access
 - **Timezone Sync** - Automatic timezone detection and NTP sync
 - **Windows Recall** - Disable AI feature
-- **Edge Shortcut** - Remove desktop shortcut
 
 ## 🎯 Features
 
@@ -101,11 +100,11 @@ After running the setup script:
 - **Automatic UAC** - Elevates to admin when needed
 - **Parameter preservation** - Maintains flags during elevation
 
-### Pure GitHub-Sourced Configs
+### Fully Automated Setup
 - **Completely standalone** - Single script file with zero embedded configs
 - **GitHub dependent** - Downloads all configs from repository at runtime
-- **Fail gracefully** - Skips features when configs unavailable
-- **Always current** - Gets latest config updates from GitHub
+- **Always replaces** - Updates config files every run with latest versions
+- **No user prompts** - Handles NuGet, PSGallery, and all dependencies automatically
 
 ### Interactive Options
 - **Password change** - Optional secure password update
@@ -145,9 +144,9 @@ After running the setup script:
 ## 📋 Requirements
 
 - **Windows 10/11**
-- **PowerShell 5.1+** (PowerShell 7+ recommended for parallel installation)
-- **Internet connection** (for downloads)
-- **Administrator privileges** (for admin setup)
+- **PowerShell 5.1+** (works on both PS5 and PS7)
+- **Internet connection** (for downloads and GitHub configs)
+- **Administrator privileges** (for admin setup features)
 
 ## 🛠 Troubleshooting
 
