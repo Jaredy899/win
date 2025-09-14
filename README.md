@@ -104,6 +104,7 @@ After running the setup script:
 - **Completely standalone** - Single script file with zero embedded configs
 - **GitHub dependent** - Downloads all configs from repository at runtime
 - **Always replaces** - Updates config files every run with latest versions
+- **Windows Terminal config** - Sets PowerShell 7 as default with Fira Code Nerd Font Mono
 - **No user prompts** - Handles NuGet, PSGallery, and all dependencies automatically
 
 ### Interactive Options

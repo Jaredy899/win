@@ -802,6 +802,49 @@ function Install-TerminalIcons {
     }
 }
 
+function Initialize-WindowsTerminal {
+    Write-Host "Configuring Windows Terminal..." -ForegroundColor Cyan
+
+    try {
+        # Find Windows Terminal settings path
+        $wtSettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+        if (-not (Test-Path $wtSettingsPath)) {
+            Write-Host "Windows Terminal settings file not found, skipping configuration" -ForegroundColor Yellow
+            return
+        }
+
+        # Read current settings
+        $settings = Get-Content $wtSettingsPath -Raw | ConvertFrom-Json
+
+        # Find PowerShell 7 profile
+        $ps7Profile = $settings.profiles.list | Where-Object {
+            $_.name -match "PowerShell" -and ($_.commandline -match "pwsh" -or $_.name -match "7")
+        } | Select-Object -First 1
+
+        if (-not $ps7Profile) {
+            Write-Host "PowerShell 7 profile not found in Windows Terminal, skipping configuration" -ForegroundColor Yellow
+            return
+        }
+
+        # Set Fira Code Nerd Font Mono as the font
+        $ps7Profile.fontFace = "FiraCode Nerd Font Mono"
+
+        # Set PowerShell 7 as the default profile
+        $settings.defaultProfile = $ps7Profile.guid
+
+        # Save modified settings
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $wtSettingsPath -Encoding UTF8
+
+        Write-Host "Windows Terminal configured successfully!" -ForegroundColor Green
+        Write-Host "• PowerShell 7 set as default profile" -ForegroundColor Gray
+        Write-Host "• Fira Code Nerd Font Mono set as font" -ForegroundColor Gray
+
+    } catch {
+        Write-Host "Failed to configure Windows Terminal: $_" -ForegroundColor Red
+    }
+}
+
 function Initialize-CustomShortcuts {
     $installShortcuts = Read-InputWithBackspace -Prompt "Install AutoHotkey and custom shortcuts? (y/n): "
 
@@ -957,6 +1000,15 @@ try {
     }
     catch {
         Write-Host "Error setting up PowerShell profiles: $_" -ForegroundColor Red
+        Write-Host "Continuing with setup..." -ForegroundColor Yellow
+    }
+
+    # Configure Windows Terminal
+    try {
+        Initialize-WindowsTerminal
+    }
+    catch {
+        Write-Host "Error configuring Windows Terminal: $_" -ForegroundColor Red
         Write-Host "Continuing with setup..." -ForegroundColor Yellow
     }
 
