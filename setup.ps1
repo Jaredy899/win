@@ -161,10 +161,30 @@ function Install-Winget {
 function Test-AppInstalled {
     param([string]$appId)
     try {
-        winget list --id $appId 2>$null | Out-Null
-        return $LASTEXITCODE -eq 0
+        # Use a job with timeout to prevent hanging
+        $job = Start-Job -ScriptBlock {
+            param($appId)
+            winget list --id $appId 2>$null
+            $LASTEXITCODE
+        } -ArgumentList $appId
+
+        # Wait up to 10 seconds for the job to complete
+        $result = $job | Wait-Job -Timeout 10
+
+        if ($result) {
+            $exitCode = Receive-Job $job
+            Remove-Job $job
+            return $exitCode -eq 0
+        } else {
+            # Job timed out, kill it and assume not installed
+            Stop-Job $job -ErrorAction SilentlyContinue
+            Remove-Job $job -ErrorAction SilentlyContinue
+            Write-Host "Warning: winget list timed out for $appId, assuming not installed" -ForegroundColor Yellow
+            return $false
+        }
     }
     catch {
+        # If winget is not available or fails, assume not installed
         return $false
     }
 }
@@ -187,22 +207,31 @@ function Install-Apps {
 
     Write-Host "=== Starting Application Installation ===" -ForegroundColor Cyan
 
-    # Check which apps are already installed
-    Write-Host "Checking installed applications..." -ForegroundColor Yellow
-    $appsToInstall = @()
-    $installedCount = 0
+    # Check if winget is available
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Host "Winget is not available yet. Will install all applications..." -ForegroundColor Yellow
+        # On fresh Windows, assume no apps are installed and install everything
+        $appsToInstall = $apps | Where-Object { $_ -notmatch "^#" }  # Filter out commented lines
+        $installedCount = 0
+        Write-Host "Found 0 of $($appsToInstall.Count) apps already installed." -ForegroundColor Green
+    } else {
+        # Check which apps are already installed
+        Write-Host "Checking installed applications..." -ForegroundColor Yellow
+        $appsToInstall = @()
+        $installedCount = 0
 
-    foreach ($app in $apps) {
-        if (Test-AppInstalled -appId $app) {
-            Write-Host "$app is already installed." -ForegroundColor Blue
-            $installedCount++
-        } else {
-            $appsToInstall += $app
+        foreach ($app in $apps) {
+            if (Test-AppInstalled -appId $app) {
+                Write-Host "$app is already installed." -ForegroundColor Blue
+                $installedCount++
+            } else {
+                $appsToInstall += $app
+            }
         }
-    }
 
-    $totalApps = $apps.Count
-    Write-Host "Found $installedCount of $totalApps apps already installed." -ForegroundColor Green
+        $totalApps = $apps.Count
+        Write-Host "Found $installedCount of $totalApps apps already installed." -ForegroundColor Green
+    }
 
     # Only install missing apps
     if ($appsToInstall.Count -eq 0) {
