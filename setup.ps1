@@ -108,6 +108,31 @@ if ($AdminSetup -and -not (Test-Administrator)) {
 # Load configuration data from GitHub raw URLs
 $githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main/my_powershell"
 
+# Alternative input function that works better in Windows Terminal
+function Read-InputWithBackspace {
+    param(
+        [string]$Prompt = ""
+    )
+
+    if ($Prompt) {
+        Write-Host $Prompt -NoNewline
+    }
+
+    # Use Read-Host with error handling to prevent backspace overflow issues
+    $originalErrorAction = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'SilentlyContinue'
+        $result = Read-Host
+        $ErrorActionPreference = $originalErrorAction
+        return $result
+    } catch {
+        $ErrorActionPreference = $originalErrorAction
+        # If Read-Host fails due to backspace overflow, return empty string
+        Write-Host ""
+        return ""
+    }
+}
+
 # Function to load config file from GitHub
 function Get-ConfigFile {
     param([string]$filename)
@@ -1090,46 +1115,6 @@ try {
         $Green = "${esc}[32m"
         $Red   = "${esc}[31m"
         $Reset = "${esc}[0m"
-
-        # Fix for backspace issue in Windows Terminal (PS5 compatible)
-        # Set PSReadLine options for better input handling
-        if (Get-Module -ListAvailable -Name PSReadLine -ErrorAction SilentlyContinue) {
-            try {
-                Import-Module PSReadLine -Force -ErrorAction SilentlyContinue
-                if (Get-Command Set-PSReadLineOption -ErrorAction SilentlyContinue) {
-                    Set-PSReadLineOption -EditMode Windows -ErrorAction SilentlyContinue
-                    Set-PSReadLineOption -PredictionSource None -ErrorAction SilentlyContinue
-                }
-            }
-            catch {
-                # PSReadLine not available or compatible, continue without it
-            }
-        }
-
-        # Alternative input function that works better in Windows Terminal
-        function Read-InputWithBackspace {
-            param(
-                [string]$Prompt = ""
-            )
-
-            if ($Prompt) {
-                Write-Host $Prompt -NoNewline
-            }
-
-            # Use Read-Host with error handling to prevent backspace overflow issues
-            $originalErrorAction = $ErrorActionPreference
-            try {
-                $ErrorActionPreference = 'SilentlyContinue'
-                $result = Read-Host
-                $ErrorActionPreference = $originalErrorAction
-                return $result
-            } catch {
-                $ErrorActionPreference = $originalErrorAction
-                # If Read-Host fails due to backspace overflow, return empty string
-                Write-Host ""
-                return ""
-            }
-        }
 
         Write-Host "${Cyan}=== Administrative Setup ===${Reset}"
 
