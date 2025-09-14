@@ -91,10 +91,10 @@ After running the setup script:
 
 ## 🎯 Features
 
-### Simple Installation
+### Smart Installation
 - **Installs all apps** - Let winget handle duplicates automatically
 - **Parallel installation** - Uses PowerShell 7+ parallel processing
-- **No pre-checking** - Faster and more reliable on fresh systems
+- **Proper status detection** - Correctly identifies already installed packages
 
 ### Self-Elevating
 - **Automatic UAC** - Elevates to admin when needed

@@ -217,11 +217,19 @@ function Install-Apps {
             $app = $_
             Write-Host "Installing $app..." -ForegroundColor Yellow
             try {
-                winget install --id $app --accept-package-agreements --accept-source-agreements -e 2>&1 | Out-Null
+                $output = winget install --id $app --accept-package-agreements --accept-source-agreements -e 2>&1
+                $outputText = $output | Out-String
+
+                # Check for success indicators
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "$app installed successfully!" -ForegroundColor Green
-                } else {
+                }
+                elseif ($outputText -match "already installed" -or $outputText -match "No available upgrade found") {
+                    Write-Host "$app is already installed and up-to-date." -ForegroundColor Blue
+                }
+                else {
                     Write-Host "Failed to install $app." -ForegroundColor Red
+                    Write-Host "Winget output: $outputText" -ForegroundColor Yellow
                 }
             }
             catch {
@@ -233,11 +241,19 @@ function Install-Apps {
         foreach ($app in $appsToInstall) {
             Write-Host "Installing $app..." -ForegroundColor Yellow
             try {
-                winget install --id $app --accept-package-agreements --accept-source-agreements -e 2>&1 | Out-Null
+                $output = winget install --id $app --accept-package-agreements --accept-source-agreements -e 2>&1
+                $outputText = $output | Out-String
+
+                # Check for success indicators
                 if ($LASTEXITCODE -eq 0) {
                     Write-Host "$app installed successfully!" -ForegroundColor Green
-                } else {
+                }
+                elseif ($outputText -match "already installed" -or $outputText -match "No available upgrade found") {
+                    Write-Host "$app is already installed and up-to-date." -ForegroundColor Blue
+                }
+                else {
                     Write-Host "Failed to install $app." -ForegroundColor Red
+                    Write-Host "Winget output: $outputText" -ForegroundColor Yellow
                 }
             }
             catch {
