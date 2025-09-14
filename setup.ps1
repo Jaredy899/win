@@ -23,6 +23,7 @@ Write-Host @"
 #                                                        #
 #     Windows Development Environment Setup Script       #
 #              Auto Runner Edition                       #
+#                                                        #
 ##########################################################
 "@ -ForegroundColor Cyan
 
@@ -158,36 +159,6 @@ function Install-Winget {
 }
 
 # App installation functions
-function Test-AppInstalled {
-    param([string]$appId)
-    try {
-        # Use a job with timeout to prevent hanging
-        $job = Start-Job -ScriptBlock {
-            param($appId)
-            winget list --id $appId 2>$null
-            $LASTEXITCODE
-        } -ArgumentList $appId
-
-        # Wait up to 10 seconds for the job to complete
-        $result = $job | Wait-Job -Timeout 10
-
-        if ($result) {
-            $exitCode = Receive-Job $job
-            Remove-Job $job
-            return $exitCode -eq 0
-        } else {
-            # Job timed out, kill it and assume not installed
-            Stop-Job $job -ErrorAction SilentlyContinue
-            Remove-Job $job -ErrorAction SilentlyContinue
-            Write-Host "Warning: winget list timed out for $appId, assuming not installed" -ForegroundColor Yellow
-            return $false
-        }
-    }
-    catch {
-        # If winget is not available or fails, assume not installed
-        return $false
-    }
-}
 
 function Install-Apps {
     $apps = @(
@@ -206,41 +177,12 @@ function Install-Apps {
     )
 
     Write-Host "=== Starting Application Installation ===" -ForegroundColor Cyan
+    Write-Host "Installing all applications (winget will handle duplicates)..." -ForegroundColor Yellow
 
-    # Check if winget is available
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Host "Winget is not available yet. Will install all applications..." -ForegroundColor Yellow
-        # On fresh Windows, assume no apps are installed and install everything
-        $appsToInstall = $apps | Where-Object { $_ -notmatch "^#" }  # Filter out commented lines
-        $installedCount = 0
-        Write-Host "Found 0 of $($appsToInstall.Count) apps already installed." -ForegroundColor Green
-    } else {
-        # Check which apps are already installed
-        Write-Host "Checking installed applications..." -ForegroundColor Yellow
-        $appsToInstall = @()
-        $installedCount = 0
+    # Just install all apps - let winget handle what's already installed
+    $appsToInstall = $apps | Where-Object { $_ -notmatch "^#" }  # Filter out commented lines
 
-        foreach ($app in $apps) {
-            if (Test-AppInstalled -appId $app) {
-                Write-Host "$app is already installed." -ForegroundColor Blue
-                $installedCount++
-            } else {
-                $appsToInstall += $app
-            }
-        }
-
-        $totalApps = $apps.Count
-        Write-Host "Found $installedCount of $totalApps apps already installed." -ForegroundColor Green
-    }
-
-    # Only install missing apps
-    if ($appsToInstall.Count -eq 0) {
-        Write-Host "All applications are already installed!" -ForegroundColor Green
-        Write-Host "=== Application Installation Complete ===" -ForegroundColor Cyan
-        return
-    }
-
-    Write-Host "Installing $($appsToInstall.Count) missing applications..." -ForegroundColor Yellow
+    Write-Host "Installing $($appsToInstall.Count) applications..." -ForegroundColor Yellow
 
     # Install missing apps (PowerShell 7+ supports parallel processing)
     if ($PSVersionTable.PSVersion.Major -ge 7) {
@@ -291,8 +233,8 @@ function Install-LazyVim {
     try {
         Write-Host "=== Starting LazyVim Installation ===" -ForegroundColor Cyan
 
-        # First ensure Neovim is installed
-        if (-not (Test-AppInstalled -appId "Neovim.Neovim")) {
+        # First ensure Neovim is installed (should be installed by Install-Apps, but check anyway)
+        if (-not (Get-Command nvim -ErrorAction SilentlyContinue)) {
             Write-Host "Installing Neovim as prerequisite..." -ForegroundColor Yellow
             winget install --id Neovim.Neovim --accept-package-agreements --accept-source-agreements -e 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
