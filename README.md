@@ -107,7 +107,7 @@ After running the setup script:
 - **Windows Terminal config** - Sets PowerShell 7 as default with Fira Code Nerd Font Mono
 - **Smart caching** - Skips recreating scheduled tasks and capabilities if already correct
 - **SSH server setup** - Configures OpenSSH server with key import from GitHub
-- **No user prompts** - Handles NuGet, PSGallery, and all dependencies automatically (except SSH)
+- **NuGet ready** - Installs NuGet provider at start, PSGallery trusted automatically
 
 ### Interactive Options
 - **Password change** - Optional secure password update

@@ -18,64 +18,33 @@ try {
     }
 }
 
-# Setup PowerShell Gallery and NuGet for module installation
-Write-Host "Setting up PowerShell Gallery for module installation..." -ForegroundColor Cyan
+# Install NuGet provider if needed (will prompt user if required)
+Write-Host "Checking NuGet provider..." -ForegroundColor Cyan
 try {
-    # Install/update NuGet provider with maximum suppression
     $nugetProvider = Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue
     if (-not $nugetProvider -or $nugetProvider.Version -lt [version]"2.8.5.201") {
-        Write-Host "Installing/updating NuGet provider..." -ForegroundColor Yellow
-        try {
-            # Method 1: Try to install with maximum suppression
-            $installCmd = "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:`$false -AcceptLicense"
-            try {
-                Invoke-Expression $installCmd | Out-Null
-                Write-Host "NuGet provider installed via Invoke-Expression" -ForegroundColor Green
-            }
-            catch {
-                # Method 2: If that fails, try a different approach
-                try {
-                    # Try using the bootstrap script approach
-                    $bootstrapUrl = "https://raw.githubusercontent.com/PowerShell/PowerShellGet/master/src/PowerShellGet/install-module.ps1"
-                    Invoke-WebRequest -Uri $bootstrapUrl -UseBasicParsing | Invoke-Expression
-                    Write-Host "NuGet provider installed via bootstrap" -ForegroundColor Green
-                }
-                catch {
-                    Write-Host "Warning: Could not install NuGet provider automatically" -ForegroundColor Yellow
-                    Write-Host "Module installation may still work if NuGet is already available" -ForegroundColor Yellow
-                }
-            }
-        }
-        catch {
-            Write-Host "Warning: NuGet provider installation failed: $_" -ForegroundColor Yellow
-        }
+        Write-Host "Installing NuGet provider..." -ForegroundColor Yellow
+        Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+        Write-Host "NuGet provider installed" -ForegroundColor Green
     } else {
         Write-Host "NuGet provider is up to date" -ForegroundColor Blue
     }
+}
+catch {
+    Write-Host "Warning: Could not install NuGet provider automatically: $_" -ForegroundColor Yellow
+    Write-Host "Module installation may prompt for NuGet setup later" -ForegroundColor Yellow
+}
 
-    # Set PSGallery as trusted with force
+# Set PSGallery as trusted (required for module installation)
+try {
     $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
     if ($psGallery -and $psGallery.InstallationPolicy -ne "Trusted") {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted -ErrorAction SilentlyContinue
         Write-Host "PSGallery set as trusted repository" -ForegroundColor Green
-    } else {
-        Write-Host "PSGallery is already trusted" -ForegroundColor Blue
-    }
-
-    # Additional check: Try to install a dummy module to ensure everything works
-    try {
-        $testModule = Get-Module -Name PackageManagement -ListAvailable -ErrorAction SilentlyContinue
-        if ($testModule) {
-            Write-Host "PowerShell Gallery setup verified" -ForegroundColor Green
-        }
-    }
-    catch {
-        Write-Host "Warning: PowerShell Gallery setup may need verification" -ForegroundColor Yellow
     }
 }
 catch {
-    Write-Host "Warning: Could not setup PowerShell Gallery: $_" -ForegroundColor Yellow
-    Write-Host "Module installation may require manual intervention" -ForegroundColor Yellow
+    # Silently continue if this fails - module installation will prompt if needed
 }
 
 Write-Host @"
