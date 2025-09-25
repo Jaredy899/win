@@ -1,3 +1,8 @@
+# Suppress all progress bars and verbose output
+$ProgressPreference = 'SilentlyContinue'
+$VerbosePreference = 'SilentlyContinue'
+$WarningPreference = 'SilentlyContinue'
+
 # ANSI color codes for consistent output
 $esc   = [char]27
 $Cyan  = "${esc}[36m"
@@ -138,12 +143,12 @@ function Install-Winget {
         Start-BitsTransfer -Source $xamlUrl -Destination $xamlPackage -ErrorAction Stop
 
         if (-not (Get-AppxPackage -Name "*VCLibs*" | Where-Object { $_.Version -ge "14.0.33321.0" })) {
-            Add-AppxPackage -Path $vclibsPackage
+            Add-AppxPackage -Path $vclibsPackage | Out-Null
         }
         if (-not (Get-AppxPackage -Name "*UI.Xaml*" | Where-Object { $_.Version -ge "2.8.6.0" })) {
-            Add-AppxPackage -Path $xamlPackage
+            Add-AppxPackage -Path $xamlPackage | Out-Null
         }
-        Add-AppxPackage -Path $wingetPackage
+        Add-AppxPackage -Path $wingetPackage | Out-Null
 
         Write-Host "${Green}Winget installed successfully!${Reset}"
     } catch {
@@ -388,9 +393,9 @@ function Initialize-NeovimConfig {
     # Backup existing config if it exists
     if (Test-Path -Path $nvimConfigDir) {
         $backupDir = "$nvimConfigDir.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-        Copy-Item -Path $nvimConfigDir -Destination $backupDir -Recurse -Force
+        Copy-Item -Path $nvimConfigDir -Destination $backupDir -Recurse -Force | Out-Null
         Write-Host "${Yellow}Backed up existing Neovim config to: $backupDir${Reset}"
-        Remove-Item -Path $nvimConfigDir -Recurse -Force
+        Remove-Item -Path $nvimConfigDir -Recurse -Force | Out-Null
     }
 
     # Create nvim config directory
@@ -404,7 +409,7 @@ function Initialize-NeovimConfig {
         # Remove the .git folder so it can be added to user's own repo later
         $gitDir = Join-Path $nvimConfigDir '.git'
         if (Test-Path $gitDir) {
-            Remove-Item -Path $gitDir -Recurse -Force
+            Remove-Item -Path $gitDir -Recurse -Force | Out-Null
         }
 
         Write-Host "${Green}LazyVim installed! Run 'nvim' to start, then ':LazyHealth' to verify.${Reset}"
@@ -415,8 +420,17 @@ function Initialize-NeovimConfig {
 
 Initialize-NeovimConfig
 
-# Clear any remaining progress output
+# Clear any remaining progress output and suppress all output
 Clear-Host
+# Force suppress any remaining progress indicators
+$ProgressPreference = 'SilentlyContinue'
+$VerbosePreference = 'SilentlyContinue'
+$WarningPreference = 'SilentlyContinue'
+# Redirect any remaining output to null
+$null = Get-Process -Name "winget" -ErrorAction SilentlyContinue
+
+# Small delay to ensure all background processes complete
+Start-Sleep -Milliseconds 500
 
 # Final setup complete message
 Write-Host ''
