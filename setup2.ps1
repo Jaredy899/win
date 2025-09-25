@@ -145,11 +145,41 @@ function Set-SSHConfiguration {
     }
 }
 
+# Function: Download and parse IANA → Windows timezone mapping
+function Get-IanaToWindowsTimeZoneMap {
+    param(
+        [string]$Url = "https://raw.githubusercontent.com/unicode-org/cldr/main/common/supplemental/windowsZones.xml"
+    )
+
+    try {
+        Write-Host "Downloading timezone mapping from CLDR..." -ForegroundColor Yellow
+        [xml]$xml = Invoke-RestMethod -Uri $Url -UseBasicParsing
+
+        $map = @{}
+
+        foreach ($mapZone in $xml.supplementalData.windowsZones.mapTimezones.mapZone) {
+            $windowsTz = $mapZone.other
+            $ianaTzs   = $mapZone.type -split " "
+
+            foreach ($iana in $ianaTzs) {
+                if (-not $map.ContainsKey($iana)) {
+                    $map[$iana] = $windowsTz
+                }
+            }
+        }
+
+        return $map
+    }
+    catch {
+        Write-Host "Failed to download or parse timezone mapping: $_" -ForegroundColor Red
+        return $null
+    }
+}
+
 function Set-TimeSettings {
     Try {
         # Attempt to automatically detect timezone
         Try {
-            # Try multiple geolocation services
             $timezone = $null
             
             # Try ipapi.co first
@@ -161,18 +191,11 @@ function Set-TimeSettings {
             
             if ($timezone) {
                 Write-Host "Detected timezone: $timezone" -ForegroundColor Yellow
-                
-                # Simplified mapping for common US timezones
-                $tzMapping = @{
-                    'America/New_York' = 'Eastern Standard Time'
-                    'America/Chicago' = 'Central Standard Time'
-                    'America/Denver' = 'Mountain Standard Time'
-                    'America/Los_Angeles' = 'Pacific Standard Time'
-                    'America/Anchorage' = 'Alaskan Standard Time'
-                    'Pacific/Honolulu' = 'Hawaiian Standard Time'
-                }
 
-                if ($tzMapping.ContainsKey($timezone)) {
+                # Load IANA → Windows mapping
+                $tzMapping = Get-IanaToWindowsTimeZoneMap
+
+                if ($tzMapping -and $tzMapping.ContainsKey($timezone)) {
                     $windowsTimezone = $tzMapping[$timezone]
                     tzutil /s $windowsTimezone *>$null
                     Write-Host "Time zone automatically set to $windowsTimezone" -ForegroundColor Green
@@ -183,48 +206,18 @@ function Set-TimeSettings {
                 throw "Could not detect timezone"
             }
         } Catch {
-            Write-Host "Automatic timezone detection failed. Falling back to manual selection..." -ForegroundColor Yellow
-            # Display options for time zones
-            Write-Host "Select a time zone from the options below:" -ForegroundColor Cyan
-            $timeZones = @(
-                "Eastern Standard Time",
-                "Central Standard Time",
-                "Mountain Standard Time",
-                "Pacific Standard Time",
-                "Greenwich Standard Time",
-                "UTC",
-                "Hawaiian Standard Time",
-                "Alaskan Standard Time"
-            )
-            
-            # Display the list of options
-            for ($i = 0; $i -lt $timeZones.Count; $i++) {
-                Write-Output "$($i + 1). $($timeZones[$i])"
-            }
-
-            # Prompt the user to select a time zone
-            $selection = Read-Host "Enter the number corresponding to your time zone"
-
-            # Validate input and set the time zone
-            if ($selection -match '^\d+$' -and $selection -gt 0 -and $selection -le $timeZones.Count) {
-                $selectedTimeZone = $timeZones[$selection - 1]
-                tzutil /s "$selectedTimeZone" *>$null
-                Write-Output "Time zone set to $selectedTimeZone."
-            } else {
-                Write-Output "Invalid selection. Please run the script again and choose a valid number."
-                return
-            }
+            Write-Host "Auto-detection failed. Skipping timezone setup." -ForegroundColor Yellow
         }
 
-        # Configure the time synchronization settings using time.nist.gov
+        # Configure time sync
         w32tm /config /manualpeerlist:"time.nist.gov,0x1" /syncfromflags:manual /reliable:YES /update *>$null
         Set-Service -Name w32time -StartupType Automatic *>$null
         Start-Service -Name w32time *>$null
         w32tm /resync *>$null
 
-        Write-Output "Time settings configured and synchronized using time.nist.gov."
+        Write-Host "Time settings configured and synchronized." -ForegroundColor Green
     } Catch {
-        Write-Output "Failed to configure time settings or synchronization: $($_)"
+        Write-Host "Failed to configure time settings: $($_)" -ForegroundColor Red
     }
 }
 
@@ -259,26 +252,6 @@ function Disable-WindowsRecall {
     }
 }
 
-function Remove-EdgeShortcut {
-    # Get the path to the current user's desktop
-    $desktopPath = [Environment]::GetFolderPath("Desktop")
-
-    # Define the name of the Edge shortcut
-    $edgeShortcutName = "Microsoft Edge.lnk"
-
-    # Construct the full path to the Edge shortcut
-    $edgeShortcutPath = Join-Path -Path $desktopPath -ChildPath $edgeShortcutName
-
-    # Check if the shortcut exists
-    if (Test-Path $edgeShortcutPath) {
-        # If it exists, delete the shortcut
-        Remove-Item -Path $edgeShortcutPath -Force
-        Write-Host "Microsoft Edge shortcut has been deleted from the desktop." -ForegroundColor Green
-    } else {
-        # If it doesn't exist, inform the user
-        Write-Host "Microsoft Edge shortcut was not found on the desktop." -ForegroundColor Blue
-    }
-}
 
 # Main function to execute all tasks
 function Main {
@@ -291,15 +264,6 @@ function Main {
     Set-SSHConfiguration
     Set-TimeSyncAtStartup
     Disable-WindowsRecall
-    Remove-EdgeShortcut
-
-    Write-Host "##########################################################" -ForegroundColor Cyan
-    Write-Host "#                                                        #" -ForegroundColor Cyan
-    Write-Host "#" -ForegroundColor Cyan -NoNewline
-    Write-Host "     EVERYTHING SUCCESSFULLY INSTALLED AND ENABLED      " -ForegroundColor Green -NoNewline
-    Write-Host "#" -ForegroundColor Cyan
-    Write-Host "#                                                        #" -ForegroundColor Cyan
-    Write-Host "##########################################################" -ForegroundColor Cyan
 }
 
 # Execute the main function
