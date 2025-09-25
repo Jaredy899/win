@@ -57,7 +57,7 @@ function Invoke-CloneDotfiles {
         Write-Host "${Cyan}Dotfiles directory exists. Pulling latest changes...${Reset}"
         try {
             Push-Location $dotfilesDir
-            git pull
+            git pull --quiet
             Pop-Location
         } catch {
             Write-Host "${Red}Failed to update dotfiles: $($_.Exception.Message)${Reset}"
@@ -65,7 +65,7 @@ function Invoke-CloneDotfiles {
     } else {
         Write-Host "${Cyan}Cloning dotfiles repository...${Reset}"
         try {
-            git clone $dotfilesRepo $dotfilesDir
+            git clone --quiet $dotfilesRepo $dotfilesDir
             Write-Host "${Green}Dotfiles cloned successfully!${Reset}"
         } catch {
             Write-Host "${Red}Failed to clone dotfiles: $($_.Exception.Message)${Reset}"
@@ -181,7 +181,8 @@ function Install-Apps {
     foreach ($app in $apps) {
         Write-Host "${Yellow}Installing $app...${Reset}"
         try {
-            $result = winget install --id $app --accept-package-agreements --accept-source-agreements -e 2>&1
+            # Suppress progress bars and verbose output
+            $result = winget install --id $app --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>&1 | Out-String
             if ($LASTEXITCODE -eq 0 -or $result -match "already installed") {
                 Write-Host "${Green}$app installed successfully!${Reset}"
             } else {
@@ -398,7 +399,7 @@ function Initialize-NeovimConfig {
     # Clone LazyVim starter template
     try {
         Write-Host "${Cyan}Cloning LazyVim starter template...${Reset}"
-        git clone https://github.com/LazyVim/starter $nvimConfigDir
+        git clone --quiet https://github.com/LazyVim/starter $nvimConfigDir
 
         # Remove the .git folder so it can be added to user's own repo later
         $gitDir = Join-Path $nvimConfigDir '.git'
@@ -413,6 +414,9 @@ function Initialize-NeovimConfig {
 }
 
 Initialize-NeovimConfig
+
+# Clear any remaining progress output
+Clear-Host
 
 # Final setup complete message
 Write-Host ''
@@ -436,3 +440,5 @@ Write-Host '• No external dependencies - completely self-contained' -Foregroun
 Write-Host '• One script transforms any Windows machine into your perfect dev environment' -ForegroundColor White
 
 Write-Host "${Green}`n🚀 Development environment setup complete!${Reset}"
+Write-Host "${Yellow}`nPress any key to exit...${Reset}"
+$null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
