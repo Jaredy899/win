@@ -114,7 +114,7 @@ while ($true) {
                 0 { Invoke-Script -scriptName "Windows-Update.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
                 1 { Invoke-Script -scriptName "setup2.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
                 2 { Invoke-Script -scriptName "add_ssh_key_windows.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
-                3 { Invoke-Script -scriptName "pwsh.ps1" -localPath "$GITPATH\my_powershell" -url "$GITHUB_BASE_URL/my_powershell" }
+                3 { Invoke-Script -scriptName "pwsh.ps1" -localPath $GITPATH -url $GITHUB_BASE_URL }
                 4 { Invoke-WindowsActivation }
                 5 { Get-NordBackgrounds }
                 6 { Invoke-ChrisTitusTechUtility }
