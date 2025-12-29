@@ -156,6 +156,48 @@ function Install-Winget {
     }
 }
 
+# Font installation function
+function Install-FiraCodeFont {
+    # Check if already installed
+    if (Get-ChildItem -Path "C:\Windows\Fonts" -Filter "*FiraCode*" -ErrorAction SilentlyContinue) {
+        Write-Host "${Cyan}Fira Code Nerd Font already installed.${Reset}"
+        return
+    }
+
+    try {
+        Write-Host "${Yellow}Installing Fira Code Nerd Font...${Reset}"
+        
+        # Get latest release
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest"
+        $asset = $release.assets | Where-Object { $_.name -like "FiraCode*.zip" } | Select-Object -First 1
+        
+        if (-not $asset) {
+            Write-Host "${Red}Could not find FiraCode font in latest release.${Reset}"
+            return
+        }
+
+        # Download and extract
+        $zipPath = "$env:TEMP\FiraCode.zip"
+        Save-RemoteFile -Url $asset.browser_download_url -Destination $zipPath | Out-Null
+        $extractPath = "$env:TEMP\FiraCode"
+        Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+
+        # Install fonts (copy directly to Fonts folder)
+        Get-ChildItem -Path $extractPath -Recurse -Filter "*.ttf" | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination "C:\Windows\Fonts\$($_.Name)" -Force -ErrorAction SilentlyContinue
+        }
+
+        # Cleanup
+        Remove-Item -Path $extractPath -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+
+        Write-Host "${Green}Fira Code Nerd Font installed!${Reset}"
+    }
+    catch {
+        Write-Host "${Red}Failed to install Fira Code Nerd Font: $_${Reset}"
+    }
+}
+
 # Install applications
 function Install-Apps {
     $apps = @(
@@ -169,9 +211,9 @@ function Install-Apps {
         "sxyazi.yazi",
         "Microsoft.WindowsTerminal",
         "Microsoft.PowerShell",
+        "Helix.Helix",
         "Neovim.Neovim",
         "Git.Git",
-        "DEVCOM.JetBrainsMonoNerdFont",
         "jdx.mise",
         "Gyan.FFmpeg",
         "7zip.7zip",
@@ -202,6 +244,7 @@ function Install-Apps {
 # Install Winget and apps
 Install-Winget
 Install-Apps
+Install-FiraCodeFont
 
 # Refresh environment variables
 Write-Host "${Cyan}Refreshing environment variables...${Reset}"
@@ -438,7 +481,7 @@ Write-Host "${Cyan}🎉 COMPLETE SELF-CONTAINED SETUP!${Reset}"
 Write-Host "Everything uses your dotfiles repository - no external downloads needed!" -ForegroundColor White
 Write-Host ''
 Write-Host "${Cyan}Font setup:${Reset}"
-Write-Host "JetBrains Mono Nerd Font is installed via Winget. Set it in Windows Terminal." -ForegroundColor White
+Write-Host "Fira Code Nerd Font is installed. Set it in Windows Terminal." -ForegroundColor White
 Write-Host ''
 Write-Host "${Cyan}Configuration:${Reset}"
 Write-Host '• PowerShell profiles: ~/powershell/Microsoft.PowerShell_profile.ps1' -ForegroundColor White
