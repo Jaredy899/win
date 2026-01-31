@@ -115,8 +115,30 @@ function Enable-ICMPv4 {
 }
 
 # ============================================================================
-# OPENSSH (using winget - much faster than Windows Capability)
+# OPENSSH
 # ============================================================================
+
+function Get-WingetCmd {
+    # Refresh PATH
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    $wingetPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
+    if ($env:Path -notlike "*$wingetPath*") {
+        $env:Path += ";$wingetPath"
+    }
+    
+    $wingetCmd = Get-Command winget -ErrorAction SilentlyContinue
+    if ($wingetCmd) { return $wingetCmd.Source }
+    
+    $paths = @(
+        "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+    )
+    foreach ($p in $paths) {
+        $found = Get-Item $p -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) { return $found.FullName }
+    }
+    return $null
+}
 
 function Install-OpenSSH {
     Write-Host "${Yellow}Installing OpenSSH...${Reset}"
@@ -126,12 +148,21 @@ function Install-OpenSSH {
     if ($sshdService) {
         Write-Host "${Blue}OpenSSH Server already installed.${Reset}"
     } else {
-        Write-Host "${Yellow}Installing OpenSSH via winget (faster than Windows Capability)...${Reset}"
-        winget install Microsoft.OpenSSH.Beta --accept-package-agreements --accept-source-agreements --silent 2>&1 | Out-Null
+        $installed = $false
         
-        if ($LASTEXITCODE -ne 0) {
-            # Fallback to Windows Capability if winget fails
-            Write-Host "${Yellow}Winget failed, falling back to Windows Capability...${Reset}"
+        # Try winget first (faster)
+        $winget = Get-WingetCmd
+        if ($winget) {
+            Write-Host "${Yellow}Installing OpenSSH via winget...${Reset}"
+            & $winget install Microsoft.OpenSSH.Preview --accept-package-agreements --accept-source-agreements --silent 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                $installed = $true
+            }
+        }
+        
+        # Fallback to Windows Capability
+        if (-not $installed) {
+            Write-Host "${Yellow}Using Windows Capability to install OpenSSH...${Reset}"
             Add-WindowsCapability -Online -Name "OpenSSH.Client~~~~0.0.1.0" *>$null
             Add-WindowsCapability -Online -Name "OpenSSH.Server~~~~0.0.1.0" *>$null
         }

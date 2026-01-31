@@ -77,11 +77,38 @@ function Save-RemoteFile {
 # WINGET FUNCTIONS
 # ============================================================================
 
-function Get-WingetStatus {
+function Refresh-Path {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    # Also add common winget location
+    $wingetPath = "$env:LOCALAPPDATA\Microsoft\WindowsApps"
+    if ($env:Path -notlike "*$wingetPath*") {
+        $env:Path += ";$wingetPath"
+    }
+}
+
+function Get-WingetCmd {
+    # Try to find winget
     $wingetCmd = Get-Command winget -ErrorAction SilentlyContinue
+    if ($wingetCmd) { return $wingetCmd.Source }
+    
+    # Check common locations
+    $paths = @(
+        "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+    )
+    foreach ($p in $paths) {
+        $found = Get-Item $p -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) { return $found.FullName }
+    }
+    return $null
+}
+
+function Get-WingetStatus {
+    Refresh-Path
+    $wingetCmd = Get-WingetCmd
     if ($wingetCmd) {
-        $installedVersion = (winget --version).Trim('v')
         try {
+            $installedVersion = (& $wingetCmd --version).Trim('v')
             $latestVersion = (Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli/releases/latest").tag_name.Trim('v')
             if ([version]$installedVersion -lt [version]$latestVersion) {
                 return "outdated"
@@ -132,6 +159,10 @@ function Install-Winget {
         }
         Add-AppxPackage -Path $wingetPackage | Out-Null
 
+        # Refresh PATH so winget is available
+        Refresh-Path
+        Start-Sleep -Seconds 2
+        
         Write-Host "${Green}Winget installed successfully.${Reset}"
         return $true
     } catch {
@@ -143,21 +174,42 @@ function Install-Winget {
 function Install-Apps {
     Write-Host "${Cyan}=== Installing Applications ===${Reset}"
     
+    # Find winget
+    $winget = Get-WingetCmd
+    if (-not $winget) {
+        Write-Host "${Red}Winget not found. Please install winget first.${Reset}"
+        return $false
+    }
+    
     # Try local first, then download from GitHub
-    $appsJson = Join-Path $scriptDir "apps.json"
-    if (-not (Test-Path $appsJson)) {
+    $appsJson = $null
+    
+    # Check local script directory
+    if ($scriptDir -and (Test-Path $scriptDir)) {
+        $localAppsJson = Join-Path $scriptDir "apps.json"
+        if (Test-Path $localAppsJson) {
+            $appsJson = $localAppsJson
+            Write-Host "${Blue}Using local apps.json${Reset}"
+        }
+    }
+    
+    # Download from GitHub if not found locally
+    if (-not $appsJson) {
         Write-Host "${Yellow}Downloading apps.json from GitHub...${Reset}"
         $appsJson = "$env:TEMP\apps.json"
         try {
-            Invoke-WebRequest -Uri "$githubBaseUrl/apps.json" -OutFile $appsJson -UseBasicParsing
+            Invoke-WebRequest -Uri "$githubBaseUrl/apps.json" -OutFile $appsJson -UseBasicParsing -ErrorAction Stop
+            Write-Host "${Green}Downloaded apps.json${Reset}"
         } catch {
-            Write-Host "${Red}Failed to download apps.json: $($_.Exception.Message)${Reset}"
+            Write-Host "${Red}Failed to download apps.json from GitHub.${Reset}"
+            Write-Host "${Yellow}URL: $githubBaseUrl/apps.json${Reset}"
+            Write-Host "${Yellow}Make sure the file exists on the main branch.${Reset}"
             return $false
         }
     }
 
     Write-Host "${Yellow}Installing applications from apps.json...${Reset}"
-    winget import -i $appsJson --accept-package-agreements --accept-source-agreements --ignore-unavailable
+    & $winget import -i $appsJson --accept-package-agreements --accept-source-agreements --ignore-unavailable
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "${Green}Applications installed successfully.${Reset}"
