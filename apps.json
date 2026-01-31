@@ -1,0 +1,37 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "Sources": [
+    {
+      "Packages": [
+        { "PackageIdentifier": "Starship.Starship" },
+        { "PackageIdentifier": "junegunn.fzf" },
+        { "PackageIdentifier": "ajeetdsouza.zoxide" },
+        { "PackageIdentifier": "Fastfetch-cli.Fastfetch" },
+        { "PackageIdentifier": "sharkdp.bat" },
+        { "PackageIdentifier": "GNU.Nano" },
+        { "PackageIdentifier": "eza-community.eza" },
+        { "PackageIdentifier": "sxyazi.yazi" },
+        { "PackageIdentifier": "Microsoft.WindowsTerminal" },
+        { "PackageIdentifier": "Microsoft.PowerShell" },
+        { "PackageIdentifier": "Helix.Helix" },
+        { "PackageIdentifier": "Neovim.Neovim" },
+        { "PackageIdentifier": "Git.Git" },
+        { "PackageIdentifier": "jdx.mise" },
+        { "PackageIdentifier": "Gyan.FFmpeg" },
+        { "PackageIdentifier": "7zip.7zip" },
+        { "PackageIdentifier": "M2Team.NanaZip" },
+        { "PackageIdentifier": "jqlang.jq" },
+        { "PackageIdentifier": "oschwartz10612.Poppler" },
+        { "PackageIdentifier": "sharkdp.fd" },
+        { "PackageIdentifier": "BurntSushi.ripgrep.MSVC" },
+        { "PackageIdentifier": "ImageMagick.ImageMagick" }
+      ],
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      }
+    }
+  ]
+}
