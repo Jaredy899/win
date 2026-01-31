@@ -72,7 +72,8 @@ function Invoke-Script {
         Write-Host "${Cyan}Downloading and running $scriptName...${Reset}"
         $tempScript = "$env:TEMP\$scriptName"
         Invoke-RestMethod -Uri "$url/$scriptName" -OutFile $tempScript
-        & $tempScript
+        # Run with bypass to avoid execution policy issues
+        & powershell -ExecutionPolicy Bypass -File $tempScript
         Remove-Item $tempScript -Force -ErrorAction SilentlyContinue
     }
 }
