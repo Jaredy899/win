@@ -1,19 +1,47 @@
-# Windows Development Setup
+# Windows Setup
 
-One-command setup for Windows development environments.
-
-## 🚀 Quick Start
-
-Run terminal as admin:
+One command to set up a complete Windows dev environment.
 
 ```powershell
 irm jaredcervantes.com/win | iex
 ```
 
-## 📦 What Gets Installed
+---
 
-**Apps:** Starship, fzf, zoxide, Fastfetch, bat, Nano, eza, yazi, Windows Terminal, PowerShell, LazyVim, Git
+## What's Included
 
-**Configs:** PowerShell profile, Starship prompt, Fastfetch display, terminal icons
+**Dev Tools**
+- PowerShell 7, Windows Terminal, Git
+- Neovim (LazyVim), Helix, Nano
+- Starship prompt, fzf, zoxide, eza, bat, ripgrep, fd
+- mise (version manager), yazi (file manager), fastfetch
 
-**Admin Features:** Remote Desktop, OpenSSH, firewall rules, timezone sync
+**Fonts & Config**
+- Fira Code Nerd Font (auto-installed)
+- Windows Terminal auto-configured
+- Dotfiles symlinked from your repo
+
+**Admin Setup**
+- OpenSSH Server (fast install via winget)
+- Remote Desktop + firewall rules
+- Automatic timezone detection
+- Time sync scheduled task
+
+---
+
+## Scripts
+
+| Script | What it does |
+|--------|--------------|
+| `menu.ps1` | Interactive menu (entry point) |
+| `dev-setup.ps1` | Apps, fonts, configs, dotfiles |
+| `admin-setup.ps1` | SSH, RDP, firewall, timezone |
+| `ssh-keys.ps1` | Import/manage SSH keys |
+| `windows-update.ps1` | Windows Update helper |
+
+---
+
+## Requirements
+
+- Windows 10 (1809+) or Windows 11
+- Run as Administrator
