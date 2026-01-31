@@ -3,6 +3,7 @@
 One command to set up a complete Windows dev environment.
 
 ```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 irm jaredcervantes.com/win | iex
 ```
 
