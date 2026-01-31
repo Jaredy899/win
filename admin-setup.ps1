@@ -169,12 +169,24 @@ function Install-OpenSSH {
     }
     
     # Configure SSH service
+    $sshConfigured = $false
     Try {
-        Start-Service sshd -ErrorAction SilentlyContinue
-        Set-Service -Name sshd -StartupType 'Automatic'
-        Write-Host "${Green}SSH service configured.${Reset}"
+        $svc = Get-Service -Name sshd -ErrorAction SilentlyContinue
+        if ($svc) {
+            if ($svc.Status -ne 'Running') {
+                Start-Service sshd -ErrorAction Stop
+            }
+            Set-Service -Name sshd -StartupType 'Automatic' -ErrorAction Stop
+            $sshConfigured = $true
+            Write-Host "${Green}SSH service configured.${Reset}"
+        }
     } Catch {
-        Write-Host "${Red}Failed to configure SSH service: $($_)${Reset}"
+        if ($_.Exception.Message -match "marked for deletion") {
+            Write-Host "${Yellow}SSH is working but auto-start config failed (pending reboot).${Reset}"
+            Write-Host "${Yellow}SSH will work now, but may not auto-start until you reboot.${Reset}"
+        } else {
+            Write-Host "${Red}Failed to configure SSH service: $($_.Exception.Message)${Reset}"
+        }
     }
     
     # Firewall rule
