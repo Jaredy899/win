@@ -17,6 +17,7 @@ $Reset = "${esc}[0m"
 
 # Script directory and dotfiles config
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$githubBaseUrl = "https://raw.githubusercontent.com/Jaredy899/win/main"
 $dotfilesRepo = if ($env:DOTFILES_REPO) { $env:DOTFILES_REPO } else { "https://github.com/Jaredy899/dotfiles.git" }
 $dotfilesDir = "$env:USERPROFILE\dotfiles"
 
@@ -142,11 +143,17 @@ function Install-Winget {
 function Install-Apps {
     Write-Host "${Cyan}=== Installing Applications ===${Reset}"
     
+    # Try local first, then download from GitHub
     $appsJson = Join-Path $scriptDir "apps.json"
     if (-not (Test-Path $appsJson)) {
-        Write-Host "${Red}apps.json not found at: $appsJson${Reset}"
-        Write-Host "${Yellow}Please ensure apps.json exists in the script directory.${Reset}"
-        return $false
+        Write-Host "${Yellow}Downloading apps.json from GitHub...${Reset}"
+        $appsJson = "$env:TEMP\apps.json"
+        try {
+            Invoke-WebRequest -Uri "$githubBaseUrl/apps.json" -OutFile $appsJson -UseBasicParsing
+        } catch {
+            Write-Host "${Red}Failed to download apps.json: $($_.Exception.Message)${Reset}"
+            return $false
+        }
     }
 
     Write-Host "${Yellow}Installing applications from apps.json...${Reset}"
@@ -426,6 +433,18 @@ function Install-TerminalIcons {
     }
 
     try {
+        # Ensure NuGet provider is installed
+        if (-not (Get-PackageProvider -ListAvailable -Name NuGet -ErrorAction SilentlyContinue)) {
+            Write-Host "${Yellow}Installing NuGet provider...${Reset}"
+            Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force | Out-Null
+        }
+        
+        # Trust PSGallery
+        $psGallery = Get-PSRepository -Name PSGallery -ErrorAction SilentlyContinue
+        if ($psGallery -and $psGallery.InstallationPolicy -ne "Trusted") {
+            Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        }
+        
         Install-Module -Name Terminal-Icons -Repository PSGallery -Force -Scope CurrentUser
         Write-Host "${Green}Terminal-Icons installed.${Reset}"
     } catch {
